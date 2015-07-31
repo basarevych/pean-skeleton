@@ -6,11 +6,12 @@ html(ng-app="app")
     head
         title(ng-bind="pageTitle")= glMessage('APP_TITLE')
         block head
+            link(rel="shortcut icon", type="image/x-icon", href="img/favicon.ico")
             if env == 'development'
-                link(rel='stylesheet', href='/css/vendor.css')
-                link(rel='stylesheet', href='/css/app.css')
+                link(rel='stylesheet', href='css/vendor.css')
+                link(rel='stylesheet', href='css/app.css')
             else
-                link(rel='stylesheet', href='/css/vendor.min.css')
-                link(rel='stylesheet', href='/css/app.min.css')
+                link(rel='stylesheet', href='css/vendor.min.css')
+                link(rel='stylesheet', href='css/app.min.css')
     body(class=bodyClass)
         block content
