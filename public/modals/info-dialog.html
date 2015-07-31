@@ -1,0 +1,17 @@
+<div class="modal-header">
+    <button class="close" ng-click="$dismiss()">&times;</button>
+    <h4 class="modal-title" ng-show="globalizeReady">{{ title | glMessage:variables }}</h4>
+    <h4 class="modal-title" ng-hide="globalizeReady">Application error</h4>
+</div>
+
+<div class="modal-body">
+    <p ng-repeat="message in text" ng-show="globalizeReady">{{ message | glMessage:variables }}</p>
+    <p ng-hide="globalizeReady">Error loading application</p>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" ng-hide="!globalizeReady || yes.length" ng-click="$dismiss()">{{ 'OK_BUTTON' | glMessage }}</button>
+    <button type="button" class="btn btn-default" ng-show="globalizeReady && yes.length" ng-click="$dismiss()">{{ 'CANCEL_BUTTON' | glMessage }}</button>
+    <button type="button" class="btn btn-primary" ng-show="globalizeReady && yes.length" ng-click="$close(yes)">{{ yes | glMessage:variables }}</button>
+    <button type="button" class="btn btn-primary" ng-hide="globalizeReady" ng-click="$dismiss()">OK</button>
+</div>

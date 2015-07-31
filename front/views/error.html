@@ -1,0 +1,32 @@
+<div class="container">
+    <div class="row">
+        <div class="col-sm-offset-2 col-sm-8" style="margin-top: 50px">
+            <div ng-switch="appControl.getError()">
+                <div ng-switch-when="CONFIG">
+                    <div class="alert alert-danger">
+                        <h3>APPLICATION IS NOT CONFIGURED</h3>
+                    </div>
+                </div>
+                <div ng-switch-when="ACL">
+                    <div class="alert alert-danger">
+                        <h3>{{ 'ERROR_STATE_DENIED_TITLE' | glMessage | uppercase }}</h3>
+                        <h4>{{ 'ERROR_STATE_DENIED_TEXT' | glMessage }}</h4>
+                        <p>
+                            <button type="button" class="btn btn-default" ng-click="login()" ng-hide="appControl.hasToken()">
+                                {{ 'SIGN_IN_BUTTON' | glMessage }}
+                            </button>
+                            <a ui-sref="layout.index" class="btn btn-default">
+                                {{ 'INDEX_PAGE_LINK_TEXT' | glMessage }}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                <div ng-switch-default>
+                    <div class="alert alert-danger">
+                        <h3>APPLICATION ERROR</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

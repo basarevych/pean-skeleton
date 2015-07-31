@@ -1,0 +1,17 @@
+block variables
+    - var bodyClass = 'padded'
+
+extends layout
+
+block content
+    .container
+        .col-lg-12
+            .jumbotron
+                h1 #{statusCode} #{statusPhrase}
+                if [400, 401, 403, 404, 405].indexOf(statusCode) != -1
+                    h3= glMessage('HTTP_' + statusCode)
+                else
+                    h3= glMessage('HTTP_500')
+
+                if renderStack
+                    pre= error.stack

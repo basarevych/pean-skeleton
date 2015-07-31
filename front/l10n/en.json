@@ -1,0 +1,38 @@
+{
+    "en": {
+        "APP_TITLE": "P.E.A.N.",
+        "INDEX_PAGE_LINK_TEXT": "Go to index page",
+        "ADMINISTRATION_MENU": "Administration",
+        "USER_MENU": "Users",
+        "SIGN_IN_MENU": "Sign in",
+        "SIGN_OUT_MENU": "Sign out",
+        "CHANGE_PASSWORD_MENU": "Change password",
+        "AUTODETECT_BUTTON": "Autodetect",
+
+        "en": "English",
+
+        "ERROR_STATE_DENIED_TITLE": "Access denied",
+        "ERROR_STATE_DENIED_TEXT": "Requested page requires specific access level",
+        "ERROR_API_DENIED_TITLE": "Action was cancelled",
+        "ERROR_API_DENIED_TEXT": "Action requested is not available for your current access level",
+        "ERROR_API_GENERIC_TITLE": "Server communication error",
+        "ERROR_API_GENERIC_TEXT": "An error encountered while communicating with the server",
+
+        "REQUIRED_FIELD": "REQUIRED FIELD",
+        "VALIDATOR_REQUIRED_FIELD": "Value is required",
+        "VALIDATOR_INPUT_MISMATCH": "The two values do not match",
+
+        "OK_BUTTON": "OK",
+        "CANCEL_BUTTON": "Cancel",
+
+        "SIGN_IN_TITLE": "Sign in",
+        "USERNAME_LABEL": "Login",
+        "PASSWORD_LABEL": "Password",
+        "SIGN_IN_BUTTON": "Sign in",
+
+        "CURRENT_PASSWORD_LABEL": "Current password",
+        "NEW_PASSWORD_LABEL": "New password",
+        "RETYPED_PASSWORD_LABEL": "Retype new password",
+        "CHANGE_PASSWORD_BUTTON": "Change password"
+    }
+}

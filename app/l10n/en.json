@@ -1,0 +1,11 @@
+{
+    "en": {
+        "APP_TITLE": "P.E.A.N.",
+        "HTTP_400": "Invalid request parameters",
+        "HTTP_401": "Authentication is required",
+        "HTTP_403": "Access to requested resource is denied",
+        "HTTP_404": "Requested resource is not found",
+        "HTTP_405": "Requested method is not implemented",
+        "HTTP_500": "Please try again later"
+    }
+}

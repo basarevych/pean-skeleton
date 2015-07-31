@@ -1,0 +1,16 @@
+block variables
+    - var bodyClass = null
+
+doctype html
+html(ng-app="app")
+    head
+        title(ng-bind="pageTitle")= glMessage('APP_TITLE')
+        block head
+            if env == 'development'
+                link(rel='stylesheet', href='/css/vendor.css')
+                link(rel='stylesheet', href='/css/app.css')
+            else
+                link(rel='stylesheet', href='/css/vendor.min.css')
+                link(rel='stylesheet', href='/css/app.min.css')
+    body(class=bodyClass)
+        block content
