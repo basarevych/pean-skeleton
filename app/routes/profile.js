@@ -10,7 +10,7 @@ module.exports = function (app) {
     var router = express.Router();
     var config = app.get('config');
 
-    router.get('/profile', function (req, res) {
+    router.get('/', function (req, res) {
         var result = {
             locale: {
                 current:    app.get('locale'),
@@ -25,5 +25,5 @@ module.exports = function (app) {
         res.json(result);
     });
 
-    app.use('/api', router);
+    app.use('/api/profile', router);
 };
