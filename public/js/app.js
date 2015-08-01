@@ -58,7 +58,9 @@ app.run(
             LoginForm()
                 .then(function (data) {
                     AppControl.setToken(data.token);
-                    $window.location.reload();
+                    AppControl.loadProfile(function () {
+                        $state.go($state.current.name, $stateParams, { reload: true });
+                    });
                 });
         };
 
@@ -680,8 +682,8 @@ module.controller("IndexCtrl",
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$window', '$cookies', '$timeout', 'PasswordForm',
-    function ($scope, $window, $cookies, $timeout, PasswordForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'PasswordForm',
+    function ($scope, $state, $stateParams, $cookies, $timeout, PasswordForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
 
@@ -690,7 +692,10 @@ module.controller("LayoutCtrl",
                 $cookies.remove('locale');
             else
                 $cookies.put('locale', locale);
-            $window.location.reload();
+
+            $scope.appControl.loadProfile(function () {
+                $state.go($state.current.name, $stateParams, { reload: true });
+            });
         };
 
         $scope.changePassword = function () {
@@ -699,7 +704,10 @@ module.controller("LayoutCtrl",
 
         $scope.logout = function () {
             $scope.appControl.removeToken();
-            $window.location.reload();
+
+            $scope.appControl.loadProfile(function () {
+                $state.go($state.current.name, $stateParams, { reload: true });
+            });
         };
     } ]
 );
