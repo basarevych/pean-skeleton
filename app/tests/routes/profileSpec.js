@@ -37,6 +37,7 @@ describe('Profile route', function () {
 
     it('autoselects locale', function (done) {
         config['lang']['locales'] = [ 'en', 'ru' ];
+        config['lang']['default'] = 'en';
         app.set('config', config);
 
         request(app)
