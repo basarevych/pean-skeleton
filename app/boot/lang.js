@@ -46,7 +46,12 @@ module.exports = function (app) {
         if (app.get('locale') != lang)
             app.set('locale', lang);
 
-        var globalize = app.get('globalize')(lang);
+        var globalize = null;
+        try {
+            globalize = app.get('globalize')(lang);
+        } catch (err) {
+            logger.warn('globalize', err);
+        }
 
         // add translation helpers
         res.locals.glDate = function (input, params) {
