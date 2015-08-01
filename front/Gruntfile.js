@@ -38,6 +38,7 @@ module.exports = function(grunt) {
                 files: [
                     { // Copy l10n files
                         expand: true,
+                        cwd: '..',
                         src: 'l10n/**',
                         dest: '../public',
                     },

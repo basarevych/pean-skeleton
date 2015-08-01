@@ -28,7 +28,7 @@ module.exports = function (app) {
             require("../../node_modules/cldr-data/main/" + locale + "/dateFields"),
             require("../../node_modules/cldr-data/main/" + locale + "/numbers")
         );
-        globalize.loadMessages(require("../l10n/" + locale));
+        globalize.loadMessages(require("../../l10n/" + locale));
         globalize.locale(locale);
 
         locales[locale] = globalize;
