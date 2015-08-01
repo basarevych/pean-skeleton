@@ -130,7 +130,7 @@ services.factory('AppControl',
             getProfile: function () {
                 return profile;
             },
-            loadProfile: function (reload) {
+            loadProfile: function (done) {
                 var locale = $cookies.get('locale');
                 if (typeof locale == 'undefined')
                     $http.defaults.headers.common['Accept-Language'] = undefined;
@@ -146,10 +146,8 @@ services.factory('AppControl',
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
 
-                        if (reload === true)
-                            $window.location.reload();
-                        else if (typeof reload == 'function')
-                            reload();
+                        if (done)
+                            done();
                     });
             },
             init: function () {

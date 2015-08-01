@@ -38,5 +38,6 @@ require('./app/boot/config.js')(app);       // load configuration
 require('./app/boot/logger.js')(app);       // logger
 require('./app/boot/lang.js')(app);         // translations
 require('./app/boot/session.js')(app);      // session support
+require('./app/boot/jwt.js')(app);          // JSON Web Tokens
 require('./app/boot/routes.js')(app);       // load routes
 require('./app/boot/errors.js')(app);       // error handling

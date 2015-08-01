@@ -48,8 +48,8 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
-    function ($rootScope, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
         $rootScope.pageTitle = 'Loading...',
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
@@ -58,7 +58,7 @@ app.run(
             LoginForm()
                 .then(function (data) {
                     AppControl.setToken(data.token);
-                    $timeout(function () { AppControl.loadProfile(true); }, 101);
+                    $window.location.reload();
                 });
         };
 
@@ -338,27 +338,10 @@ forms.factory('ModalFormCtrl',
                 }
             };
 
-            var requiredFieldsCheck = function (name) {
-                var error = false;
-                $.each($scope.model, function (key, item) {
-                    if ((angular.isUndefined(name) || key == name)
-                            && item.required && item.value.toString().trim().length == 0) {
-                        error = true;
-                        $scope.setValidationError(
-                            key,
-                            $filter('glMessage')('VALIDATOR_REQUIRED_FIELD')
-                        );
-                    }
-                });
-                return !error;
-            };
-
             var doValidate = function (name) {
                 if ($scope.processing)
                     return;
 
-                if (!requiredFieldsCheck(name))
-                    return;
                 if (angular.isDefined(parser) && !parser($scope, 'validation'))
                     return;
                 if (angular.isUndefined(validator))
@@ -408,11 +391,6 @@ forms.factory('ModalFormCtrl',
                 $scope.resetValidation();
                 $scope.processing = true;
 
-                if (!requiredFieldsCheck()) {
-                    $scope.processing = false;
-                    resetFocus();
-                    return;
-                }
                 if (angular.isDefined(parser) && !parser($scope, 'submission')) {
                     $scope.processing = false;
                     resetFocus();
@@ -460,8 +438,8 @@ forms.factory('LoginForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'login',    required: true, value: '', local: false, focus: true },
-                            { name: 'password', required: true, value: '', local: false, focus: false },
+                            { name: 'login',    value: '', local: false, focus: true },
+                            { name: 'password', value: '', local: false, focus: false },
                         ];
                     },
                     parser: function () { return undefined; },
@@ -503,9 +481,9 @@ forms.factory('PasswordForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'currentPassword', required: true, value: '', local: false, focus: true },
-                            { name: 'newPassword',     required: true, value: '', local: false, focus: false },
-                            { name: 'retypedPassword', required: true, value: '', local: true,  focus: false },
+                            { name: 'currentPassword', value: '', local: false, focus: true },
+                            { name: 'newPassword',     value: '', local: false, focus: false },
+                            { name: 'retypedPassword', value: '', local: true,  focus: false },
                         ];
                     },
                     parser: function () { return parser; },
@@ -649,7 +627,7 @@ services.factory('AppControl',
             getProfile: function () {
                 return profile;
             },
-            loadProfile: function (reload) {
+            loadProfile: function (done) {
                 var locale = $cookies.get('locale');
                 if (typeof locale == 'undefined')
                     $http.defaults.headers.common['Accept-Language'] = undefined;
@@ -665,10 +643,8 @@ services.factory('AppControl',
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
 
-                        if (reload === true)
-                            $window.location.reload();
-                        else if (typeof reload == 'function')
-                            reload();
+                        if (done)
+                            done();
                     });
             },
             init: function () {
@@ -704,8 +680,8 @@ module.controller("IndexCtrl",
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$cookies', '$timeout', 'PasswordForm',
-    function ($scope, $cookies, $timeout, PasswordForm) {
+    [ '$scope', '$window', '$cookies', '$timeout', 'PasswordForm',
+    function ($scope, $window, $cookies, $timeout, PasswordForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
 
@@ -714,8 +690,7 @@ module.controller("LayoutCtrl",
                 $cookies.remove('locale');
             else
                 $cookies.put('locale', locale);
-
-            $timeout(function () { $scope.appControl.loadProfile(true); }, 101);
+            $window.location.reload();
         };
 
         $scope.changePassword = function () {
@@ -724,7 +699,7 @@ module.controller("LayoutCtrl",
 
         $scope.logout = function () {
             $scope.appControl.removeToken();
-            $timeout(function () { $scope.appControl.loadProfile(true); }, 101);
+            $window.location.reload();
         };
     } ]
 );

@@ -67,27 +67,10 @@ forms.factory('ModalFormCtrl',
                 }
             };
 
-            var requiredFieldsCheck = function (name) {
-                var error = false;
-                $.each($scope.model, function (key, item) {
-                    if ((angular.isUndefined(name) || key == name)
-                            && item.required && item.value.toString().trim().length == 0) {
-                        error = true;
-                        $scope.setValidationError(
-                            key,
-                            $filter('glMessage')('VALIDATOR_REQUIRED_FIELD')
-                        );
-                    }
-                });
-                return !error;
-            };
-
             var doValidate = function (name) {
                 if ($scope.processing)
                     return;
 
-                if (!requiredFieldsCheck(name))
-                    return;
                 if (angular.isDefined(parser) && !parser($scope, 'validation'))
                     return;
                 if (angular.isUndefined(validator))
@@ -137,11 +120,6 @@ forms.factory('ModalFormCtrl',
                 $scope.resetValidation();
                 $scope.processing = true;
 
-                if (!requiredFieldsCheck()) {
-                    $scope.processing = false;
-                    resetFocus();
-                    return;
-                }
                 if (angular.isDefined(parser) && !parser($scope, 'submission')) {
                     $scope.processing = false;
                     resetFocus();
@@ -189,8 +167,8 @@ forms.factory('LoginForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'login',    required: true, value: '', local: false, focus: true },
-                            { name: 'password', required: true, value: '', local: false, focus: false },
+                            { name: 'login',    value: '', local: false, focus: true },
+                            { name: 'password', value: '', local: false, focus: false },
                         ];
                     },
                     parser: function () { return undefined; },
@@ -232,9 +210,9 @@ forms.factory('PasswordForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'currentPassword', required: true, value: '', local: false, focus: true },
-                            { name: 'newPassword',     required: true, value: '', local: false, focus: false },
-                            { name: 'retypedPassword', required: true, value: '', local: true,  focus: false },
+                            { name: 'currentPassword', value: '', local: false, focus: true },
+                            { name: 'newPassword',     value: '', local: false, focus: false },
+                            { name: 'retypedPassword', value: '', local: true,  focus: false },
                         ];
                     },
                     parser: function () { return parser; },

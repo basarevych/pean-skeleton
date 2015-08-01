@@ -1,5 +1,5 @@
 /**
- * Session configuration
+ * JWT configuration
  */
 
 'use strict'
@@ -11,10 +11,9 @@ module.exports = function (app) {
     var sha256 = crypto.createHash('sha256').update(secret).digest("hex");
 
     return {
-        session: {
-            enable: true,                   // enable session support
-            cookie: 'pean',                 // set it to your app name, alphanumeric
-            secret: sha256,                 // encrypt cookie with this passphrase
+        jwt: {
+            enable: true,                   // enable JWT support
+            secret: sha256,                 // encrypt token with this passphrase
             ttl: 14 * 24 * 60 * 60,         // time to live, seconds, or 0 for browser session
         },
     };

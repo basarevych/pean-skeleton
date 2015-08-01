@@ -46,8 +46,8 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
-    function ($rootScope, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
         $rootScope.pageTitle = 'Loading...',
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
@@ -56,7 +56,7 @@ app.run(
             LoginForm()
                 .then(function (data) {
                     AppControl.setToken(data.token);
-                    $timeout(function () { AppControl.loadProfile(true); }, 101);
+                    $window.location.reload();
                 });
         };
 

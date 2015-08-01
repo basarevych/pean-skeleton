@@ -11,6 +11,8 @@ module.exports = function (app) {
     var config = app.get('config');
 
     router.get('/', function (req, res) {
+        var token = req.token;
+
         var result = {
             locale: {
                 current:    app.get('locale'),
@@ -21,6 +23,11 @@ module.exports = function (app) {
             login:  'anonymous',
             roles:  [],
         };
+
+        if (token) {
+            result['userId'] = 1;
+            result['login'] = 'admin';
+        }
 
         res.json(result);
     });
