@@ -12,6 +12,7 @@ forms.factory('InfoDialog',
             $scope.text = text;
             $scope.yes = yes;
             $scope.variables = variables;
+            $scope.globalizeReady = (globalizeWrapper.getLocale() != null);
         };
 
         return function (params) {
@@ -27,7 +28,6 @@ forms.factory('InfoDialog',
                     text: function () { return angular.isArray(params.text) ? params.text : [params.text]; },
                     yes: function () { return angular.isDefined(params.yes) ? params.yes : ''; },
                     variables: function () { return angular.isDefined(params.variables) ? params.variables : {}; },
-                    globalizeReady: globalizeWrapper.getLocale() != null,
                 }
             });
             modal.result.finally(function () { isOpened = false; });
