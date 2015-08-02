@@ -6,12 +6,21 @@
 
 var bcrypt = require('bcrypt');
 
-function User() {
+function User(dbRow) {
     this.login = null;
     this.password = null;
     this.email = null;
     this.is_admin = false;
     this.created_at = new Date();
+
+    if (dbRow) {
+        this.setId(dbRow.id);
+        this.setLogin(dbRow.login);
+        this.setPassword(dbRow.password);
+        this.setEmail(dbRow.email);
+        this.setIsAdmin(dbRow.is_admin);
+        this.setCreatedAt(dbRow.created_at);
+    }
 };
 
 User.encryptPassword = function (password) {

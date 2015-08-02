@@ -14,6 +14,26 @@ function UserRepository(app) {
 UserRepository.prototype = new BaseRepository();
 UserRepository.prototype.constructor = UserRepository;
 
+UserRepository.prototype.findByLogin = function (login) {
+    var logger = this.app.get('logger');
+    var defer = q.defer();
+
+    this.connect()
+        .then(function (db) {
+            db.users.where("login = $1", login, function (err, rows) {
+                if (err) {
+                    defer.reject();
+                    logger.error('find by login', err);
+                    process.exit(1);
+                }
+
+                defer.resolve(rows);
+            });
+        });
+
+    return defer.promise;
+};
+
 UserRepository.prototype.findByEmail = function (email) {
     var logger = this.app.get('logger');
     var defer = q.defer();

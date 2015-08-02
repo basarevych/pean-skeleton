@@ -7,10 +7,13 @@
 var express = require('express');
 var validator = require('validator');
 var jwt = require('jsonwebtoken');
+var UserRepository = require('../repositories/user');
+var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
     var config = app.get('config');
+    var userRepo = new UserRepository(app);
 
     function parse(field, form, glMessage) {
         var form = {
@@ -54,23 +57,33 @@ module.exports = function (app) {
             });
         }
 
-        if (req.body.login != 'admin' || req.body.password != 'passwd') {
-            return res.json({
-                valid: false,
-                errors: [ glMessage('INVALID_CREDENTIALS') ],
-                fields: {},
+        var user = null;
+        userRepo.findByLogin(req.body.login)
+            .then(function (rows) {
+                var row = rows && rows[0];
+                if (row) {
+                    var user = new UserModel(row);
+                    if (user.checkPassword(req.body.password)) {
+                        var config = app.get('config');
+                        var token = jwt.sign(
+                            { user_id: user.getId() },
+                            config['jwt']['secret'],
+                            { expiresInSeconds: config['jwt']['ttl'] }
+                        );
+
+                        return res.json({
+                            valid: true,
+                            token: token
+                        });
+                    }
+                }
+
+                res.json({
+                    valid: false,
+                    errors: [ glMessage('INVALID_CREDENTIALS') ],
+                    fields: {},
+                });
             });
-        }
-
-        var user = { admin: true };
-
-        var config = app.get('config');
-        var token = jwt.sign(user, config['jwt']['secret'], { expiresInSeconds: config['jwt']['ttl'] });
-
-        res.json({
-            valid: true,
-            token: token
-        });
     });
 
     router.post('/validate', function (req, res) {
