@@ -167,7 +167,7 @@ forms.factory('LoginForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'login',    value: '', local: false, focus: true },
+                            { name: 'email',    value: '', local: false, focus: true },
                             { name: 'password', value: '', local: false, focus: false },
                         ];
                     },

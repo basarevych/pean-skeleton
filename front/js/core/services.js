@@ -14,7 +14,9 @@ services.factory('AppControl',
                 fallback: null,
                 available: [],
             },
-            login: 'anonymous',
+            userId: null,
+            name: 'Anonymous',
+            email: null,
             roles: [],
         };
 

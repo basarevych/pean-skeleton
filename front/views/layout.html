@@ -53,7 +53,7 @@
                 <li class="btn-group" dropdown ng-hide="appControl.getProfile().userId === null">
                     <button type="button" class="btn btn-default navbar-btn dropdown-toggle" dropdown-toggle>
                         <span class="glyphicon glyphicon-user"></span>
-                        {{ appControl.getProfile().login }}
+                        {{ appControl.getProfile().name || appControl.getProfile().email }}
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">

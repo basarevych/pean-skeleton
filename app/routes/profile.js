@@ -5,10 +5,13 @@
 'use strict'
 
 var express = require('express');
+var UserRepository = require('../repositories/user');
+var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
     var config = app.get('config');
+    var userRepo = new UserRepository(app);
 
     router.get('/', function (req, res) {
         var token = req.token;
@@ -20,16 +23,26 @@ module.exports = function (app) {
                 available:  config['lang']['locales'],
             },
             userId: null,
-            login:  'anonymous',
+            name: 'anonymous',
+            email: null,
             roles:  [],
         };
 
-        if (token) {
-            result['userId'] = 1;
-            result['login'] = 'admin';
-        }
+        if (!token)
+            return res.json(result);
 
-        res.json(result);
+        userRepo.find(token.user_id)
+            .then(function (rows) {
+                var row = rows && rows[0];
+                if (!row)
+                    return res.json(result);
+
+                var user = new UserModel(row);
+                result['userId'] = user.getId();
+                result['name'] = user.getName();
+                result['email'] = user.getEmail();
+                return res.json(result);
+            });
     });
 
     app.use('/api/profile', router);

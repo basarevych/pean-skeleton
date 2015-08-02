@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-01 */
+/* pean-skeleton - v0.0.0 - 2015-08-02 */
 
 'use strict';
 
@@ -440,7 +440,7 @@ forms.factory('LoginForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'login',    value: '', local: false, focus: true },
+                            { name: 'email',    value: '', local: false, focus: true },
                             { name: 'password', value: '', local: false, focus: false },
                         ];
                     },
@@ -513,7 +513,9 @@ services.factory('AppControl',
                 fallback: null,
                 available: [],
             },
-            login: 'anonymous',
+            userId: null,
+            name: 'Anonymous',
+            email: null,
             roles: [],
         };
 

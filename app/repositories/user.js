@@ -14,16 +14,16 @@ function UserRepository(app) {
 UserRepository.prototype = new BaseRepository();
 UserRepository.prototype.constructor = UserRepository;
 
-UserRepository.prototype.findByLogin = function (login) {
+UserRepository.prototype.find = function (id) {
     var logger = this.app.get('logger');
     var defer = q.defer();
 
     this.connect()
         .then(function (db) {
-            db.users.where("login = $1", login, function (err, rows) {
+            db.users.find({ id: id }, function (err, rows) {
                 if (err) {
                     defer.reject();
-                    logger.error('find by login', err);
+                    logger.error('find', err);
                     process.exit(1);
                 }
 

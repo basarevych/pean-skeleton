@@ -25,33 +25,28 @@ module.exports = function (app, argv, rl) {
         var userRepo = new UserRepository(app);
 
         rl.write("===> Creating administrator\n");
-        rl.question("-> Administrator username? [admin] ", function (username) {
-            if (!username)
-                username = "admin";
+        rl.question("-> Administrator email? [root@localhost] ", function (email) {
+            if (!email)
+                email = "root@localhost";
 
-            rl.question("-> Administrator email? [root@localhost] ", function (email) {
-                if (!email)
-                    email = "root@localhost";
+            rl.question("-> Administrator password? ", function (password) {
+                userRepo.findByEmail(email)
+                    .then(function (users) {
+                        var user = users.length && users[0];
+                        if (!user) {
+                            var user = new UserModel();
+                            user.setName('Admin');
+                            user.setEmail(email);
+                            user.setPassword(UserModel.encryptPassword(password));
+                            user.setIsAdmin(true);
+                        }
 
-                rl.question("-> Administrator password? ", function (password) {
-                    userRepo.findByEmail(email)
-                        .then(function (users) {
-                            var user = users.length && users[0];
-                            if (!user) {
-                                var user = new UserModel();
-                                user.setLogin(username);
-                                user.setEmail(email);
-                                user.setPassword(UserModel.encryptPassword(password));
-                                user.setIsAdmin(true);
-                            }
-
-                            userRepo.save(user)
-                                .then(function (rows) {
-                                    rl.write("==> Done\n");
-                                    done();
-                                });
-                        });
-                });
+                        userRepo.save(user)
+                            .then(function (rows) {
+                                rl.write("==> Done\n");
+                                done();
+                            });
+                    });
             });
         });
     }

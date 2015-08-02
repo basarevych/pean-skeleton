@@ -26,7 +26,7 @@
         "INDEX_PAGE_LINK_TEXT": "Go to index page",
 
         "REQUIRED_FIELD": "REQUIRED FIELD",
-        "INVALID_CREDENTIALS": "Invalid login or passsword",
+        "INVALID_CREDENTIALS": "Invalid email or passsword",
         "VALIDATOR_REQUIRED_FIELD": "Value is required",
         "VALIDATOR_INPUT_MISMATCH": "The two values do not match",
         "VALIDATOR_MIN_LENGTH": "The input must be at least {min} character(s)",
@@ -35,7 +35,7 @@
         "CANCEL_BUTTON": "Cancel",
 
         "SIGN_IN_TITLE": "Sign in",
-        "USERNAME_LABEL": "Login",
+        "USERNAME_LABEL": "Email",
         "PASSWORD_LABEL": "Password",
         "SIGN_IN_BUTTON": "Sign in",
 

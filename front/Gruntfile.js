@@ -154,7 +154,7 @@ module.exports = function(grunt) {
 
         watch: {
             copy: {
-                files: [ 'l10n/**/*', 'img/**/*', 'modals/**/*', 'views/**/*' ],
+                files: [ '../l10n/**/*', 'img/**/*', 'modals/**/*', 'views/**/*' ],
                 tasks: [ 'copy:app' ]
             },
             js: {

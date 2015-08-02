@@ -7,7 +7,7 @@
 var bcrypt = require('bcrypt');
 
 function User(dbRow) {
-    this.login = null;
+    this.name = null;
     this.password = null;
     this.email = null;
     this.is_admin = false;
@@ -15,7 +15,7 @@ function User(dbRow) {
 
     if (dbRow) {
         this.setId(dbRow.id);
-        this.setLogin(dbRow.login);
+        this.setName(dbRow.name);
         this.setPassword(dbRow.password);
         this.setEmail(dbRow.email);
         this.setIsAdmin(dbRow.is_admin);
@@ -36,12 +36,12 @@ User.prototype.getId = function () {
     return this.id;
 };
 
-User.prototype.setLogin = function (login) {
-    this.login = login;
+User.prototype.setName = function (name) {
+    this.name = name;
 };
 
-User.prototype.getLogin = function () {
-    return this.login;
+User.prototype.getName = function () {
+    return this.name;
 };
 
 User.prototype.setPassword = function (password) {

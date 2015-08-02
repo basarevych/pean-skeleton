@@ -17,14 +17,14 @@ module.exports = function (app) {
 
     function parse(field, form, glMessage) {
         var form = {
-            login: validator.trim(form.login),
+            email: validator.trim(form.email),
             password: validator.trim(form.password)
         };
 
         var errors = [];
         switch (field) {
-            case 'login':
-                if (!validator.isLength(form.login, 1))
+            case 'email':
+                if (!validator.isLength(form.email, 1))
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                 break;
             case 'password':
@@ -44,21 +44,21 @@ module.exports = function (app) {
     router.post('/token', function (req, res) {
         var glMessage = res.locals.glMessage;
 
-        var loginData = parse('login', req.body, res.locals.glMessage);
+        var emailData = parse('email', req.body, res.locals.glMessage);
         var passwordData = parse('password', req.body, res.locals.glMessage);
-        if (!loginData.valid || !passwordData.valid) {
+        if (!emailData.valid || !passwordData.valid) {
             return res.json({
                 valid: false,
                 errors: [],
                 fields: {
-                    login: loginData.errors,
+                    email: emailData.errors,
                     password: passwordData.errors,
                 }
             });
         }
 
         var user = null;
-        userRepo.findByLogin(req.body.login)
+        userRepo.findByEmail(req.body.email)
             .then(function (rows) {
                 var row = rows && rows[0];
                 if (row) {
