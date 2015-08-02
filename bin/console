@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+
+/**
+ * Run console command
+ */
+
+'use strict'
+
+process.env.CONSOLE = true;
+
+var app = require('../app');
+var fs = require('fs');
+var path = require('path');
+var argv = require('minimist')(process.argv.slice(2));
+var readline = require('readline');
+
+var dir = path.join(__dirname, '..', 'app', 'console');
+if (argv['_'].length == 0) {
+    console.log("\nUsage:\tbin/console <command> [<options>]\n\n");
+    console.log("Run \"bin/console help <command>\" for help\n\n");
+    console.log("Available commands:\n");
+    fs.readdirSync(dir).forEach(function (name) {
+        var rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        var obj = require(dir + '/' + name)(app, argv, rl);
+        obj.info(function () { rl.close(); });
+    });
+    console.log("");
+    return;
+}
+
+var name = argv['_'][0];
+if (name == 'help') {
+    if (argv['_'].length <= 1) {
+        console.log("\nRun \"bin/console help <command>\" for help\n");
+        return;
+    }
+
+    name = argv['_'][1];
+}
+
+var objPath = dir + '/' + name + '.js';
+if (!fs.existsSync(objPath)) {
+    console.log("\nUnknown command: " + name + "\n\n");
+    return;
+}
+
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
+var obj = require(objPath)(app, argv, rl);
+if (argv['_'][0] == 'help') {
+    obj.help(function () { rl.close(); });
+    console.log("");
+} else {
+    obj.run(function () { process.exit(0); });
+}
