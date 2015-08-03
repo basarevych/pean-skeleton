@@ -16,7 +16,7 @@ module.exports = function () {
     var logger = locator.get('logger');
 
     app.use(function (req, res, next) {
-        if (app.get('env') == 'test') {
+        if (app.get('env') == 'test') { // override token when testing
             req.token = locator.get('token');
             next();
             return;

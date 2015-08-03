@@ -52,6 +52,12 @@ module.exports = function () {
 
     // expose the "messages" local variable when views are rendered
     app.use(function (req, res, next) {
+        if (app.get('env') == 'test') { // override session when testing
+            var mock = locator.get('session');
+            if (mock)
+                req.session = mock;
+        }
+
         var msgs = req.session.messages || [];
 
         // expose "messages" local variable
