@@ -24,7 +24,7 @@ if (argv['_'].length == 0) {
             input: process.stdin,
             output: process.stdout,
         });
-        var obj = require(dir + '/' + name)(app, argv, rl);
+        var obj = require(dir + '/' + name)(argv, rl);
         obj.info(function () { rl.close(); });
     });
     console.log("");

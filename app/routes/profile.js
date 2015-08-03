@@ -4,15 +4,16 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var express = require('express');
+var locator = require('node-service-locator');
 var validator = require('validator');
-var UserRepository = require('../repositories/user');
 var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
-    var config = app.get('config');
-    var userRepo = new UserRepository(app);
+    var config = locator.get('config');
+    var userRepo = locator.get('user-repository');
 
     function parse(field, req, res) {
         var glMessage = res.locals.glMessage;
@@ -61,7 +62,7 @@ module.exports = function (app) {
 
         var result = {
             locale: {
-                current:    app.get('locale'),
+                current:    locator.get('locale'),
                 fallback:   config['lang']['default'],
                 available:  config['lang']['locales'],
             },
@@ -104,7 +105,6 @@ module.exports = function (app) {
         }
 
         var id = req.body.id;
-        var userRepo = new UserRepository(app);
         userRepo.find(id)
             .then(function (users) {
                 var user = users.length && users[0];

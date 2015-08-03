@@ -4,8 +4,9 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var logger = require('tracer').colorConsole();
 
-module.exports = function (app) {
-    app.set('logger', logger);
+module.exports = function () {
+    locator.register('logger', logger);
 };

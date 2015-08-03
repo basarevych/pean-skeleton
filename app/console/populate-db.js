@@ -4,11 +4,11 @@
 
 'use strict'
 
-var UserRepository = require('../repositories/user');
+var locator = require('node-service-locator');
 var UserModel = require('../models/user');
 
-module.exports = function (app, argv, rl) {
-    var config = app.get('config');
+module.exports = function (argv, rl) {
+    var config = locator.get('config');
 
     function info(done) {
         rl.write("\tpopulate-db\t\tPopulate the database\n");
@@ -22,7 +22,7 @@ module.exports = function (app, argv, rl) {
     }
 
     function run(done) {
-        var userRepo = new UserRepository(app);
+        var userRepo = locator.get('user-repository');
 
         rl.write("===> Creating administrator\n");
         rl.question("-> Administrator email? [root@localhost] ", function (email) {

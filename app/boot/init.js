@@ -4,6 +4,7 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var fs = require('fs');
 var path = require('path');
 var merge = require('merge');
@@ -15,7 +16,13 @@ module.exports = function (app) {
         var obj = require(dir + '/' + name)(app);
         config = merge(config, obj);
     });
-    app.set('config', config);
+
+    var dir = path.join(__dirname, '..', '..');
+    locator.init(config['services'], dir);
+
+    // initial services
+    locator.register('app', app);
+    locator.register('config', config);
 
     // expose the "env" local variable when views are rendered
     app.use(function (req, res, next) {

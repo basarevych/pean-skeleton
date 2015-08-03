@@ -4,24 +4,23 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var q = require('q');
 var massive = require('massive');
 
-function BaseRepository(app) {
-    this.app = app;
+function BaseRepository() {
 }
 
 BaseRepository.prototype.connect = function () {
     var defer = q.defer();
-    var db = this.app.get('db');
+    var db = locator.get('db');
     if (db) {
         defer.resolve(db);
         return defer.promise;
     }
 
-    var me = this;
-    var config = this.app.get('config');
-    var logger = this.app.get('logger');
+    var config = locator.get('config');
+    var logger = locator.get('logger');
 
     var url = 'postgres://' + config['db']['user'] + ':' + config['db']['password']
         + '@' + config['db']['host'] + '/' + config['db']['name'];
@@ -33,7 +32,7 @@ BaseRepository.prototype.connect = function () {
             process.exit(1);
         }
 
-        me.app.set('db', db);
+        locator.register('db', db);
         defer.resolve(db);
     });
 

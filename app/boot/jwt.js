@@ -4,12 +4,16 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');
 
-module.exports = function (app) {
-    var config = app.get('config');
+module.exports = function () {
+    var config = locator.get('config');
     if (!config['jwt']['enable'])
         return;
+
+    var app = locator.get('app');
+    var logger = locator.get('logger');
 
     app.use(function (req, res, next) {
         var header = req.headers['authorization'];

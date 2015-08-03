@@ -4,17 +4,18 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var path = require('path');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 
-module.exports = function (app) {
-    var config = app.get('config');
+module.exports = function () {
+    var config = locator.get('config');
     if (!config['session']['enable'])
         return;
 
+    var app = locator.get('app');
     var ttl = config['session']['ttl'];
-
     var store = undefined;
 
     if (app.get('env') != 'test') {

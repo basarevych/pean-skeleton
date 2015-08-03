@@ -4,10 +4,13 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var http = require('http');
 var express = require('express');
 
-module.exports = function (app) {
+module.exports = function () {
+    var app = locator.get('app');
+
     app.use(function(err, req, res, next) {
         var code = err.status || 500;
         var params = {

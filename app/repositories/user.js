@@ -4,19 +4,20 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
 var UserModel = require('../models/user');
 
-function UserRepository(app) {
-    BaseRepository.call(this, app);
+function UserRepository() {
+    BaseRepository.call(this);
 }
 
 UserRepository.prototype = new BaseRepository();
 UserRepository.prototype.constructor = UserRepository;
 
 UserRepository.prototype.find = function (id) {
-    var logger = this.app.get('logger');
+    var logger = locator.get('logger');
     var defer = q.defer();
 
     this.connect()
@@ -42,7 +43,7 @@ UserRepository.prototype.find = function (id) {
 };
 
 UserRepository.prototype.findByEmail = function (email) {
-    var logger = this.app.get('logger');
+    var logger = locator.get('logger');
     var defer = q.defer();
 
     this.connect()
@@ -68,7 +69,7 @@ UserRepository.prototype.findByEmail = function (email) {
 };
 
 UserRepository.prototype.save = function (model) {
-    var logger = this.app.get('logger');
+    var logger = locator.get('logger');
     var defer = q.defer();
 
     this.connect()

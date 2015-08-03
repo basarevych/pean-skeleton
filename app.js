@@ -41,13 +41,13 @@ app.use(favicon(path.join(__dirname, 'public/img', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // load application
-require('./app/boot/config.js')(app);       // load configuration
-require('./app/boot/logger.js')(app);       // logger
-require('./app/boot/lang.js')(app);         // translations
+require('./app/boot/init.js')(app);         // initialize the app
+require('./app/boot/logger.js')();          // logger
+require('./app/boot/lang.js')();            // translations
 
 if (!process.env.CONSOLE) {
-    require('./app/boot/session.js')(app);      // session support
-    require('./app/boot/jwt.js')(app);          // JSON Web Tokens
-    require('./app/boot/routes.js')(app);       // load routes
-    require('./app/boot/errors.js')(app);       // error handling
+    require('./app/boot/session.js')();     // session support
+    require('./app/boot/jwt.js')();         // JSON Web Tokens
+    require('./app/boot/routes.js')();      // load routes
+    require('./app/boot/errors.js')();      // error handling
 }

@@ -4,16 +4,16 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var express = require('express');
+var locator = require('node-service-locator');
 var validator = require('validator');
 var jwt = require('jsonwebtoken');
-var UserRepository = require('../repositories/user');
-var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
-    var config = app.get('config');
-    var userRepo = new UserRepository(app);
+    var config = locator.get('config');
+    var userRepo = locator.get('user-repository');
 
     function parse(field, req, res) {
         var glMessage = res.locals.glMessage;
@@ -70,7 +70,6 @@ module.exports = function (app) {
             .then(function (users) {
                 var user = users.length && users[0];
                 if (user && user.checkPassword(req.body.password)) {
-                    var config = app.get('config');
                     var token = jwt.sign(
                         { user_id: user.getId() },
                         config['jwt']['secret'],
