@@ -5,6 +5,7 @@
 'use strict'
 
 var UserRepository = require('../repositories/user');
+var UserModel = require('../models/user');
 
 module.exports = function (app, argv, rl) {
     var config = app.get('config');

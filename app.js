@@ -25,6 +25,13 @@ app.set('trust proxy', typeof trustProxy == 'undefined' ? false : trustProxy);
 app.set('views', path.join(__dirname, 'app', 'views'));
 app.set('view engine', 'jade');
 
+// error function
+app.abort = function (status, message) {
+    var err = new Error(message);
+    err.status = status;
+    throw err;
+};
+
 // middleware
 if (process.env.NODE_ENV != 'test') app.use(morgan('dev'));
 app.use(bodyParser.json());

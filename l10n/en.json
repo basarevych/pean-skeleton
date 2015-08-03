@@ -12,7 +12,7 @@
         "USER_MENU": "Users",
         "SIGN_IN_MENU": "Sign in",
         "SIGN_OUT_MENU": "Sign out",
-        "CHANGE_PASSWORD_MENU": "Change password",
+        "PROFILE_MENU": "Profile",
         "AUTODETECT_BUTTON": "Autodetect",
 
         "en": "English",
@@ -33,15 +33,17 @@
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",
+        "SAVE_CHANGES_BUTTON": "Save changes",
 
         "SIGN_IN_TITLE": "Sign in",
         "USERNAME_LABEL": "Email",
         "PASSWORD_LABEL": "Password",
         "SIGN_IN_BUTTON": "Sign in",
 
-        "CURRENT_PASSWORD_LABEL": "Current password",
+        "PROFILE_TITLE": "Profile: {email}",
+        "NAME_LABEL": "Name",
         "NEW_PASSWORD_LABEL": "New password",
         "RETYPED_PASSWORD_LABEL": "Retype new password",
-        "CHANGE_PASSWORD_BUTTON": "Change password"
+        "NEW_PASSWORD_NOTICE": "Leave blank if you do not want to change it"
     }
 }

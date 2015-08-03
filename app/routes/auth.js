@@ -8,16 +8,24 @@ var express = require('express');
 var validator = require('validator');
 var jwt = require('jsonwebtoken');
 var UserRepository = require('../repositories/user');
+var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
     var config = app.get('config');
     var userRepo = new UserRepository(app);
 
-    function parse(field, form, glMessage) {
+    function parse(field, req, res) {
+        var glMessage = res.locals.glMessage;
         var form = {
-            email: validator.trim(form.email),
-            password: validator.trim(form.password)
+            email: validator.trim(
+                req.body.email
+                || (req.body.form && req.body.form.email)
+            ),
+            password: validator.trim(
+                req.body.password
+                || (req.body.form && req.body.form.password)
+            ),
         };
 
         var errors = [];
@@ -34,6 +42,7 @@ module.exports = function (app) {
 
         return {
             field: field,
+            value: form[field],
             form: form,
             valid: errors.length == 0,
             errors: errors
@@ -43,15 +52,15 @@ module.exports = function (app) {
     router.post('/token', function (req, res) {
         var glMessage = res.locals.glMessage;
 
-        var emailData = parse('email', req.body, res.locals.glMessage);
-        var passwordData = parse('password', req.body, res.locals.glMessage);
-        if (!emailData.valid || !passwordData.valid) {
+        var email = parse('email', req, res);
+        var password = parse('password', req, res);
+        if (!email.valid || !password.valid) {
             return res.json({
                 valid: false,
                 errors: [],
                 fields: {
-                    email: emailData.errors,
-                    password: passwordData.errors,
+                    email: email.errors,
+                    password: password.errors,
                 }
             });
         }
@@ -83,9 +92,7 @@ module.exports = function (app) {
     });
 
     router.post('/validate', function (req, res) {
-        var field = req.body.field;
-        var data = parse(field, req.body.form, res.locals.glMessage);
-
+        var data = parse(req.body.field, req, res);
         res.json({ valid: data.valid, errors: data.errors });
     });
 

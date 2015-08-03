@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-02 */
+/* pean-skeleton - v0.0.0 - 2015-08-03 */
 
 'use strict';
 
@@ -312,7 +312,7 @@ forms.factory('InfoDialog',
 forms.factory('ModalFormCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
-        return function ($scope, $modalInstance, fields, parser, validator, submitter) {
+        return function ($scope, $modalInstance, fields, validator, submitter) {
             $scope.model = {};
             $scope.validation = { errors: [], fields: {} }; 
             $scope.processing = false;
@@ -343,9 +343,6 @@ forms.factory('ModalFormCtrl',
             var doValidate = function (name) {
                 if ($scope.processing)
                     return;
-
-                if (angular.isDefined(parser) && !parser($scope, 'validation'))
-                    return;
                 if (angular.isUndefined(validator))
                     return;
 
@@ -354,8 +351,7 @@ forms.factory('ModalFormCtrl',
                     form: {},
                 };
                 $.each($scope.model, function (key, item) {
-                    if (!item.local)
-                        params.form[item.name] = item.value;
+                    params.form[item.name] = item.value;
                 });
 
                 validator(params)
@@ -386,18 +382,17 @@ forms.factory('ModalFormCtrl',
             };
 
             $scope.validate = function (name) {
-                $timeout(function () { doValidate(name); }, 500);
+                $timeout(function () {
+                    if ($scope.processing || !$('.modal').is(':visible'))
+                        return;
+
+                    doValidate(name);
+                }, 500);
             };
 
             $scope.submit = function () {
                 $scope.resetValidation();
                 $scope.processing = true;
-
-                if (angular.isDefined(parser) && !parser($scope, 'submission')) {
-                    $scope.processing = false;
-                    resetFocus();
-                    return;
-                }
 
                 if (angular.isUndefined(submitter)) {
                     $scope.processing = false;
@@ -406,8 +401,7 @@ forms.factory('ModalFormCtrl',
 
                 var params = {};
                 $.each($scope.model, function (key, item) {
-                    if (!item.local)
-                        params[item.name] = item.value;
+                    params[item.name] = item.value;
                 });
 
                 submitter(params)
@@ -440,11 +434,10 @@ forms.factory('LoginForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'email',    value: '', local: false, focus: true },
-                            { name: 'password', value: '', local: false, focus: false },
+                            { name: 'email',    value: '', focus: true },
+                            { name: 'password', value: '', focus: false },
                         ];
                     },
-                    parser: function () { return undefined; },
                     validator: function () { return AuthApi.validate; },
                     submitter: function () { return AuthApi.token; },
                 }
@@ -453,42 +446,23 @@ forms.factory('LoginForm',
     } ]
 );
 
-forms.factory('PasswordForm',
+forms.factory('ProfileForm',
     [ '$modal', '$filter', 'ModalFormCtrl', 'ProfileApi',
     function ($modal, $filter, ModalFormCtrl, ProfileApi) {
-        return function () {
-            function parser(scope, stage) {
-                var error = false;
-
-                var value1 = scope.model.newPassword.value,
-                    value2 = scope.model.retypedPassword.value;
-
-                if ((stage == 'validation' && value2.length)
-                        || (stage == 'submission' && (value1.length || value2.length))) {
-                    if (value1.trim() != value2.trim()) {
-                        error = true;
-                        scope.setValidationError(
-                            'retypedPassword',
-                            $filter('glMessage')('VALIDATOR_INPUT_MISMATCH')
-                        );
-                    }
-                }
-
-                return !error;
-            }
-
+        return function (profile) {
             return $modal.open({
                 controller: ModalFormCtrl,
-                templateUrl: 'modals/password.html',
+                templateUrl: 'modals/profile.html',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'currentPassword', value: '', local: false, focus: true },
-                            { name: 'newPassword',     value: '', local: false, focus: false },
-                            { name: 'retypedPassword', value: '', local: true,  focus: false },
+                            { name: 'id',              value: profile.userId, focus: true },
+                            { name: 'name',            value: profile.name,   focus: true },
+                            { name: 'email',           value: profile.email,  focus: false },
+                            { name: 'newPassword',     value: '',             focus: false },
+                            { name: 'retypedPassword', value: '',             focus: false },
                         ];
                     },
-                    parser: function () { return parser; },
                     validator: function () { return ProfileApi.validate; },
                     submitter: function () { return ProfileApi.updateList; },
                 }
@@ -684,8 +658,8 @@ module.controller("IndexCtrl",
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'PasswordForm',
-    function ($scope, $state, $stateParams, $cookies, $timeout, PasswordForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'ProfileForm',
+    function ($scope, $state, $stateParams, $cookies, $timeout, ProfileForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
 
@@ -700,8 +674,13 @@ module.controller("LayoutCtrl",
             });
         };
 
-        $scope.changePassword = function () {
-            PasswordForm();
+        $scope.changeProfile = function () {
+            ProfileForm($scope.appControl.getProfile())
+                .then(function () {
+                    $scope.appControl.loadProfile(function () {
+                        $state.go($state.current.name, $stateParams, { reload: true });
+                    });
+                });
         };
 
         $scope.logout = function () {

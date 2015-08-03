@@ -3,8 +3,8 @@
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'PasswordForm',
-    function ($scope, $state, $stateParams, $cookies, $timeout, PasswordForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'ProfileForm',
+    function ($scope, $state, $stateParams, $cookies, $timeout, ProfileForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
 
@@ -19,8 +19,13 @@ module.controller("LayoutCtrl",
             });
         };
 
-        $scope.changePassword = function () {
-            PasswordForm();
+        $scope.changeProfile = function () {
+            ProfileForm($scope.appControl.getProfile())
+                .then(function () {
+                    $scope.appControl.loadProfile(function () {
+                        $state.go($state.current.name, $stateParams, { reload: true });
+                    });
+                });
         };
 
         $scope.logout = function () {
