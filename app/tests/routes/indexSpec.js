@@ -1,5 +1,6 @@
 'use strict'
 
+var locator = require('node-service-locator');
 var request = require('supertest');
 var app = require('../../../app.js');
 

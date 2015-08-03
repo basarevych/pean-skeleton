@@ -183,7 +183,6 @@ forms.factory('ProfileForm',
                 resolve: {
                     fields: function () {
                         return [
-                            { name: 'id',              value: profile.userId, focus: true },
                             { name: 'name',            value: profile.name,   focus: true },
                             { name: 'email',           value: profile.email,  focus: false },
                             { name: 'newPassword',     value: '',             focus: false },

@@ -1,14 +1,17 @@
 'use strict'
 
+var locator = require('node-service-locator');
 var request = require('supertest');
+var q = require('q');
 var app = require('../../../app.js');
+var UserModel = require('../../../app/models/user');
 
 describe('Profile route', function () {
     var config;
 
     beforeEach(function () {
-        config = app.get('config');
-        app.set('logger', {
+        config = locator.get('config');
+        locator.register('logger', {
             log: function () {},
             trace: function () {},
             debug: function () {},
@@ -49,5 +52,39 @@ describe('Profile route', function () {
                 expect(res.body.locale.current).toEqual('ru');
             })
             .end(done);
+    });
+
+    it('saves profile', function (done) {
+        var searchedId, savedUser;
+        var foundUser = new UserModel();
+
+        locator.register('token', { user_id: 42 });
+        locator.register('user-repository', {
+            find: function (id) {
+                searchedId = id;
+                var defer = q.defer();
+                defer.resolve([ foundUser ]);
+                return defer.promise;
+            },
+            save: function (user) {
+                savedUser = user;
+                var defer = q.defer();
+                defer.resolve([ savedUser ]);
+                return defer.promise;
+            },
+        });
+
+        request(app)
+            .put('/api/profile')
+            .send({ name: 'Foo' })
+            .set('Accept', 'application/json')
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({ valid: true })
+            .end(function () {
+                expect(searchedId).toBe(42);
+                expect(savedUser.getName()).toBe('Foo');
+                done();
+            });
     });
 });

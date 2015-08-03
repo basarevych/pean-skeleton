@@ -10,10 +10,9 @@ var locator = require('node-service-locator');
 var validator = require('validator');
 var UserModel = require('../models/user');
 
-module.exports = function (app) {
+module.exports = function () {
     var router = express.Router();
-    var config = locator.get('config');
-    var userRepo = locator.get('user-repository');
+    var app = locator.get('app');
 
     function parse(field, req, res) {
         var glMessage = res.locals.glMessage;
@@ -58,7 +57,8 @@ module.exports = function (app) {
     }
 
     router.get('/', function (req, res) {
-        var token = req.token;
+        var config = locator.get('config');
+        var userRepo = locator.get('user-repository');
 
         var result = {
             locale: {
@@ -72,6 +72,7 @@ module.exports = function (app) {
             roles:  [],
         };
 
+        var token = req.token;
         if (!token)
             return res.json(result);
 
@@ -89,6 +90,13 @@ module.exports = function (app) {
     });
 
     router.put('/', function (req, res) {
+        var config = locator.get('config');
+        var userRepo = locator.get('user-repository');
+
+        var token = req.token;
+        if (!token)
+            app.abort(403, "Token required");
+
         var name = parse('name', req, res);
         var newPassword = parse('newPassword', req, res);
         var retypedPassword = parse('retypedPassword', req, res);
@@ -104,8 +112,7 @@ module.exports = function (app) {
             });
         }
 
-        var id = req.body.id;
-        userRepo.find(id)
+        userRepo.find(token.user_id)
             .then(function (users) {
                 var user = users.length && users[0];
                 if (!user)

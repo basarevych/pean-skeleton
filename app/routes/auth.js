@@ -12,8 +12,7 @@ var jwt = require('jsonwebtoken');
 
 module.exports = function (app) {
     var router = express.Router();
-    var config = locator.get('config');
-    var userRepo = locator.get('user-repository');
+    var app = locator.get('app');
 
     function parse(field, req, res) {
         var glMessage = res.locals.glMessage;
@@ -50,6 +49,8 @@ module.exports = function (app) {
     }
 
     router.post('/token', function (req, res) {
+        var config = locator.get('config');
+        var userRepo = locator.get('user-repository');
         var glMessage = res.locals.glMessage;
 
         var email = parse('email', req, res);

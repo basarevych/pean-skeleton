@@ -13,7 +13,7 @@ module.exports = function () {
 
     var dir = path.join(__dirname, '..', 'routes');
     fs.readdirSync(dir).forEach(function (name) {
-        require(dir + '/' + name)(app);
+        require(dir + '/' + name)();
     });
 
     // catch 404 and forward to error handler

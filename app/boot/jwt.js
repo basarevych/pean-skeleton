@@ -16,6 +16,12 @@ module.exports = function () {
     var logger = locator.get('logger');
 
     app.use(function (req, res, next) {
+        if (app.get('env') == 'test') {
+            req.token = locator.get('token');
+            next();
+            return;
+        }
+
         var header = req.headers['authorization'];
         if (header) {
             var parts = header.split(' ');
