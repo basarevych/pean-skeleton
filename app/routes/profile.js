@@ -6,7 +6,6 @@
 
 var express = require('express');
 var UserRepository = require('../repositories/user');
-var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
@@ -32,12 +31,11 @@ module.exports = function (app) {
             return res.json(result);
 
         userRepo.find(token.user_id)
-            .then(function (rows) {
-                var row = rows && rows[0];
-                if (!row)
+            .then(function (users) {
+                var user = users.length && users[0];
+                if (!user)
                     return res.json(result);
 
-                var user = new UserModel(row);
                 result['userId'] = user.getId();
                 result['name'] = user.getName();
                 result['email'] = user.getEmail();

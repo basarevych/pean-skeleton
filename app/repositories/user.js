@@ -6,6 +6,7 @@
 
 var q = require('q');
 var BaseRepository = require('./base');
+var UserModel = require('../models/user');
 
 function UserRepository(app) {
     BaseRepository.call(this, app);
@@ -27,7 +28,13 @@ UserRepository.prototype.find = function (id) {
                     process.exit(1);
                 }
 
-                defer.resolve(rows);
+                var users = [];
+                rows.forEach(function (el) {
+                    var user = new UserModel(el);
+                    users.push(user);
+                });
+
+                defer.resolve(users);
             });
         });
 
@@ -47,7 +54,13 @@ UserRepository.prototype.findByEmail = function (email) {
                     process.exit(1);
                 }
 
-                defer.resolve(rows);
+                var users = [];
+                rows.forEach(function (el) {
+                    var user = new UserModel(el);
+                    users.push(user);
+                });
+
+                defer.resolve(users);
             });
         });
 
@@ -60,14 +73,15 @@ UserRepository.prototype.save = function (model) {
 
     this.connect()
         .then(function (db) {
-            db.users.save(model, function (err, row) {
+            db.users.save(model, function (err, rows) {
                 if (err) {
                     defer.reject();
                     logger.error('save user', err);
                     process.exit(1);
                 }
 
-                defer.resolve(row);
+                var user = new UserModel(rows.length ? rows[0] : undefined);
+                defer.resolve(user);
             });
         });
 

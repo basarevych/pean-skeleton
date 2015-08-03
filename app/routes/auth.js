@@ -8,7 +8,6 @@ var express = require('express');
 var validator = require('validator');
 var jwt = require('jsonwebtoken');
 var UserRepository = require('../repositories/user');
-var UserModel = require('../models/user');
 
 module.exports = function (app) {
     var router = express.Router();
@@ -59,23 +58,20 @@ module.exports = function (app) {
 
         var user = null;
         userRepo.findByEmail(req.body.email)
-            .then(function (rows) {
-                var row = rows && rows[0];
-                if (row) {
-                    var user = new UserModel(row);
-                    if (user.checkPassword(req.body.password)) {
-                        var config = app.get('config');
-                        var token = jwt.sign(
-                            { user_id: user.getId() },
-                            config['jwt']['secret'],
-                            { expiresInSeconds: config['jwt']['ttl'] }
-                        );
+            .then(function (users) {
+                var user = users.length && users[0];
+                if (user && user.checkPassword(req.body.password)) {
+                    var config = app.get('config');
+                    var token = jwt.sign(
+                        { user_id: user.getId() },
+                        config['jwt']['secret'],
+                        { expiresInSeconds: config['jwt']['ttl'] }
+                    );
 
-                        return res.json({
-                            valid: true,
-                            token: token
-                        });
-                    }
+                    return res.json({
+                        valid: true,
+                        token: token
+                    });
                 }
 
                 res.json({
