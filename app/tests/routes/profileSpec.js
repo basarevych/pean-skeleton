@@ -54,6 +54,14 @@ describe('Profile route', function () {
             .end(done);
     });
 
+    it('rejects unauthorized save', function (done) {
+        request(app)
+            .put('/api/profile')
+            .send({ name: 'Foo' })
+            .set('Accept', 'application/json')
+            .expect(403, done);
+    });
+
     it('saves profile', function (done) {
         var searchedId, savedUser;
         var foundUser = new UserModel();
@@ -78,13 +86,12 @@ describe('Profile route', function () {
             .put('/api/profile')
             .send({ name: 'Foo' })
             .set('Accept', 'application/json')
-            .expect(200)
             .expect('Content-Type', /json/)
             .expect({ valid: true })
-            .end(function () {
+            .expect(function () {
                 expect(searchedId).toBe(42);
                 expect(savedUser.getName()).toBe('Foo');
-                done();
-            });
+            })
+            .expect(200, done);
     });
 });
