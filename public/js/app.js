@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-03 */
+/* pean-skeleton - v0.0.0 - 2015-08-04 */
 
 'use strict';
 
@@ -74,7 +74,9 @@ app.run(
 
 'use strict';
 
-var api = angular.module('api', []);
+var api = angular.module('api', [
+    'ngResource',
+]);
 
 api.factory('ResourceWrapper',
     [ '$rootScope', '$q', '$window', 'InfoDialog',
@@ -238,17 +240,18 @@ directives.directive('sidebar',
                         position = win.height() < bottom ? 'static' : undefined;
 
                     if (angular.isUndefined(position)) {
-                        var test = $('<div>'), current;
-                        test.appendTo($('body'));
-
+                        var current;
                         for (var i = sizes.length - 1; i >= 0; i--) {
-                            test.addClass('hidden-' + sizes[i]);
-                            if (test.is(':hidden')) {
+                            var test = $('<div></div>');
+                            test.addClass('hidden-' + sizes[i]).appendTo($('body'));
+                            var visible = test.is(':visible');
+                            test.remove();
+
+                            if (!visible) {
                                 current = sizes[i];
                                 break;
                             }
                         };
-                        test.remove();
 
                         if (angular.isDefined(current))
                             position = sizes.indexOf(edge) > sizes.indexOf(current) ? 'static' : 'fixed';
@@ -359,8 +362,10 @@ forms.factory('ModalFormCtrl',
                         if (data.valid)
                             return;
 
-                        $.each(data.errors, function (index, value) {
-                            $scope.setValidationError(name, value);
+                        $.each(data.errors, function (name, value) {
+                            $.each(value, function (index, error) {
+                                $scope.setValidationError(name, error);
+                            });
                         });
                     });
             };
@@ -472,7 +477,14 @@ forms.factory('ProfileForm',
 
 'use strict';
 
-var services = angular.module('services', []);
+var services = angular.module('services', [
+    'ngCookies',
+    'ui.router',
+    'ui.bootstrap',
+    'globalizeWrapper',
+    'api',
+    'forms',
+]);
 
 services.factory('AppControl',
     [ '$window', '$rootScope', '$state', '$stateParams', '$timeout', '$http', '$cookies', 'globalizeWrapper', 'ProfileApi',

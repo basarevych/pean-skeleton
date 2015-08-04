@@ -1,6 +1,13 @@
 'use strict';
 
-var services = angular.module('services', []);
+var services = angular.module('services', [
+    'ngCookies',
+    'ui.router',
+    'ui.bootstrap',
+    'globalizeWrapper',
+    'api',
+    'forms',
+]);
 
 services.factory('AppControl',
     [ '$window', '$rootScope', '$state', '$stateParams', '$timeout', '$http', '$cookies', 'globalizeWrapper', 'ProfileApi',

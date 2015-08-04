@@ -79,17 +79,18 @@ directives.directive('sidebar',
                         position = win.height() < bottom ? 'static' : undefined;
 
                     if (angular.isUndefined(position)) {
-                        var test = $('<div>'), current;
-                        test.appendTo($('body'));
-
+                        var current;
                         for (var i = sizes.length - 1; i >= 0; i--) {
-                            test.addClass('hidden-' + sizes[i]);
-                            if (test.is(':hidden')) {
+                            var test = $('<div></div>');
+                            test.addClass('hidden-' + sizes[i]).appendTo($('body'));
+                            var visible = test.is(':visible');
+                            test.remove();
+
+                            if (!visible) {
                                 current = sizes[i];
                                 break;
                             }
                         };
-                        test.remove();
 
                         if (angular.isDefined(current))
                             position = sizes.indexOf(edge) > sizes.indexOf(current) ? 'static' : 'fixed';

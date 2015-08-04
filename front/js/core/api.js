@@ -1,6 +1,8 @@
 'use strict';
 
-var api = angular.module('api', []);
+var api = angular.module('api', [
+    'ngResource',
+]);
 
 api.factory('ResourceWrapper',
     [ '$rootScope', '$q', '$window', 'InfoDialog',

@@ -167,26 +167,23 @@ module.exports = function(grunt) {
             },
         },
 
-/*
         karma: {
             unit: {
-                configFile: 'test/karma.conf.js',
-                singleRun: true,
-                autoWatch: false,
+                configFile: 'tests/karma.conf.js',
                 options: {
+                    singleRun: true,
                     files: [
                         '<%= concat.vendorjs.dest %>',
                         'bower_components/angular-mocks/angular-mocks.js',
                         '<%= concat.appjs.dest %>',
-                        'test/unit/**              /*.js',
+                        'tests/unit/**/*.js',
                     ],
                     proxies: {
                         '/locales/': 'dist/locales/'
-                    }
+                    },
                 }
             }
         },
-*/
     });
 
     // These plugins provide necessary tasks.
@@ -196,8 +193,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-watch');
-//    grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-karma');
 
     grunt.registerTask('default', ['copy', 'concat', 'uglify', 'less', 'cssmin']);
-//    grunt.registerTask('unit-test', ['dev', 'karma']);
 };
