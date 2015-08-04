@@ -30,6 +30,7 @@
         "VALIDATOR_REQUIRED_FIELD": "Value is required",
         "VALIDATOR_INPUT_MISMATCH": "The two values do not match",
         "VALIDATOR_MIN_LENGTH": "The input must be at least {min} character(s)",
+        "VALIDATOR_EMAIL": "The input must be an email address",
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",

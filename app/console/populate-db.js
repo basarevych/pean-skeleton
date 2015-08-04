@@ -25,9 +25,9 @@ module.exports = function (argv, rl) {
         var userRepo = locator.get('user-repository');
 
         rl.write("===> Creating administrator\n");
-        rl.question("-> Administrator email? [root@localhost] ", function (email) {
+        rl.question("-> Administrator email? [root@example.com] ", function (email) {
             if (!email)
-                email = "root@localhost";
+                email = "root@example.com";
 
             rl.question("-> Administrator password? ", function (password) {
                 userRepo.findByEmail(email)

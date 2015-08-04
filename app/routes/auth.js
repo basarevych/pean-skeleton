@@ -32,6 +32,8 @@ module.exports = function (app) {
             case 'email':
                 if (!validator.isLength(form.email, 1))
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                if (!validator.isEmail(form.email))
+                    errors.push(glMessage('VALIDATOR_EMAIL'));
                 break;
             case 'password':
                 if (!validator.isLength(form.password, 6))
@@ -67,10 +69,10 @@ module.exports = function (app) {
         }
 
         var user = null;
-        userRepo.findByEmail(req.body.email)
+        userRepo.findByEmail(email.value)
             .then(function (users) {
                 var user = users.length && users[0];
-                if (user && user.checkPassword(req.body.password)) {
+                if (user && user.checkPassword(password.value)) {
                     var token = jwt.sign(
                         { user_id: user.getId() },
                         config['jwt']['secret'],

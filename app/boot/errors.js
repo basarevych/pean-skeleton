@@ -17,7 +17,7 @@ module.exports = function () {
             statusCode: code,
             statusPhrase: http.STATUS_CODES[code],
             error: err,
-            renderStack: app.get('env') === 'development',  // render stack trace or not
+            renderStack: [ 'development', 'test' ].indexOf(app.get('env')) != -1,  // render stack trace or not
         };
 
         res.status(code);

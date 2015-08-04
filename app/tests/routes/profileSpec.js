@@ -6,7 +6,7 @@ var q = require('q');
 var app = require('../../../app.js');
 var UserModel = require('../../../app/models/user');
 
-describe('Profile route', function () {
+describe('/api/profile route', function () {
     var config;
 
     beforeEach(function () {
@@ -21,10 +21,9 @@ describe('Profile route', function () {
         });
     });
 
-    it('responds to /api/profile', function (done) {
+    it('responds to GET', function (done) {
         request(app)
             .get('/api/profile')
-            .expect(200)
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(res.body.locale).toEqual({
@@ -35,7 +34,7 @@ describe('Profile route', function () {
                 expect(res.body.userId).toBeNull();
                 expect(res.body.roles).toEqual([]);
             })
-            .end(done);
+            .expect(200, done);
     });
 
     it('autoselects locale', function (done) {
@@ -46,12 +45,11 @@ describe('Profile route', function () {
         request(app)
             .get('/api/profile')
             .set('Accept-Language', 'ru')
-            .expect(200)
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(res.body.locale.current).toEqual('ru');
             })
-            .end(done);
+            .expect(200, done);
     });
 
     it('rejects unauthorized save', function (done) {
@@ -88,9 +86,41 @@ describe('Profile route', function () {
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect({ valid: true })
-            .expect(function () {
+            .expect(function (res) {
                 expect(searchedId).toBe(42);
                 expect(savedUser.getName()).toBe('Foo');
+            })
+            .expect(200, done);
+    });
+
+    it('validates', function (done) {
+        request(app)
+            .post('/api/profile/validate')
+            .send({ field: 'newPassword', form: { newPassword: 'foo', retypedPassword: 'bar' } })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(function (res) {
+                expect(res.body.valid).toBe(false);
+            })
+            .expect(200, done);
+
+        request(app)
+            .post('/api/profile/validate')
+            .send({ field: 'newPassword', form: { newPassword: 'foo', retypedPassword: 'foo' } })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(function (res) {
+                expect(res.body.valid).toBe(false);
+            })
+            .expect(200, done);
+
+        request(app)
+            .post('/api/profile/validate')
+            .send({ field: 'newPassword', form: { newPassword: 'foobar', retypedPassword: 'foobar' } })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(function (res) {
+                expect(res.body.valid).toBe(true);
             })
             .expect(200, done);
     });

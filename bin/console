@@ -51,7 +51,7 @@ var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
-var obj = require(objPath)(app, argv, rl);
+var obj = require(objPath)(argv, rl);
 if (argv['_'][0] == 'help') {
     obj.help(function () { rl.close(); });
     console.log("");
