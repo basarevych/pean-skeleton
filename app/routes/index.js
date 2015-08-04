@@ -12,6 +12,7 @@ module.exports = function () {
     var app = locator.get('app');
 
     router.get('/', function (req, res) {
+console.log(req.session.xxx);
         res.render('index');
     });
 

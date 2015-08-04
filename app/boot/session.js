@@ -54,8 +54,12 @@ module.exports = function () {
     app.use(function (req, res, next) {
         if (app.get('env') == 'test') { // override session when testing
             var mock = locator.get('session');
-            if (mock)
-                req.session = mock;
+            if (mock) {
+                for (var key in mock) {
+                    if (mock.hasOwnProperty(key))
+                        req.session[key] = mock[key];
+                }
+            }
         }
 
         var msgs = req.session.messages || [];
