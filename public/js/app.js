@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-04 */
+/* pean-skeleton - v0.0.0 - 2015-08-22 */
 
 'use strict';
 
@@ -9,6 +9,7 @@ var app = angular.module('app', [
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
     'ui.bootstrap',             // AngularUI Bootstrap
+    'dynamicTable',             // DynamicTable
     'api',
     'services',
     'directives',
@@ -16,6 +17,7 @@ var app = angular.module('app', [
     'forms',
     'state.layout',
     'state.index',
+    'state.user',
 ]);
 
 app.config(
@@ -32,6 +34,12 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'IndexCtrl',
                 templateUrl: 'views/index.html',
+            })
+            .state('layout.user', {
+                url: '/user',
+                title: 'APP_TITLE',
+                controller: 'UserCtrl',
+                templateUrl: 'views/user.html',
             });
 
         $urlRouterProvider
@@ -44,6 +52,13 @@ app.config(
     function (globalizeWrapperProvider) {
         globalizeWrapperProvider.setCldrBasePath('cldr');
         globalizeWrapperProvider.setL10nBasePath('l10n');
+    } ]
+);
+
+app.config(
+    [ 'dynamicTableProvider',
+    function (dynamicTableProvider) {
+        dynamicTableProvider.setTranslationFilter('glMessage');
     } ]
 );
 
@@ -701,5 +716,49 @@ module.controller("LayoutCtrl",
                 $state.go($state.current.name, $stateParams, { reload: true });
             });
         };
+    } ]
+);
+
+'use strict';
+
+var module = angular.module('state.user', []);
+
+module.controller("UserCtrl",
+    [ '$scope', '$window', '$filter', 'dynamicTable',
+    function ($scope, $window, $filter, dynamicTable) {
+        if (!$scope.appControl.aclCheckCurrentState())
+            return; // Disable this controller
+
+        $scope.hasSelection = false;
+        $scope.hasSingleSelection = false;
+        $scope.tableCtrl = dynamicTable({
+            url: $window['config']['apiUrl'] + '/user/table',
+            row_id_column: 'id',
+            sort_column: 'id',
+            mapper: function (row) {
+                if (row['created_at'] != null) {
+                    var m = moment(row['created_at'] * 1000);
+                    row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
+                }
+
+                if (row['is_admin'] != null) {
+                    row['is_admin'] = '<i class="glyphicon '
+                        + (row['is_admin'] ? 'glyphicon-ok text-success' : 'glyphicon-remove text-danger')
+                        + '"></i>';
+                }
+
+                return row;
+            },
+        });
+
+        $scope.$watch('tableCtrl.event', function () {
+            $scope.tableCtrl.event = null;
+            if ($scope.tableCtrl.plugin == null)
+                return;
+
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            $scope.hasSelection = (sel == 'all' || sel.length);
+            $scope.hasSingleSelection = (sel != 'all' && sel.length == 1);
+        });
     } ]
 );

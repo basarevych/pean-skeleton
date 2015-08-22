@@ -6,7 +6,6 @@
 
 var locator = require('node-service-locator');
 var express = require('express');
-var locator = require('node-service-locator');
 var validator = require('validator');
 var jwt = require('jsonwebtoken');
 

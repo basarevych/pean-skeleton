@@ -8,18 +8,18 @@ var bcrypt = require('bcrypt');
 
 function User(dbRow) {
     this.name = null;
-    this.password = null;
     this.email = null;
-    this.is_admin = false;
+    this.password = null;
     this.created_at = new Date();
+    this.is_admin = false;
 
     if (dbRow) {
         this.setId(dbRow.id);
         this.setName(dbRow.name);
-        this.setPassword(dbRow.password);
         this.setEmail(dbRow.email);
-        this.setIsAdmin(dbRow.is_admin);
+        this.setPassword(dbRow.password);
         this.setCreatedAt(dbRow.created_at);
+        this.setIsAdmin(dbRow.is_admin);
     }
 };
 
@@ -44,6 +44,14 @@ User.prototype.getName = function () {
     return this.name;
 };
 
+User.prototype.setEmail = function (email) {
+    this.email = email;
+};
+
+User.prototype.getEmail = function () {
+    return this.email;
+};
+
 User.prototype.setPassword = function (password) {
     this.password = password;
 };
@@ -56,12 +64,12 @@ User.prototype.checkPassword = function (password) {
     return bcrypt.compareSync(password, this.password);
 };
 
-User.prototype.setEmail = function (email) {
-    this.email = email;
+User.prototype.setCreatedAt = function (createdAt) {
+    this.created_at = createdAt;
 };
 
-User.prototype.getEmail = function () {
-    return this.email;
+User.prototype.getCreatedAt = function () {
+    return this.created_at;
 };
 
 User.prototype.setIsAdmin = function (isAdmin) {
@@ -70,14 +78,6 @@ User.prototype.setIsAdmin = function (isAdmin) {
 
 User.prototype.getIsAdmin = function () {
     return this.is_admin;
-};
-
-User.prototype.setCreatedAt = function (createdAt) {
-    this.created_at = createdAt;
-};
-
-User.prototype.getCreatedAt = function () {
-    return this.created_at;
 };
 
 module.exports = User;

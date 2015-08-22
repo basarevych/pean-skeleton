@@ -6,7 +6,6 @@
 
 var locator = require('node-service-locator');
 var express = require('express');
-var locator = require('node-service-locator');
 var validator = require('validator');
 var UserModel = require('../models/user');
 
@@ -95,7 +94,7 @@ module.exports = function () {
 
         var token = req.token;
         if (!token)
-            app.abort(403, "Token required");
+            return app.abort(res, 403, "Token required");
 
         var name = parse('name', req, res);
         var newPassword = parse('newPassword', req, res);
@@ -116,7 +115,7 @@ module.exports = function () {
             .then(function (users) {
                 var user = users.length && users[0];
                 if (!user)
-                    app.abort(404, "Invalid user ID:" + id);
+                    return app.abort(404, "Invalid user ID:" + id);
 
                 user.setName(name.value.length ? name.value : null);
                 if (newPassword.value.length)

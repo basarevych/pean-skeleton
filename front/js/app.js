@@ -7,6 +7,7 @@ var app = angular.module('app', [
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
     'ui.bootstrap',             // AngularUI Bootstrap
+    'dynamicTable',             // DynamicTable
     'api',
     'services',
     'directives',
@@ -14,6 +15,7 @@ var app = angular.module('app', [
     'forms',
     'state.layout',
     'state.index',
+    'state.user',
 ]);
 
 app.config(
@@ -30,6 +32,12 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'IndexCtrl',
                 templateUrl: 'views/index.html',
+            })
+            .state('layout.user', {
+                url: '/user',
+                title: 'APP_TITLE',
+                controller: 'UserCtrl',
+                templateUrl: 'views/user.html',
             });
 
         $urlRouterProvider
@@ -42,6 +50,13 @@ app.config(
     function (globalizeWrapperProvider) {
         globalizeWrapperProvider.setCldrBasePath('cldr');
         globalizeWrapperProvider.setL10nBasePath('l10n');
+    } ]
+);
+
+app.config(
+    [ 'dynamicTableProvider',
+    function (dynamicTableProvider) {
+        dynamicTableProvider.setTranslationFilter('glMessage');
     } ]
 );
 

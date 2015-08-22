@@ -20,24 +20,38 @@ UserRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    this.connect()
-        .then(function (db) {
-            db.users.find({ id: id }, function (err, rows) {
+    var db = this.getClient();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM users "
+          + " WHERE id = $1 ",
+            [ id ],
+            function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('find', err);
+                    logger.error('pg query', err);
                     process.exit(1);
                 }
 
+                db.end();
+
                 var users = [];
-                rows.forEach(function (el) {
-                    var user = new UserModel(el);
+                result.rows.forEach(function (row) {
+                    var user = new UserModel(row);
                     users.push(user);
                 });
 
                 defer.resolve(users);
-            });
-        });
+            }
+        );
+    });
 
     return defer.promise;
 };
@@ -46,24 +60,39 @@ UserRepository.prototype.findByEmail = function (email) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    this.connect()
-        .then(function (db) {
-            db.users.where("email = $1", email, function (err, rows) {
+    var db = this.getClient();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM users "
+          + " WHERE email = $1 ",
+            [ email ],
+            function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('find by email', err);
+                    logger.error('pg query', err);
                     process.exit(1);
                 }
 
+                db.end();
+
                 var users = [];
-                rows.forEach(function (el) {
-                    var user = new UserModel(el);
+                result.rows.forEach(function (row) {
+                    var user = new UserModel(row);
                     users.push(user);
                 });
 
                 defer.resolve(users);
-            });
-        });
+                db.end();
+            }
+        );
+    });
 
     return defer.promise;
 };
@@ -72,19 +101,57 @@ UserRepository.prototype.save = function (model) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    this.connect()
-        .then(function (db) {
-            db.users.save(model, function (err, rows) {
-                if (err) {
-                    defer.reject();
-                    logger.error('save user', err);
-                    process.exit(1);
-                }
+    var db = this.getClient();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('pg connect', err);
+            process.exit(1);
+        }
 
-                var user = new UserModel(rows.length ? rows[0] : undefined);
-                defer.resolve(user);
-            });
+        var query, params = [];
+        if (typeof model['id'] == 'undefined') {
+            query = "   INSERT "
+                  + "     INTO users(name, email, password, created_at, is_admin) "
+                  + "   VALUES ($1, $2, $3, $4, $5) "
+                  + "RETURNING id ";
+            params = [
+                model.getName(),
+                model.getEmail(),
+                model.getPassword(),
+                model.getCreatedAt(),
+                model.getIsAdmin(),
+            ];
+        } else {
+            query = "UPDATE users "
+                  + "   SET name = $1, "
+                  + "       email = $2, "
+                  + "       password = $3, "
+                  + "       created_at = $4, "
+                  + "       is_admin = $5 "
+                  + " WHERE id = $6 ";
+            params = [
+                model.getName(),
+                model.getEmail(),
+                model.getPassword(),
+                model.getCreatedAt(),
+                model.getIsAdmin(),
+                model.getId(),
+            ];
+        }
+
+        db.query(query, params, function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('pg query', err);
+                process.exit(1);
+            }
+
+            db.end();
+
+            defer.resolve(result.rows.length ? result.rows[0]['id'] : model['id']);
         });
+    });
 
     return defer.promise;
 };

@@ -73,6 +73,7 @@ module.exports = function(grunt) {
                      */
                     'bower_components/jquery/dist/jquery.js',
                     'bower_components/bootstrap/dist/js/bootstrap.js',
+                    'bower_components/moment/min/moment-with-locales.js',
 
                     'bower_components/angular/angular.js',
                     'bower_components/angular-loader/angular-loader.js',
@@ -81,6 +82,7 @@ module.exports = function(grunt) {
                     'bower_components/angular-cookies/angular-cookies.js',
                     'bower_components/angular-ui-router/release/angular-ui-router.js',
                     'bower_components/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
+                    'bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js',
 
                     'bower_components/cldrjs/dist/cldr.js',
                     'bower_components/cldrjs/dist/cldr/event.js',
@@ -95,8 +97,8 @@ module.exports = function(grunt) {
 
                     'bower_components/angular-globalize-wrapper/dist/angular-globalize-wrapper.js',
 
-//                    '../../vendor/basarevych/dynamic-table/dist/jquery.dynamic-table.js',
-//                    '../../vendor/basarevych/dynamic-table/dist/angularjs.dynamic-table.js',
+                    '../node_modules/dynamic-table/dist/jquery.dynamic-table.js',
+                    '../node_modules/dynamic-table/dist/angularjs.dynamic-table.js',
                 ],
                 dest: '../public/js/vendor.js'
             },
@@ -110,7 +112,8 @@ module.exports = function(grunt) {
                      * Add your CSS dependencies here, order is respected
                      */
                     'bower_components/angular-loading-bar/src/loading-bar.css',
-//                    '../../vendor/basarevych/dynamic-table/dist/jquery.dynamic-table.css',
+                    'bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
+                    '../node_modules/dynamic-table/dist/jquery.dynamic-table.css',
                 ],
                 dest: '../public/css/vendor.css'
             },

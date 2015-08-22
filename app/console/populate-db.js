@@ -42,7 +42,8 @@ module.exports = function (argv, rl) {
                         }
 
                         userRepo.save(user)
-                            .then(function (user) {
+                            .then(function (id) {
+                                rl.write("=> ID: " + id + "\n");
                                 rl.write("==> Done\n");
                                 done();
                             });

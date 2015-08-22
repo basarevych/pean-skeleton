@@ -7,6 +7,7 @@
 require('dotenv').load();
 
 var express = require('express');
+var http = require('http');
 var path = require('path');
 var favicon = require('serve-favicon');
 var morgan = require('morgan');
@@ -26,10 +27,26 @@ app.set('views', path.join(__dirname, 'app', 'views'));
 app.set('view engine', 'jade');
 
 // error function
-app.abort = function (status, message) {
-    var err = new Error(message);
-    err.status = status;
-    throw err;
+app.abort = function (res, status, err) {
+    if (typeof err != 'object')
+        err = new Error(err);
+
+    var code = status || 500;
+    var params = {
+        statusCode: code,
+        statusPhrase: http.STATUS_CODES[code],
+        error: err,
+        renderStack: [ 'development', 'test' ].indexOf(app.get('env')) != -1,  // render stack trace or not
+    };
+
+    if (code == 500) {
+        var locator = require('node-service-locator');
+        var logger = locator.get('logger');
+        logger.error(err);
+    }
+
+    res.status(code);
+    res.render('error', params);
 };
 
 // middleware

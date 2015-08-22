@@ -1,0 +1,35 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-offset-3 col-md-9">
+            <h3 class="page-header">{{ 'USER_TITLE' | glMessage }}</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-3">
+            <div sidebar="sm">
+                <div class="panel panel-default panel-actions">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">{{ 'USER_ACTIONS_TITLE' | glMessage }}</h3>
+                    </div>
+                    <div class="panel-body button-panel">
+                        <button class="btn btn-primary" ng-click="createUser()">
+                            {{ 'USER_CREATE_BUTTON' | glMessage }}
+                        </button>
+                        <hr>
+                        <button class="btn btn-default" ng-click="editUser()" ng-disabled="!hasSingleSelection">
+                            {{ 'USER_EDIT_BUTTON' | glMessage }}
+                        </button>
+                        <hr>
+                        <button class="btn btn-default" ng-click="deleteUser()" ng-disabled="!hasSelection">
+                            {{ 'USER_DELETE_BUTTON' | glMessage }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-9">
+            <div id="table" dynamic-table="tableCtrl"></div>
+        </div>
+    </div>
+</div>

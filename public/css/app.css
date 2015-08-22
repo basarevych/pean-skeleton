@@ -6787,3 +6787,10 @@ body.padded {
 .error-list li:before {
   content: '\e090';
 }
+.panel-actions button {
+  width: 100%;
+}
+.panel-actions hr {
+  margin: 5px 0;
+  border-color: #aaaaaa;
+}
