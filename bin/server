@@ -9,6 +9,7 @@
 var app = require('../app');
 var debug = require('debug')('express:server');
 var http = require('http');
+var locator = require('node-service-locator');
 
 // get hostname and port from environment and store in Express.
 var hostname = process.env.HOSTNAME || undefined;
@@ -20,10 +21,33 @@ app.set('port', port);
 // create HTTP server.
 var server = http.createServer(app);
 
-// listen on provided hostname and port.
-server.listen(port, typeof port == 'number' ? hostname : undefined);
-server.on('error', onError);
-server.on('listening', onListening);
+// check requirements
+var roleRepo = locator.get('role-repository');
+var userRepo = locator.get('user-repository');
+
+console.log("Checking Postgres...");
+roleRepo.findByHandle('admin')
+    .then(function (roles) {
+        if (!roles.length) {
+            console.error("Admin role not found");
+            process.exit(1);
+        }
+
+        return userRepo.findByRole('admin');
+    })
+    .then(function (users) {
+        if (!users.length) {
+            console.errors("No Admin users found");
+            process.exit(1);
+        }
+    })
+    .then(function () {
+        // listen on provided hostname and port.
+        server.on('error', onError);
+        server.on('listening', onListening);
+        server.listen(port, typeof port == 'number' ? hostname : undefined);
+        console.log("Web server started");
+    });
 
 // normalize a port into a number, string, or false.
 function normalizePort(val) {

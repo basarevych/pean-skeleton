@@ -3,6 +3,7 @@
 var app = angular.module('app', [
     'ngResource',               // Angular HTTP $resource
     'ngCookies',                // Angluar Cookie support
+    'ngAnimate',
     'angular-loading-bar',      // Loading spinner
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
@@ -38,6 +39,7 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'UserCtrl',
                 templateUrl: 'views/user.html',
+                roles: [ 'admin' ],
             });
 
         $urlRouterProvider
@@ -63,10 +65,12 @@ app.config(
 app.run(
     [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
     function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
-        $rootScope.pageTitle = 'Loading...',
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
         $rootScope.appControl = AppControl;
+        $rootScope.pageTitle = 'Loading...',
+        $rootScope.initialized = false;
+
         $rootScope.login = function () {
             LoginForm()
                 .then(function (data) {
@@ -79,6 +83,9 @@ app.run(
 
         $rootScope.$on('$stateChangeSuccess', function (event, toState) {
             $rootScope.pageTitle = $filter('glMessage')(toState.title);
+        });
+        $rootScope.$on('AppInitialized', function () {
+            $rootScope.initialized = true;
         });
 
         AppControl.init();

@@ -82,9 +82,6 @@ services.factory('AppControl',
             getError: function () {
                 return error;
             },
-            isReady: function () {
-                return initialized;
-            },
             hasToken: function () {
                 return token !== null;
             },
@@ -148,13 +145,12 @@ services.factory('AppControl',
 
                 ProfileApi.readList({})
                     .then(function (data) {
-                        profileLoaded = true;
-
                         if (!angular.equals(profile, data)) {
                             profile = data;
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
 
+                        profileLoaded = true;
                         if (done)
                             done();
                     });

@@ -20,12 +20,6 @@ module.controller("UserCtrl",
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
-                if (row['is_admin'] != null) {
-                    row['is_admin'] = '<i class="glyphicon '
-                        + (row['is_admin'] ? 'glyphicon-ok text-success' : 'glyphicon-remove text-danger')
-                        + '"></i>';
-                }
-
                 return row;
             },
         });

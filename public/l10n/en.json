@@ -8,6 +8,9 @@
         "HTTP_405": "Requested method is not implemented",
         "HTTP_500": "Please try again later",
 
+        "ROLE_MEMBER": "Member",
+        "ROLE_ADMIN": "Administrator",
+
         "ADMINISTRATION_MENU": "Administration",
         "USER_MENU": "Users",
         "SIGN_IN_MENU": "Sign in",

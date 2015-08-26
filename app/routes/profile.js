@@ -57,7 +57,7 @@ module.exports = function () {
 
     router.get('/', function (req, res) {
         var config = locator.get('config');
-        var userRepo = locator.get('user-repository');
+        var roleRepo = locator.get('role-repository');
 
         var result = {
             locale: {
@@ -71,20 +71,19 @@ module.exports = function () {
             roles:  [],
         };
 
-        var token = req.token;
-        if (!token)
+        var user = req.user;
+        if (!user)
             return res.json(result);
 
-        userRepo.find(token.user_id)
-            .then(function (users) {
-                var user = users.length && users[0];
-                if (!user)
-                    return res.json(result);
-
-                result['userId'] = user.getId();
-                result['name'] = user.getName();
-                result['email'] = user.getEmail();
-                return res.json(result);
+        result['userId'] = user.getId();
+        result['name'] = user.getName();
+        result['email'] = user.getEmail();
+        roleRepo.findByUserId(user.getId())
+            .then(function (roles) {
+                roles.forEach(function (role) {
+                    result['roles'].push(role.getHandle());
+                });
+                res.json(result);
             });
     });
 

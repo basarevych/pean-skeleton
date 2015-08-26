@@ -56,5 +56,5 @@ if (argv['_'][0] == 'help') {
     obj.help(function () { rl.close(); });
     console.log("");
 } else {
-    obj.run(function () { process.exit(0); });
+    obj.run(function () { rl.close(); });
 }

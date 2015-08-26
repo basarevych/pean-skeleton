@@ -10,8 +10,8 @@ prepend head
         };
 
 block content
-    div(ng-hide="appControl.isError() || !appControl.isReady()", ui-view)
-    ng-include(ng-show="appControl.isError()", src="'views/error.html'")
+    div(ng-show!="initialized && !appControl.isError()", ui-view, class="ng-cloak")
+    ng-include(ng-show!="initialized && appControl.isError()", src="'views/error.html'", class="ng-cloak")
 
     if env == 'development'
         script(src='/js/vendor.js')
@@ -19,5 +19,3 @@ block content
     else
         script(src='/js/vendor.js.css')
         script(src='/js/app.js.css')
-
-    p= xxx

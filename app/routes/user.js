@@ -47,14 +47,6 @@ module.exports = function (app) {
             sortable: true,
             visible: true,
         },
-        is_admin: {
-            title: 'Is admin',
-            sql_id: 'is_admin',
-            type: Table.TYPE_BOOLEAN,
-            filters: [ Table.FILTER_EQUAL, Table.FILTER_NULL ],
-            sortable: true,
-            visible: true,
-        },
     };
 
     var mapper = function (row) {
@@ -69,6 +61,13 @@ module.exports = function (app) {
     };
 
     router.get('/table', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        if (!acl.isAllowed(req.user, 'user', 'read'))
+            return app.abort(res, 403, "ACL denied");
+
         var userRepo = locator.get('user-repository');
 
         var table = new Table();

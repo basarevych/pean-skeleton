@@ -14,6 +14,7 @@ module.exports = function () {
 
     var app = locator.get('app');
     var logger = locator.get('logger');
+    var userRepo = locator.get('user-repository');
 
     app.use(function (req, res, next) {
         if (app.get('env') == 'test') { // override token when testing
@@ -28,12 +29,20 @@ module.exports = function () {
             if (parts.length == 2 && parts[0] == 'Bearer') {
                 var token = parts[1];
                 jwt.verify(token, config['jwt']['secret'], function (err, decoded) {      
-                    if (err)
-                        logger.warn('invalid token', err);
-                    else
-                        req.token = decoded;
+                    if (err || !decoded) {
+                        next();
+                        return;
+                    }
 
-                    next();
+                    req.token = decoded;
+                    userRepo.find(req.token.user_id)
+                        .then(function (users) {
+                            var user = users.length && users[0];
+                            if (user)
+                                req.user = user;
+
+                            next();
+                        });
                 });
                 return;
             }

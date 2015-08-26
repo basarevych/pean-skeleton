@@ -1,5 +1,5 @@
 /**
- * User repository
+ * Role repository
  */
 
 'use strict'
@@ -7,16 +7,16 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
-var UserModel = require('../models/user');
+var RoleModel = require('../models/role');
 
-function UserRepository() {
+function RoleRepository() {
     BaseRepository.call(this);
 }
 
-UserRepository.prototype = new BaseRepository();
-UserRepository.prototype.constructor = UserRepository;
+RoleRepository.prototype = new BaseRepository();
+RoleRepository.prototype.constructor = RoleRepository;
 
-UserRepository.prototype.find = function (id) {
+RoleRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -24,31 +24,31 @@ UserRepository.prototype.find = function (id) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('UserRepository.find() - pg connect', err);
+            logger.error('RoleRepository.find() - pg connect', err);
             process.exit(1);
         }
 
         db.query(
             "SELECT * "
-          + "  FROM users "
+          + "  FROM roles "
           + " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('UserRepository.find() - pg query', err);
+                    logger.error('RoleRepository.find() - pg query', err);
                     process.exit(1);
                 }
 
                 db.end();
 
-                var users = [];
+                var roles = [];
                 result.rows.forEach(function (row) {
-                    var user = new UserModel(row);
-                    users.push(user);
+                    var role = new RoleModel(row);
+                    roles.push(role);
                 });
 
-                defer.resolve(users);
+                defer.resolve(roles);
             }
         );
     });
@@ -56,7 +56,7 @@ UserRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
-UserRepository.prototype.findByEmail = function (email) {
+RoleRepository.prototype.findByHandle = function (handle) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -64,31 +64,31 @@ UserRepository.prototype.findByEmail = function (email) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('UserRepository.findByEmail() - pg connect', err);
+            logger.error('RoleRepository.findByHandle() - pg connect', err);
             process.exit(1);
         }
 
         db.query(
             "SELECT * "
-          + "  FROM users "
-          + " WHERE email = $1 ",
-            [ email ],
+          + "  FROM roles "
+          + " WHERE handle = $1 ",
+            [ handle ],
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('UserRepository.findByEmail() - pg query', err);
+                    logger.error('RoleRepository.findByHandle() - pg query', err);
                     process.exit(1);
                 }
 
                 db.end();
 
-                var users = [];
+                var roles = [];
                 result.rows.forEach(function (row) {
-                    var user = new UserModel(row);
-                    users.push(user);
+                    var role = new RoleModel(row);
+                    roles.push(role);
                 });
 
-                defer.resolve(users);
+                defer.resolve(roles);
             }
         );
     });
@@ -96,7 +96,7 @@ UserRepository.prototype.findByEmail = function (email) {
     return defer.promise;
 };
 
-UserRepository.prototype.findByRole = function (handle) {
+RoleRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -104,35 +104,33 @@ UserRepository.prototype.findByRole = function (handle) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('UserRepository.findByRole() - pg connect', err);
+            logger.error('RoleRepository.findByUserId() - pg connect', err);
             process.exit(1);
         }
 
         db.query(
             "    SELECT * "
-          + "      FROM users u "
+          + "      FROM roles r "
           + "INNER JOIN user_roles ur "
-          + "        ON ur.user_id = u.id "
-          + "INNER JOIN roles r "
-          + "        ON r.id = ur.role_id "
-          + "     WHERE r.handle = $1 ",
-            [ handle ],
+          + "        ON ur.role_id = r.id "
+          + "     WHERE ur.user_id = $1 ",
+            [ userId ],
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('UserRepository.findByRole() - pg query', err);
+                    logger.error('RoleRepository.findByUserId() - pg query', err);
                     process.exit(1);
                 }
 
                 db.end();
 
-                var users = [];
+                var roles = [];
                 result.rows.forEach(function (row) {
-                    var user = new UserModel(row);
-                    users.push(user);
+                    var role = new RoleModel(row);
+                    roles.push(role);
                 });
 
-                defer.resolve(users);
+                defer.resolve(roles);
             }
         );
     });
@@ -140,4 +138,4 @@ UserRepository.prototype.findByRole = function (handle) {
     return defer.promise;
 };
 
-module.exports = UserRepository;
+module.exports = RoleRepository;

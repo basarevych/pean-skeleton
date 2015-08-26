@@ -1,10 +1,11 @@
-/* pean-skeleton - v0.0.0 - 2015-08-22 */
+/* pean-skeleton - v0.0.0 - 2015-08-26 */
 
 'use strict';
 
 var app = angular.module('app', [
     'ngResource',               // Angular HTTP $resource
     'ngCookies',                // Angluar Cookie support
+    'ngAnimate',
     'angular-loading-bar',      // Loading spinner
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
@@ -40,6 +41,7 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'UserCtrl',
                 templateUrl: 'views/user.html',
+                roles: [ 'admin' ],
             });
 
         $urlRouterProvider
@@ -65,10 +67,12 @@ app.config(
 app.run(
     [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
     function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
-        $rootScope.pageTitle = 'Loading...',
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
         $rootScope.appControl = AppControl;
+        $rootScope.pageTitle = 'Loading...',
+        $rootScope.initialized = false;
+
         $rootScope.login = function () {
             LoginForm()
                 .then(function (data) {
@@ -81,6 +85,9 @@ app.run(
 
         $rootScope.$on('$stateChangeSuccess', function (event, toState) {
             $rootScope.pageTitle = $filter('glMessage')(toState.title);
+        });
+        $rootScope.$on('AppInitialized', function () {
+            $rootScope.initialized = true;
         });
 
         AppControl.init();
@@ -574,9 +581,6 @@ services.factory('AppControl',
             getError: function () {
                 return error;
             },
-            isReady: function () {
-                return initialized;
-            },
             hasToken: function () {
                 return token !== null;
             },
@@ -640,13 +644,12 @@ services.factory('AppControl',
 
                 ProfileApi.readList({})
                     .then(function (data) {
-                        profileLoaded = true;
-
                         if (!angular.equals(profile, data)) {
                             profile = data;
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
 
+                        profileLoaded = true;
                         if (done)
                             done();
                     });
@@ -739,12 +742,6 @@ module.controller("UserCtrl",
                 if (row['created_at'] != null) {
                     var m = moment(row['created_at'] * 1000);
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
-                }
-
-                if (row['is_admin'] != null) {
-                    row['is_admin'] = '<i class="glyphicon '
-                        + (row['is_admin'] ? 'glyphicon-ok text-success' : 'glyphicon-remove text-danger')
-                        + '"></i>';
                 }
 
                 return row;

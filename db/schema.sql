@@ -1,4 +1,30 @@
+DROP TABLE IF EXISTS "user_roles";
 DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "permissions";
+DROP TABLE IF EXISTS "roles";
+
+CREATE TABLE "roles" (
+    "id" serial NOT NULL,
+    "parent_id" int NULL,
+    "handle" character varying(255) NOT NULL,
+    "title" character varying(255) NOT NULL,
+    CONSTRAINT "roles_pk" PRIMARY KEY("id"),
+    CONSTRAINT "roles_unique_handle" UNIQUE ("handle"),
+    CONSTRAINT "roles_parent_fk" FOREIGN KEY("parent_id")
+        REFERENCES "roles"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "permissions" (
+    "id" serial NOT NULL,
+    "role_id" int NOT NULL,
+    "resource" character varying(255) NULL,
+    "action" character varying(255) NULL,
+    CONSTRAINT "permissions_pk" PRIMARY KEY("id"),
+    CONSTRAINT "permissions_role_fk" FOREIGN KEY("role_id")
+        REFERENCES "roles"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
 
 CREATE TABLE "users" (
     "id" serial NOT NULL,
@@ -6,7 +32,19 @@ CREATE TABLE "users" (
     "email" character varying(255) NOT NULL,
     "password" character varying(255) NOT NULL,
     "created_at" timestamp NULL,
-    "is_admin" boolean NULL,
     CONSTRAINT "users_pk" PRIMARY KEY ("id"),
     CONSTRAINT "users_unique_email" UNIQUE ("email")
+);
+
+CREATE TABLE "user_roles" (
+    "id" serial NOT NULL,
+    "user_id" int NOT NULL,
+    "role_id" int NOT NULL,
+    CONSTRAINT "user_roles_pk" PRIMARY KEY("id"),
+    CONSTRAINT "user_roles_user_fk" FOREIGN KEY("user_id")
+        REFERENCES "users"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "user_roles_role_fk" FOREIGN KEY("role_id")
+        REFERENCES "roles"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE
 );

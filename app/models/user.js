@@ -4,80 +4,242 @@
 
 'use strict'
 
+var locator = require('node-service-locator');
 var bcrypt = require('bcrypt');
+var q = require('q');
+var BaseModel = require('./base');
 
-function User(dbRow) {
+function UserModel(dbRow) {
+    this.id = null;
     this.name = null;
     this.email = null;
     this.password = null;
     this.created_at = new Date();
-    this.is_admin = false;
 
     if (dbRow) {
-        this.setId(dbRow.id);
-        this.setName(dbRow.name);
-        this.setEmail(dbRow.email);
-        this.setPassword(dbRow.password);
-        this.setCreatedAt(dbRow.created_at);
-        this.setIsAdmin(dbRow.is_admin);
+        this.id = dbRow.id;
+        this.name = dbRow.name;
+        this.email = dbRow.email;
+        this.password = dbRow.password;
+        this.created_at = dbRow.created_at;
     }
 };
 
-User.encryptPassword = function (password) {
+UserModel.prototype = new BaseModel();
+UserModel.prototype.constructor = UserModel;
+
+UserModel.encryptPassword = function (password) {
     var salt = bcrypt.genSaltSync(10);
     return bcrypt.hashSync(password, salt);
 };
 
-User.prototype.setId = function (id) {
-    this.id = id;
+UserModel.prototype.setId = function (id) {
+    this.filed('id', id);
+    return this;
 };
 
-User.prototype.getId = function () {
-    return this.id;
+UserModel.prototype.getId = function () {
+    return this.field('id');
 };
 
-User.prototype.setName = function (name) {
-    this.name = name;
+UserModel.prototype.setName = function (name) {
+    this.field('name', name);
+    return this;
 };
 
-User.prototype.getName = function () {
-    return this.name;
+UserModel.prototype.getName = function () {
+    return this.field('name');
 };
 
-User.prototype.setEmail = function (email) {
-    this.email = email;
+UserModel.prototype.setEmail = function (email) {
+    this.field('email', email);
+    return this;
 };
 
-User.prototype.getEmail = function () {
-    return this.email;
+UserModel.prototype.getEmail = function () {
+    return this.field('email');
 };
 
-User.prototype.setPassword = function (password) {
-    this.password = password;
+UserModel.prototype.setPassword = function (password) {
+    this.field('password', password);
+    return this;
 };
 
-User.prototype.getPassword = function () {
-    return this.password;
+UserModel.prototype.getPassword = function () {
+    return this.field('password');
 };
 
-User.prototype.checkPassword = function (password) {
-    return bcrypt.compareSync(password, this.password);
+UserModel.prototype.checkPassword = function (password) {
+    return bcrypt.compareSync(password, this.getPassword());
 };
 
-User.prototype.setCreatedAt = function (createdAt) {
-    this.created_at = createdAt;
+UserModel.prototype.setCreatedAt = function (createdAt) {
+    this.field('created_at', createdAt);
+    return this;
 };
 
-User.prototype.getCreatedAt = function () {
-    return this.created_at;
+UserModel.prototype.getCreatedAt = function () {
+    return this.field('created_at');
 };
 
-User.prototype.setIsAdmin = function (isAdmin) {
-    this.is_admin = isAdmin;
+UserModel.prototype.save = function (evenIfNotDirty) {
+    if (this.getId() && !this._dirty && evenIfNotDirty !== true)
+        return;
+
+    var logger = locator.get('logger');
+    var repo = locator.get('user-repository');
+    var defer = q.defer();
+
+    var me = this;
+    var db = repo.getClient();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserModel.save() - pg connect', err);
+            process.exit(1);
+        }
+
+        var query, params = [];
+        if (me.getId()) {
+            query = "UPDATE users "
+                  + "   SET name = $1, "
+                  + "       email = $2, "
+                  + "       password = $3, "
+                  + "       created_at = $4 "
+                  + " WHERE id = $5 ";
+            params = [
+                me.getName(),
+                me.getEmail(),
+                me.getPassword(),
+                me.getCreatedAt(),
+                me.getId(),
+            ];
+        } else {
+            query = "   INSERT "
+                  + "     INTO users(name, email, password, created_at) "
+                  + "   VALUES ($1, $2, $3, $4) "
+                  + "RETURNING id ";
+            params = [
+                me.getName(),
+                me.getEmail(),
+                me.getPassword(),
+                me.getCreatedAt(),
+            ];
+        }
+
+        db.query(query, params, function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('UserModel.save() - pg query', err);
+                process.exit(1);
+            }
+
+            db.end();
+
+            var id = result.rows.length && result.rows[0]['id'];
+            if (id) {
+                me.id = id;
+            } else
+                id = me.id;
+
+            defer.resolve(id);
+        });
+    });
+
+    return defer.promise;
 };
 
-User.prototype.getIsAdmin = function () {
-    return this.is_admin;
+UserModel.prototype.associateRole = function (role) {
+    var logger = locator.get('logger');
+    var repo = locator.get('user-repository');
+    var defer = q.defer();
+
+    if (!this.getId()) {
+        logger.error('save user model first');
+        process.exit(1);
+    }
+
+    if (!role.getId()) {
+        logger.error('save role model first');
+        process.exit(1);
+    }
+
+    var me = this;
+    var db = repo.getClient();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserModel.associateRole() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('UserModel.associateRole() - pg query', err);
+                process.exit(1);
+            }
+
+            db.query(
+                "SELECT * "
+              + "  FROM user_roles "
+              + " WHERE user_id = $1 "
+              + "       AND role_id = $2 ",
+                [ me.id, role.id ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('UserModel.associateRole() - pg query', err);
+                        process.exit(1);
+                    }
+
+                    if (result.rows.length) {
+                        var id = result.rows[0]['id'];
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserModel.associateRole() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            defer.resolve(id);
+                        });
+                        return;
+                    }
+
+                    db.query(
+                        "   INSERT "
+                      + "     INTO user_roles(user_id, role_id) "
+                      + "   VALUES ($1, $2) "
+                      + "RETURNING id ",
+                        [ me.id, role.id ],
+                        function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserModel.associateRole() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            var id = result.rows[0]['id'];
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('UserModel.associateRole() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                db.end();
+                                defer.resolve(id);
+                            });
+                        }
+                    );
+                }
+            );
+        });
+    });
+
+    return defer.promise;
 };
 
-module.exports = User;
+module.exports = UserModel;
