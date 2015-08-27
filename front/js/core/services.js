@@ -170,3 +170,24 @@ services.factory('AppControl',
         };
     } ]
 );
+
+services.factory('Socket',
+    [
+    function () {
+        return {
+            init: function () {
+                var socket = io.connect();
+                socket.on('notify', this.onNotify);
+                return socket;
+            },
+            onNotify: function (message) {
+                PNotify.prototype.options.styling = "bootstrap3";
+                new PNotify({
+                    title: 'Bootstrap Icon',
+                    text: 'I have an icon that uses the Bootstrap icon styles.',
+                    icon: 'glyphicon glyphicon-envelope'
+                });
+            },
+        };
+    } ]
+);

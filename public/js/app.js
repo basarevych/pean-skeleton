@@ -1,11 +1,11 @@
-/* pean-skeleton - v0.0.0 - 2015-08-26 */
+/* pean-skeleton - v0.0.0 - 2015-08-27 */
 
 'use strict';
 
 var app = angular.module('app', [
     'ngResource',               // Angular HTTP $resource
-    'ngCookies',                // Angluar Cookie support
-    'ngAnimate',
+    'ngCookies',                // Angular Cookie support
+    'ngAnimate',                // Angular Animations
     'angular-loading-bar',      // Loading spinner
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
@@ -670,6 +670,27 @@ services.factory('AppControl',
     } ]
 );
 
+services.factory('Socket',
+    [
+    function () {
+        return {
+            init: function () {
+                var socket = io.connect();
+                socket.on('notify', this.onNotify);
+                return socket;
+            },
+            onNotify: function (message) {
+                PNotify.prototype.options.styling = "bootstrap3";
+                new PNotify({
+                    title: 'Bootstrap Icon',
+                    text: 'I have an icon that uses the Bootstrap icon styles.',
+                    icon: 'glyphicon glyphicon-envelope'
+                });
+            },
+        };
+    } ]
+);
+
 'use strict';
 
 var module = angular.module('state.index', []);
@@ -727,10 +748,12 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.user', []);
 
 module.controller("UserCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable',
-    function ($scope, $window, $filter, dynamicTable) {
+    [ '$scope', '$window', '$filter', 'dynamicTable', 'Socket',
+    function ($scope, $window, $filter, dynamicTable, Socket) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
+
+        $scope.socket = Socket.init();
 
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;

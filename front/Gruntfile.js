@@ -98,6 +98,8 @@ module.exports = function(grunt) {
 
                     'bower_components/angular-globalize-wrapper/dist/angular-globalize-wrapper.js',
 
+                    'bower_components/pnotify/pnotify.core.js',
+
                     '../node_modules/dynamic-table/dist/jquery.dynamic-table.js',
                     '../node_modules/dynamic-table/dist/angularjs.dynamic-table.js',
                 ],
@@ -114,6 +116,7 @@ module.exports = function(grunt) {
                      */
                     'bower_components/angular-loading-bar/src/loading-bar.css',
                     'bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
+                    'bower_components/pnotify/pnotify.core.css',
                     '../node_modules/dynamic-table/dist/jquery.dynamic-table.css',
                 ],
                 dest: '../public/css/vendor.css'

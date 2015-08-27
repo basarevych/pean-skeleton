@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-26 */
+/* pean-skeleton - v0.0.0 - 2015-08-27 */
 
 #loading-bar,
 #loading-bar-spinner {
@@ -477,6 +477,58 @@
   border: 0;
 }
 
+/* -- Notice */
+.ui-pnotify {
+top: 25px;
+right: 25px;
+position: absolute;
+height: auto;
+/* Ensures notices are above everything */
+z-index: 9999;
+}
+/* Hides position: fixed from IE6 */
+html > body > .ui-pnotify {
+position: fixed;
+}
+.ui-pnotify .ui-pnotify-shadow {
+-webkit-box-shadow: 0px 2px 10px rgba(50, 50, 50, 0.5);
+-moz-box-shadow: 0px 2px 10px rgba(50, 50, 50, 0.5);
+box-shadow: 0px 2px 10px rgba(50, 50, 50, 0.5);
+}
+.ui-pnotify-container {
+background-position: 0 0;
+padding: .8em;
+height: 100%;
+margin: 0;
+}
+.ui-pnotify-sharp {
+-webkit-border-radius: 0;
+-moz-border-radius: 0;
+border-radius: 0;
+}
+.ui-pnotify-title {
+display: block;
+margin-bottom: .4em;
+margin-top: 0;
+}
+.ui-pnotify-text {
+display: block;
+}
+.ui-pnotify-icon, .ui-pnotify-icon span {
+display: block;
+float: left;
+margin-right: .2em;
+}
+/* Alternate stack initial positioning. */
+.ui-pnotify.stack-topleft, .ui-pnotify.stack-bottomleft {
+left: 25px;
+right: auto;
+}
+.ui-pnotify.stack-bottomright, .ui-pnotify.stack-bottomleft {
+bottom: 25px;
+top: auto;
+}
+
 .dynamic-table .invisible {
     visibility: hidden;
 }
@@ -491,6 +543,9 @@
     position: absolute;
     background: transparent url(img/loader.gif) center center no-repeat;
     z-index: 9001;
+    display: none;
+}
+.dynamic-table .ajax-error {
     display: none;
 }
 .dynaic-table th:not(.selector):not(:last-child) {
@@ -516,11 +571,15 @@
     width: 300px;
     z-index: 1025;
 }
-.dynamic-table tbody.empty td {
+.dynamic-table tbody.empty td, .dynamic-table .ajax-error {
     padding: 1em 0;
     text-align: center;
     font-size: 120%;
     font-style: italic;
+}
+.dynamic-table .error-reset-button {
+    font-style: normal;
+    margin-top: 10px;
 }
 .dynamic-table .pagination-input {
     width: 4em !important;

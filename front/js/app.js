@@ -2,8 +2,8 @@
 
 var app = angular.module('app', [
     'ngResource',               // Angular HTTP $resource
-    'ngCookies',                // Angluar Cookie support
-    'ngAnimate',
+    'ngCookies',                // Angular Cookie support
+    'ngAnimate',                // Angular Animations
     'angular-loading-bar',      // Loading spinner
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router

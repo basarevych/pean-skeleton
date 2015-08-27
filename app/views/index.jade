@@ -13,6 +13,7 @@ block content
     div(ng-show!="initialized && !appControl.isError()", ui-view, class="ng-cloak")
     ng-include(ng-show!="initialized && appControl.isError()", src="'views/error.html'", class="ng-cloak")
 
+    script(src='/socket.io/socket.io.js')
     if env == 'development'
         script(src='/js/vendor.js')
         script(src='/js/app.js')

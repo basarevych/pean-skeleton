@@ -1,100 +1,30 @@
 #!/usr/bin/env node
 
 /**
- * Module dependencies.
+ * Start web server
  */
 
 'use strict'
 
 var app = require('../app');
-var debug = require('debug')('express:server');
-var http = require('http');
 var locator = require('node-service-locator');
 
-// get hostname and port from environment and store in Express.
-var hostname = process.env.HOSTNAME || undefined;
-var port = normalizePort(process.env.PORT || '3000');
-    
-app.set('hostname', hostname);
-app.set('port', port);
-
-// create HTTP server.
-var server = http.createServer(app);
-
 // check requirements
-var roleRepo = locator.get('role-repository');
-var userRepo = locator.get('user-repository');
-
-console.log("Checking Postgres...");
-roleRepo.findByHandle('admin')
-    .then(function (roles) {
-        if (!roles.length) {
-            console.error("Admin role not found");
-            process.exit(1);
-        }
-
-        return userRepo.findByRole('admin');
-    })
-    .then(function (users) {
-        if (!users.length) {
-            console.errors("No Admin users found");
-            process.exit(1);
-        }
-    })
-    .then(function () {
-        // listen on provided hostname and port.
-        server.on('error', onError);
-        server.on('listening', onListening);
-        server.listen(port, typeof port == 'number' ? hostname : undefined);
-        console.log("Web server started");
-    });
-
-// normalize a port into a number, string, or false.
-function normalizePort(val) {
-    var port = parseInt(val, 10);
-
-    if (isNaN(port)) {
-        // named pipe
-        return val;
+console.log("==> Checking Postgres...");
+var db = locator.get('user-repository').getClient();
+db.connect(function (err) {
+    if (err) {
+        console.error(err);
+        process.exit(1);
     }
 
-    if (port >= 0) {
-        // port number
-        return port;
-    }
+    var httpServer = locator.get('http-server');
+    httpServer.start();
+    console.log("=> HTTP server started");
+    locator.register('http-server', httpServer);
 
-    return false;
-}
-
-// event listener for HTTP server "error" event.
-function onError(error) {
-    if (error.syscall !== 'listen')
-        throw error;
-
-    var bind = typeof port === 'string'
-        ? 'Pipe ' + port
-        : 'Port ' + port;
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-        case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
-        default:
-            throw error;
-    }
-}
-
-// event listener for HTTP server "listening" event.
-function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
-    debug('Listening on ' + bind);
-}
+    var socketServer = locator.get('socket-server');
+    socketServer.start();
+    console.log("=> Socket server started");
+    locator.register('socket-server', socketServer);
+});

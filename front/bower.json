@@ -17,6 +17,7 @@
     "angular-loading-bar": "~0.8.0",
     "angular-ui-router": "~0.2.15",
     "angular-ui-bootstrap-bower": "~0.13.1",
-    "angular-globalize-wrapper": "~0.2.0"
+    "angular-globalize-wrapper": "~0.2.0",
+    "pnotify": "~2.0.1"
   }
 }
