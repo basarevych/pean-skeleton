@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-27 */
+/* pean-skeleton - v0.0.0 - 2015-08-28 */
 
 'use strict';
 
@@ -65,11 +65,14 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
-    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'Socket', 'LoginForm',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, Socket, LoginForm) {
+        PNotify.prototype.options.styling = "bootstrap3";
+
+        $rootScope.appControl = AppControl;
+        $rootScope.socket = Socket;
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
-        $rootScope.appControl = AppControl;
         $rootScope.pageTitle = 'Loading...',
         $rootScope.initialized = false;
 
@@ -90,6 +93,7 @@ app.run(
             $rootScope.initialized = true;
         });
 
+        Socket.init();
         AppControl.init();
     } ]
 );
@@ -577,6 +581,13 @@ services.factory('AppControl',
             },
             setError: function (code) {
                 error = code;
+                if (error) {
+                    $('#view-wrapper').addClass('forced-hide');
+                    $('#error-wrapper').removeClass('forced-hide');
+                } else {
+                    $('#view-wrapper').removeClass('forced-hide');
+                    $('#error-wrapper').addClass('forced-hide');
+                }
             },
             getError: function () {
                 return error;
@@ -671,21 +682,44 @@ services.factory('AppControl',
 );
 
 services.factory('Socket',
-    [
-    function () {
+    [ '$rootScope',
+    function ($rootScope) {
+        var socket = null;
+        var connected = false;
+
+        function onConnect() {
+            connected = true;
+            if (!$rootScope.$$phase)
+                $rootScope.$digest();
+        }
+
+        function onDisconnect() {
+            connected = false;
+            if (!$rootScope.$$phase)
+                $rootScope.$digest();
+        }
+
+        function onNotification(message) {
+            new PNotify({
+                title: 'Bootstrap Icon',
+                text: 'I have an icon that uses the Bootstrap icon styles.',
+                icon: 'glyphicon glyphicon-envelope',
+                desktop: {
+                    desktop: true
+                },
+            });
+        }
+
         return {
-            init: function () {
-                var socket = io.connect();
-                socket.on('notify', this.onNotify);
-                return socket;
+            getConnected: function () {
+                return connected;
             },
-            onNotify: function (message) {
-                PNotify.prototype.options.styling = "bootstrap3";
-                new PNotify({
-                    title: 'Bootstrap Icon',
-                    text: 'I have an icon that uses the Bootstrap icon styles.',
-                    icon: 'glyphicon glyphicon-envelope'
-                });
+            init: function () {
+                socket = io.connect();
+                socket.on('connect', onConnect);
+                socket.on('reconnect', onConnect);
+                socket.on('disconnect', onDisconnect);
+                socket.on('notification', onNotification);
             },
         };
     } ]
@@ -748,12 +782,10 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.user', []);
 
 module.controller("UserCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable', 'Socket',
-    function ($scope, $window, $filter, dynamicTable, Socket) {
+    [ '$scope', '$window', '$filter', 'dynamicTable',
+    function ($scope, $window, $filter, dynamicTable) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
-
-        $scope.socket = Socket.init();
 
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;

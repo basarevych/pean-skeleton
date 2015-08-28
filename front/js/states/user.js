@@ -3,12 +3,10 @@
 var module = angular.module('state.user', []);
 
 module.controller("UserCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable', 'Socket',
-    function ($scope, $window, $filter, dynamicTable, Socket) {
+    [ '$scope', '$window', '$filter', 'dynamicTable',
+    function ($scope, $window, $filter, dynamicTable) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
-
-        $scope.socket = Socket.init();
 
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;

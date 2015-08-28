@@ -12,9 +12,7 @@ module.exports = function () {
     var app = locator.get('app');
 
     var dir = path.join(__dirname, '..', 'routes');
-    fs.readdirSync(dir).forEach(function (name) {
-        require(dir + '/' + name)();
-    });
+    loadDir(dir);
 
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {
@@ -23,3 +21,14 @@ module.exports = function () {
         next(err);
     });
 };
+
+
+function loadDir(dir) {
+    fs.readdirSync(dir).forEach(function (name) {
+        var path = dir + '/' + name;
+        if (fs.statSync(path).isDirectory())
+            loadDir(path);
+        else
+            require(path)();
+    });
+}

@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-27 */
+/* pean-skeleton - v0.0.0 - 2015-08-28 */
 
 #loading-bar,
 #loading-bar-spinner {
@@ -527,6 +527,11 @@ right: auto;
 .ui-pnotify.stack-bottomright, .ui-pnotify.stack-bottomleft {
 bottom: 25px;
 top: auto;
+}
+
+.ui-pnotify-closer, .ui-pnotify-sticker {
+float: right;
+margin-left: .2em;
 }
 
 .dynamic-table .invisible {

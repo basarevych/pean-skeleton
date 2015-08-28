@@ -111,5 +111,5 @@ module.exports = function (app) {
         }
     });
 
-    app.use('/api/user', router);
+    app.use('/v1/user', router);
 };

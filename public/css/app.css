@@ -6764,7 +6764,8 @@ button.close {
     display: none !important;
   }
 }
-.ng-cloak {
+.ng-cloak,
+.forced-hide {
   display: none !important;
 }
 body.padded {
@@ -6795,7 +6796,6 @@ body.padded {
 }
 .panel-actions hr {
   margin: 5px 0;
-  border-color: #aaaaaa;
 }
 [ui-view].ng-enter {
   transition: 0.75s cubic-bezier(0.25, 0.1, 0.25, 1) all;

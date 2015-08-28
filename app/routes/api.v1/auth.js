@@ -97,5 +97,5 @@ module.exports = function (app) {
         res.json({ valid: data.valid, errors: data.errors });
     });
 
-    app.use('/api/auth', router);
+    app.use('/v1/auth', router);
 };

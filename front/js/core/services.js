@@ -78,6 +78,13 @@ services.factory('AppControl',
             },
             setError: function (code) {
                 error = code;
+                if (error) {
+                    $('#view-wrapper').addClass('forced-hide');
+                    $('#error-wrapper').removeClass('forced-hide');
+                } else {
+                    $('#view-wrapper').removeClass('forced-hide');
+                    $('#error-wrapper').addClass('forced-hide');
+                }
             },
             getError: function () {
                 return error;
@@ -172,21 +179,44 @@ services.factory('AppControl',
 );
 
 services.factory('Socket',
-    [
-    function () {
+    [ '$rootScope',
+    function ($rootScope) {
+        var socket = null;
+        var connected = false;
+
+        function onConnect() {
+            connected = true;
+            if (!$rootScope.$$phase)
+                $rootScope.$digest();
+        }
+
+        function onDisconnect() {
+            connected = false;
+            if (!$rootScope.$$phase)
+                $rootScope.$digest();
+        }
+
+        function onNotification(message) {
+            new PNotify({
+                title: 'Bootstrap Icon',
+                text: 'I have an icon that uses the Bootstrap icon styles.',
+                icon: 'glyphicon glyphicon-envelope',
+                desktop: {
+                    desktop: true
+                },
+            });
+        }
+
         return {
-            init: function () {
-                var socket = io.connect();
-                socket.on('notify', this.onNotify);
-                return socket;
+            getConnected: function () {
+                return connected;
             },
-            onNotify: function (message) {
-                PNotify.prototype.options.styling = "bootstrap3";
-                new PNotify({
-                    title: 'Bootstrap Icon',
-                    text: 'I have an icon that uses the Bootstrap icon styles.',
-                    icon: 'glyphicon glyphicon-envelope'
-                });
+            init: function () {
+                socket = io.connect();
+                socket.on('connect', onConnect);
+                socket.on('reconnect', onConnect);
+                socket.on('disconnect', onDisconnect);
+                socket.on('notification', onNotification);
             },
         };
     } ]

@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-27 */
+/* pean-skeleton - v0.0.0 - 2015-08-28 */
 
 /*!
  * jQuery JavaScript Library v2.1.4
@@ -74151,6 +74151,283 @@ glModule.filter('glCurrency',
 	return PNotify;
 }));
 
+// Buttons
+// Uses AMD or browser globals for jQuery.
+(function (factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as a module.
+        define('pnotify.buttons', ['jquery', 'pnotify'], factory);
+    } else {
+        // Browser globals
+        factory(jQuery, PNotify);
+    }
+}(function($, PNotify){
+	PNotify.prototype.options.buttons = {
+		// Provide a button for the user to manually close the notice.
+		closer: true,
+		// Only show the closer button on hover.
+		closer_hover: true,
+		// Provide a button for the user to manually stick the notice.
+		sticker: true,
+		// Only show the sticker button on hover.
+		sticker_hover: true,
+		// The various displayed text, helps facilitating internationalization.
+		labels: {
+			close: "Close",
+			stick: "Stick"
+		}
+	};
+	PNotify.prototype.modules.buttons = {
+		// This lets us update the options available in the closures.
+		myOptions: null,
+
+		closer: null,
+		sticker: null,
+
+		init: function(notice, options){
+			var that = this;
+			this.myOptions = options;
+			notice.elem.on({
+				"mouseenter": function(e){
+					// Show the buttons.
+					if (that.myOptions.sticker && !(notice.options.nonblock && notice.options.nonblock.nonblock)) that.sticker.trigger("pnotify_icon").css("visibility", "visible");
+					if (that.myOptions.closer && !(notice.options.nonblock && notice.options.nonblock.nonblock)) that.closer.css("visibility", "visible");
+				},
+				"mouseleave": function(e){
+					// Hide the buttons.
+					if (that.myOptions.sticker_hover)
+						that.sticker.css("visibility", "hidden");
+					if (that.myOptions.closer_hover)
+						that.closer.css("visibility", "hidden");
+				}
+			});
+
+			// Provide a button to stick the notice.
+			this.sticker = $("<div />", {
+				"class": "ui-pnotify-sticker",
+				"css": {"cursor": "pointer", "visibility": options.sticker_hover ? "hidden" : "visible"},
+				"click": function(){
+					notice.options.hide = !notice.options.hide;
+					if (notice.options.hide)
+						notice.queueRemove();
+					else
+						notice.cancelRemove();
+					$(this).trigger("pnotify_icon");
+				}
+			})
+			.bind("pnotify_icon", function(){
+				$(this).children().removeClass(notice.styles.pin_up+" "+notice.styles.pin_down).addClass(notice.options.hide ? notice.styles.pin_up : notice.styles.pin_down);
+			})
+			.append($("<span />", {"class": notice.styles.pin_up, "title": options.labels.stick}))
+			.prependTo(notice.container);
+			if (!options.sticker || (notice.options.nonblock && notice.options.nonblock.nonblock))
+				this.sticker.css("display", "none");
+
+			// Provide a button to close the notice.
+			this.closer = $("<div />", {
+				"class": "ui-pnotify-closer",
+				"css": {"cursor": "pointer", "visibility": options.closer_hover ? "hidden" : "visible"},
+				"click": function(){
+					notice.remove(false);
+					that.sticker.css("visibility", "hidden");
+					that.closer.css("visibility", "hidden");
+				}
+			})
+			.append($("<span />", {"class": notice.styles.closer, "title": options.labels.close}))
+			.prependTo(notice.container);
+			if (!options.closer || (notice.options.nonblock && notice.options.nonblock.nonblock))
+				this.closer.css("display", "none");
+		},
+		update: function(notice, options){
+			this.myOptions = options;
+			// Update the sticker and closer buttons.
+			if (!options.closer || (notice.options.nonblock && notice.options.nonblock.nonblock))
+				this.closer.css("display", "none");
+			else if (options.closer)
+				this.closer.css("display", "block");
+			if (!options.sticker || (notice.options.nonblock && notice.options.nonblock.nonblock))
+				this.sticker.css("display", "none");
+			else if (options.sticker)
+				this.sticker.css("display", "block");
+			// Update the sticker icon.
+			this.sticker.trigger("pnotify_icon");
+			// Update the hover status of the buttons.
+			if (options.sticker_hover)
+				this.sticker.css("visibility", "hidden");
+			else if (!(notice.options.nonblock && notice.options.nonblock.nonblock))
+				this.sticker.css("visibility", "visible");
+			if (options.closer_hover)
+				this.closer.css("visibility", "hidden");
+			else if (!(notice.options.nonblock && notice.options.nonblock.nonblock))
+				this.closer.css("visibility", "visible");
+		}
+	};
+	$.extend(PNotify.styling.jqueryui, {
+		closer: "ui-icon ui-icon-close",
+		pin_up: "ui-icon ui-icon-pin-w",
+		pin_down: "ui-icon ui-icon-pin-s"
+	});
+	$.extend(PNotify.styling.bootstrap2, {
+		closer: "icon-remove",
+		pin_up: "icon-pause",
+		pin_down: "icon-play"
+	});
+	$.extend(PNotify.styling.bootstrap3, {
+		closer: "glyphicon glyphicon-remove",
+		pin_up: "glyphicon glyphicon-pause",
+		pin_down: "glyphicon glyphicon-play"
+	});
+	$.extend(PNotify.styling.fontawesome, {
+		closer: "fa fa-times",
+		pin_up: "fa fa-pause",
+		pin_down: "fa fa-play"
+	});
+}));
+
+// Desktop
+// Uses AMD or browser globals for jQuery.
+(function (factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as a module.
+        define('pnotify.desktop', ['jquery', 'pnotify'], factory);
+    } else {
+        // Browser globals
+        factory(jQuery, PNotify);
+    }
+}(function($, PNotify){
+	var permission;
+	var notify = function(title, options){
+		// Memoize based on feature detection.
+		if ("Notification" in window) {
+			notify = function (title, options) {
+				return new Notification(title, options);
+			};
+		} else if ("mozNotification" in navigator) {
+			notify = function (title, options) {
+				// Gecko < 22
+				return navigator.mozNotification
+					.createNotification(title, options.body, options.icon)
+					.show();
+			};
+		} else if ("webkitNotifications" in window) {
+			notify = function (title, options) {
+				return window.webkitNotifications.createNotification(
+					options.icon,
+					title,
+					options.body
+				);
+			};
+		} else {
+			notify = function (title, options) {
+				return null;
+			};
+		}
+		return notify(title, options);
+	};
+
+
+	PNotify.prototype.options.desktop = {
+		// Display the notification as a desktop notification.
+		desktop: false,
+		// The URL of the icon to display. If false, no icon will show. If null, a default icon will show.
+		icon: null,
+		// Using a tag lets you update an existing notice, or keep from duplicating notices between tabs.
+		// If you leave tag null, one will be generated, facilitating the "update" function.
+		// see: http://www.w3.org/TR/notifications/#tags-example
+		tag: null
+	};
+	PNotify.prototype.modules.desktop = {
+		tag: null,
+		icon: null,
+		genNotice: function(notice, options){
+			if (options.icon === null) {
+				this.icon = "http://sciactive.com/pnotify/includes/desktop/"+notice.options.type+".png";
+			} else if (options.icon === false) {
+				this.icon = null;
+			} else {
+				this.icon = options.icon;
+			}
+			if (this.tag === null || options.tag !== null) {
+				this.tag = options.tag === null ? "PNotify-"+Math.round(Math.random() * 1000000) : options.tag;
+			}
+			notice.desktop = notify(notice.options.title, {
+				icon: this.icon,
+				body: notice.options.text,
+				tag: this.tag
+			});
+			if (!("close" in notice.desktop)) {
+				notice.desktop.close = function(){
+					notice.desktop.cancel();
+				};
+			}
+			notice.desktop.onclick = function(){
+				notice.elem.trigger("click");
+			};
+			notice.desktop.onclose = function(){
+				if (notice.state !== "closing" && notice.state !== "closed") {
+					notice.remove();
+				}
+			};
+		},
+		init: function(notice, options){
+			if (!options.desktop)
+				return;
+			permission = PNotify.desktop.checkPermission();
+			if (permission != 0)
+				return;
+			this.genNotice(notice, options);
+		},
+		update: function(notice, options, oldOpts){
+			if (permission != 0 || !options.desktop)
+				return;
+			this.genNotice(notice, options);
+		},
+		beforeOpen: function(notice, options){
+			if (permission != 0 || !options.desktop)
+				return;
+			notice.elem.css({'left': '-10000px', 'display': 'none'});
+		},
+		afterOpen: function(notice, options){
+			if (permission != 0 || !options.desktop)
+				return;
+			notice.elem.css({'left': '-10000px', 'display': 'none'});
+			if ("show" in notice.desktop) {
+				notice.desktop.show();
+			}
+		},
+		beforeClose: function(notice, options){
+			if (permission != 0 || !options.desktop)
+				return;
+			notice.elem.css({'left': '-10000px', 'display': 'none'});
+		},
+		afterClose: function(notice, options){
+			if (permission != 0 || !options.desktop)
+				return;
+			notice.elem.css({'left': '-10000px', 'display': 'none'});
+			notice.desktop.close();
+		}
+	};
+	PNotify.desktop = {
+		permission: function(){
+			if (typeof Notification !== "undefined" && "requestPermission" in Notification) {
+				Notification.requestPermission();
+			} else if ("webkitNotifications" in window) {
+				window.webkitNotifications.requestPermission();
+			}
+		},
+		checkPermission: function(){
+			if (typeof Notification !== "undefined" && "permission" in Notification) {
+				return (Notification.permission == "granted" ? 0 : 1);
+			} else if ("webkitNotifications" in window) {
+				return window.webkitNotifications.checkPermission();
+			} else {
+				return 1;
+			}
+		}
+	};
+	permission = PNotify.desktop.checkPermission();
+}));
+
 ;(function ($, window, document, undefined) {
 
     var pluginName = "dynamicTable";
@@ -75108,10 +75385,12 @@ glModule.filter('glCurrency',
         var pos = tbody.position();
         $.each([ '.overlay-back', '.overlay-loader' ], function (index, value) {
             var overlay = plugin.element.find(value);
+            if (pos) {
+                overlay.css('top', pos.top)
+                       .css('left', pos.left);
+            }
             overlay.width(tbody.width())
                    .height(tbody.height())
-                   .css('top', pos.top)
-                   .css('left', pos.left)
                    .css('display', enable ? 'block' : 'none');
         });
     };

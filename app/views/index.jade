@@ -6,12 +6,12 @@ extends layout
 prepend head
     script.
         window['config'] = {
-            apiUrl: '/api',
+            apiUrl: '/v1',
         };
 
 block content
-    div(ng-show!="initialized && !appControl.isError()", ui-view, class="ng-cloak")
-    ng-include(ng-show!="initialized && appControl.isError()", src="'views/error.html'", class="ng-cloak")
+    div#view-wrapper(ng-show="initialized", ui-view, class="ng-cloak")
+    ng-include#error-wrapper(src="'views/error.html'", class="forced-hide")
 
     script(src='/socket.io/socket.io.js')
     if env == 'development'

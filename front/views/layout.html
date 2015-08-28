@@ -47,11 +47,13 @@
                         </li>
                     </ul>
                 </li>
-                <li class="btn btn-default navbar-btn" ng-click="login()" ng-show="appControl.getProfile().userId === null">
+                <li class="btn navbar-btn" ng-click="login()" ng-show="appControl.getProfile().userId === null"
+                    ng-class="{ 'btn-primary': socket.getConnected(), 'btn-danger': !socket.getConnected() }">
                     {{ 'SIGN_IN_MENU' | glMessage }}
                 </li>
                 <li class="btn-group" dropdown ng-hide="appControl.getProfile().userId === null">
-                    <button type="button" class="btn btn-default navbar-btn dropdown-toggle" dropdown-toggle>
+                    <button type="button" class="btn btn-default navbar-btn dropdown-toggle" dropdown-toggle
+                        ng-class="{ 'btn-primary': socket.getConnected(), 'btn-danger': !socket.getConnected() }">
                         <span class="glyphicon glyphicon-user"></span>
                         {{ appControl.getProfile().name || appControl.getProfile().email }}
                         <span class="caret"></span>

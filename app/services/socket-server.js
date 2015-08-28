@@ -27,7 +27,7 @@ SocketServer.prototype.start = function () {
 
 SocketServer.prototype.onConnection = function (socket) {
     console.log("Socket connected");
-    socket.emit('notify', 'Test');
+    socket.emit('notification', 'Test');
 };
 
 module.exports = SocketServer;

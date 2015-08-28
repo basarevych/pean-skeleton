@@ -7,7 +7,7 @@
 var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
-var UserModel = require('../models/user');
+var UserModel = require('../../models/user');
 
 module.exports = function () {
     var router = express.Router();
@@ -132,5 +132,5 @@ module.exports = function () {
         res.json({ valid: data.valid, errors: data.errors });
     });
 
-    app.use('/api/profile', router);
+    app.use('/v1/profile', router);
 };

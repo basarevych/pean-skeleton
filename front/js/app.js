@@ -63,11 +63,14 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'LoginForm',
-    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'Socket', 'LoginForm',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, Socket, LoginForm) {
+        PNotify.prototype.options.styling = "bootstrap3";
+
+        $rootScope.appControl = AppControl;
+        $rootScope.socket = Socket;
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
-        $rootScope.appControl = AppControl;
         $rootScope.pageTitle = 'Loading...',
         $rootScope.initialized = false;
 
@@ -88,6 +91,7 @@ app.run(
             $rootScope.initialized = true;
         });
 
+        Socket.init();
         AppControl.init();
     } ]
 );
