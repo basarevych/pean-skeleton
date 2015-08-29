@@ -26,8 +26,7 @@ SocketServer.prototype.start = function () {
 };
 
 SocketServer.prototype.onConnection = function (socket) {
-    console.log("Socket connected");
-    socket.emit('notification', 'Test');
+    console.log("[WebSocket] Connected " + socket.id);
 };
 
 module.exports = SocketServer;

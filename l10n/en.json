@@ -51,6 +51,11 @@
         "NEW_PASSWORD_NOTICE": "Leave blank if you do not want to change it",
 
         "USER_TITLE": "Users",
+        "USER_ID_COLUMN": "ID",
+        "USER_NAME_COLUMN": "Name",
+        "USER_EMAIL_COLUMN": "Email",
+        "USER_ROLES_COLUMN": "Roles",
+        "USER_CREATED_AT_COLUMN": "Created at",
         "USER_ACTIONS_TITLE": "Table actions",
         "USER_CREATE_BUTTON": "Create user",
         "USER_EDIT_BUTTON": "Edit user",

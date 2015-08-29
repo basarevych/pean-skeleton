@@ -56,6 +56,46 @@ PermissionRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+PermissionRepository.prototype.findByRoleId = function (roleId) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getClient();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('PermissionRepository.findByRoleId() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM permissions "
+          + " WHERE role_id = $1 ",
+            [ roleId ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('PermissionRepository.findByRoleId() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var roles = [];
+                result.rows.forEach(function (row) {
+                    var role = new PermissionModel(row);
+                    roles.push(role);
+                });
+
+                defer.resolve(roles);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 PermissionRepository.prototype.findByParams = function (roleId, resource, action) {
     var logger = locator.get('logger');
     var defer = q.defer();

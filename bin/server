@@ -18,6 +18,8 @@ db.connect(function (err) {
         process.exit(1);
     }
 
+    db.end();
+
     var httpServer = locator.get('http-server');
     httpServer.start();
     console.log("=> HTTP server started");

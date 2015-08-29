@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-28 */
+/* pean-skeleton - v0.0.0 - 2015-08-29 */
 
 'use strict';
 
@@ -41,7 +41,7 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'UserCtrl',
                 templateUrl: 'views/user.html',
-                roles: [ 'admin' ],
+//                roles: [ 'admin' ],
             });
 
         $urlRouterProvider
@@ -388,10 +388,8 @@ forms.factory('ModalFormCtrl',
                         if (data.valid)
                             return;
 
-                        $.each(data.errors, function (name, value) {
-                            $.each(value, function (index, error) {
-                                $scope.setValidationError(name, error);
-                            });
+                        $.each(data.errors, function (index, value) {
+                            $scope.setValidationError(name, value);
                         });
                     });
             };
@@ -585,8 +583,8 @@ services.factory('AppControl',
                     $('#view-wrapper').addClass('forced-hide');
                     $('#error-wrapper').removeClass('forced-hide');
                 } else {
-                    $('#view-wrapper').removeClass('forced-hide');
                     $('#error-wrapper').addClass('forced-hide');
+                    $('#view-wrapper').removeClass('forced-hide');
                 }
             },
             getError: function () {

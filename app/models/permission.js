@@ -62,12 +62,14 @@ PermissionModel.prototype.getAction = function () {
 };
 
 PermissionModel.prototype.save = function (evenIfNotDirty) {
-    if (this.getId() && !this._dirty && evenIfNotDirty !== true)
-        return;
-
     var logger = locator.get('logger');
     var repo = locator.get('user-repository');
     var defer = q.defer();
+
+    if (this.getId() && !this._dirty && evenIfNotDirty !== true) {
+        defer.resolve(this.getId());
+        return defer.promise;
+    }
 
     var me = this;
     var db = repo.getClient();

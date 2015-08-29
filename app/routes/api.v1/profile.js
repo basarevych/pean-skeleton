@@ -91,9 +91,8 @@ module.exports = function () {
         var config = locator.get('config');
         var userRepo = locator.get('user-repository');
 
-        var token = req.token;
-        if (!token)
-            return app.abort(res, 403, "Token required");
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
 
         var name = parse('name', req, res);
         var newPassword = parse('newPassword', req, res);
@@ -110,20 +109,16 @@ module.exports = function () {
             });
         }
 
-        userRepo.find(token.user_id)
-            .then(function (users) {
-                var user = users.length && users[0];
-                if (!user)
-                    return app.abort(404, "Invalid user ID:" + id);
+        req.user.setName(name.value.length ? name.value : null);
+        if (newPassword.value.length)
+            req.user.setPassword(UserModel.encryptPassword(newPassword.value));
 
-                user.setName(name.value.length ? name.value : null);
-                if (newPassword.value.length)
-                    user.setPassword(UserModel.encryptPassword(newPassword.value));
-
-                userRepo.save(user)
-                    .then(function (user) {
-                        res.json({ valid: true });
-                    });
+        req.user.save()
+            .then(function () {
+                res.json({ valid: true });
+            })
+            .catch(function () {
+                res.json({ valid: false });
             });
     });
 

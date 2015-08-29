@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS "dt_users";
 DROP TABLE IF EXISTS "user_roles";
 DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "permissions";
@@ -48,3 +49,17 @@ CREATE TABLE "user_roles" (
         REFERENCES "roles"("id")
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
+CREATE VIEW dt_users AS
+    SELECT u.*,
+           string_agg(
+               (SELECT r.handle
+                  FROM roles r
+                 WHERE r.id = ur.role_id
+              ORDER BY r.handle),
+          ', ') AS roles
+      FROM users u
+ LEFT JOIN user_roles ur
+        ON ur.user_id = u.id
+  GROUP BY u.id;

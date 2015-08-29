@@ -86,10 +86,8 @@ forms.factory('ModalFormCtrl',
                         if (data.valid)
                             return;
 
-                        $.each(data.errors, function (name, value) {
-                            $.each(value, function (index, error) {
-                                $scope.setValidationError(name, error);
-                            });
+                        $.each(data.errors, function (index, value) {
+                            $scope.setValidationError(name, value);
                         });
                     });
             };

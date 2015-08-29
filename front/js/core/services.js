@@ -82,8 +82,8 @@ services.factory('AppControl',
                     $('#view-wrapper').addClass('forced-hide');
                     $('#error-wrapper').removeClass('forced-hide');
                 } else {
-                    $('#view-wrapper').removeClass('forced-hide');
                     $('#error-wrapper').addClass('forced-hide');
+                    $('#view-wrapper').removeClass('forced-hide');
                 }
             },
             getError: function () {
