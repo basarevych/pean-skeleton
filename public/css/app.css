@@ -6809,3 +6809,6 @@ body.padded {
 [ui-view].ng-leave {
   opacity: 0;
 }
+.ui-pnotify-icon {
+  margin-top: 2px;
+}
