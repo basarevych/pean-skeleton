@@ -24,7 +24,7 @@ Acl.prototype.isAllowed = function (user, resource, action) {
 
     function loadRolePermissions(roleId) {
         var roleDefer = q.defer();
-        loadPromises.push(roleDefer);
+        loadPromises.push(roleDefer.promise);
 
         roleRepo.find(roleId)
             .then(function (roles) {
@@ -37,7 +37,7 @@ Acl.prototype.isAllowed = function (user, resource, action) {
 
                 permissionRepo.findByRoleId(role.getId())
                     .then(function (permissions) {
-                        permissions.each(function (permission) { allPermissions.push(permission); });
+                        permissions.forEach(function (permission) { allPermissions.push(permission); });
                         roleDefer.resolve();
                     })
                     .catch(function () {
@@ -51,7 +51,7 @@ Acl.prototype.isAllowed = function (user, resource, action) {
 
     roleRepo.findByUserId(user.getId())
         .then(function (roles) {
-            roles.each(function (role) { loadRolePermissions(role.getId()) });
+            roles.forEach(function (role) { loadRolePermissions(role.getId()) });
 
             q.all(loadPromises)
                 .then(function () {

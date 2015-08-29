@@ -42,13 +42,13 @@ PermissionRepository.prototype.find = function (id) {
 
                 db.end();
 
-                var roles = [];
+                var permissions = [];
                 result.rows.forEach(function (row) {
-                    var role = new PermissionModel(row);
-                    roles.push(role);
+                    var permission = new PermissionModel(row);
+                    permissions.push(permission);
                 });
 
-                defer.resolve(roles);
+                defer.resolve(permissions);
             }
         );
     });
@@ -82,13 +82,13 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
 
                 db.end();
 
-                var roles = [];
+                var permissions = [];
                 result.rows.forEach(function (row) {
-                    var role = new PermissionModel(row);
-                    roles.push(role);
+                    var permission = new PermissionModel(row);
+                    permissions.push(permission);
                 });
 
-                defer.resolve(roles);
+                defer.resolve(permissions);
             }
         );
     });
@@ -145,13 +145,13 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
 
                 db.end();
 
-                var roles = [];
+                var permissions = [];
                 result.rows.forEach(function (row) {
-                    var role = new PermissionModel(row);
-                    roles.push(role);
+                    var permission = new PermissionModel(row);
+                    permissions.push(permission);
                 });
 
-                defer.resolve(roles);
+                defer.resolve(permissions);
             }
         );
     });

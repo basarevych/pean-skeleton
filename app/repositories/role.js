@@ -109,7 +109,7 @@ RoleRepository.prototype.findByUserId = function (userId) {
         }
 
         db.query(
-            "    SELECT * "
+            "    SELECT r.* "
           + "      FROM roles r "
           + "INNER JOIN user_roles ur "
           + "        ON ur.role_id = r.id "
