@@ -39,7 +39,7 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'UserCtrl',
                 templateUrl: 'views/user.html',
-//                roles: [ 'admin' ],
+                roles: [ 'admin' ],
             });
 
         $urlRouterProvider

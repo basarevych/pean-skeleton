@@ -179,8 +179,8 @@ services.factory('AppControl',
 );
 
 services.factory('Socket',
-    [ '$rootScope',
-    function ($rootScope) {
+    [ '$rootScope', '$filter',
+    function ($rootScope, $filter) {
         var socket = null;
         var connected = false;
 
@@ -197,10 +197,11 @@ services.factory('Socket',
         }
 
         function onNotification(message) {
+            var variables = JSON.parse(message.variables);
             new PNotify({
-                title: 'Bootstrap Icon',
-                text: 'I have an icon that uses the Bootstrap icon styles.',
-                icon: 'glyphicon glyphicon-envelope',
+                icon: message.icon && $filter('glMessage')(message.icon, variables),
+                title: message.title && $filter('glMessage')(message.title, variables),
+                text: $filter('glMessage')(message.text, variables),
                 desktop: {
                     desktop: true
                 },

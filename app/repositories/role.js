@@ -20,7 +20,7 @@ RoleRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -60,7 +60,7 @@ RoleRepository.prototype.findByHandle = function (handle) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -100,7 +100,7 @@ RoleRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();

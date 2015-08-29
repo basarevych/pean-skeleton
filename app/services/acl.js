@@ -2,6 +2,8 @@
  * ACL service
  */
 
+'use strict';
+
 var locator = require('node-service-locator');
 var q = require('q');
 

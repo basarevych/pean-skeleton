@@ -72,7 +72,7 @@ RoleModel.prototype.save = function (evenIfNotDirty) {
     }
 
     var me = this;
-    var db = repo.getClient();
+    var db = repo.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();

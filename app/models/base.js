@@ -17,4 +17,11 @@ BaseModel.prototype.field = function (name, value) {
     return this[name];
 };
 
+BaseModel.prototype.dirty = function (newValue) {
+    if (typeof newValue != 'undefined')
+        this._dirty = newValue;
+
+    return this._dirty;
+};
+
 module.exports = BaseModel;

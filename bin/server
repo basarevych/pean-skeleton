@@ -11,7 +11,7 @@ var locator = require('node-service-locator');
 
 // check requirements
 console.log("==> Checking Postgres...");
-var db = locator.get('user-repository').getClient();
+var db = locator.get('user-repository').getPostgres();
 db.connect(function (err) {
     if (err) {
         console.error(err);
@@ -20,13 +20,24 @@ db.connect(function (err) {
 
     db.end();
 
-    var httpServer = locator.get('http-server');
-    httpServer.start();
-    console.log("=> HTTP server started");
-    locator.register('http-server', httpServer);
+    console.log("==> Checking Redis...");
+    var redis = locator.get('user-repository').getRedis();
+    redis.get('foobar', function (err, reply) {
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
 
-    var socketServer = locator.get('socket-server');
-    socketServer.start();
-    console.log("=> Socket server started");
-    locator.register('socket-server', socketServer);
+        redis.quit();
+
+        var httpServer = locator.get('http-server');
+        httpServer.start();
+        console.log("=> HTTP server started");
+        locator.register('http-server', httpServer);
+
+        var socketServer = locator.get('socket-server');
+        socketServer.start();
+        console.log("=> Socket server started");
+        locator.register('socket-server', socketServer);
+    });
 });

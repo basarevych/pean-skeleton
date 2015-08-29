@@ -80,7 +80,7 @@ module.exports = function (app) {
 
                 var userRepo = locator.get('user-repository');
                 var adapter = new PgAdapter();
-                adapter.setClient(userRepo.getClient());
+                adapter.setClient(userRepo.getPostgres());
                 adapter.setSelect("*");
                 adapter.setFrom("dt_users");
                 adapter.setWhere("");

@@ -20,7 +20,7 @@ UserRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -60,7 +60,7 @@ UserRepository.prototype.findByEmail = function (email) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -100,7 +100,7 @@ UserRepository.prototype.findByRole = function (handle) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();

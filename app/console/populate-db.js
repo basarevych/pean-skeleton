@@ -1,5 +1,5 @@
 /**
- * Profile route
+ * Populate the database command
  */
 
 'use strict'

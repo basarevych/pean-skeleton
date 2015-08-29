@@ -20,7 +20,7 @@ PermissionRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -60,7 +60,7 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -123,7 +123,7 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
         ands.push(" action IS NULL ");
     }
 
-    var db = this.getClient();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();
