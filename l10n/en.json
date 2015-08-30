@@ -12,7 +12,7 @@
         "ROLE_ADMIN": "Administrator",
 
         "ADMINISTRATION_MENU": "Administration",
-        "USER_MENU": "Users",
+        "USER_MENU": "User list",
         "SIGN_IN_MENU": "Sign in",
         "SIGN_OUT_MENU": "Sign out",
         "PROFILE_MENU": "Profile",

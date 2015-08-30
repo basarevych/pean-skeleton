@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-29 */
+/* pean-skeleton - v0.0.0 - 2015-08-30 */
 
 'use strict';
 
@@ -341,10 +341,11 @@ forms.factory('InfoDialog',
 forms.factory('ModalFormCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
-        return function ($scope, $modalInstance, fields, validator, submitter) {
+        return function ($scope, $modalInstance, fields, locals, validator, submitter) {
             $scope.model = {};
             $scope.validation = { errors: [], fields: {} }; 
             $scope.processing = false;
+            $scope.locals = locals;
 
             $.each(fields, function (index, item) {
                 $scope.model[item.name] = item;
@@ -467,6 +468,7 @@ forms.factory('LoginForm',
                             { name: 'password', value: '', focus: false },
                         ];
                     },
+                    locals: function () { return null; },
                     validator: function () { return AuthApi.validate; },
                     submitter: function () { return AuthApi.token; },
                 }
@@ -491,6 +493,7 @@ forms.factory('ProfileForm',
                             { name: 'retypedPassword', value: '',             focus: false },
                         ];
                     },
+                    locals: function () { return null; },
                     validator: function () { return ProfileApi.validate; },
                     submitter: function () { return ProfileApi.updateList; },
                 }
@@ -651,12 +654,16 @@ services.factory('AppControl',
                 else
                     $http.defaults.headers.common['Accept-Language'] = locale.replace('_', '-');
 
+                var me = this;
                 ProfileApi.readList({})
                     .then(function (data) {
                         if (!angular.equals(profile, data)) {
                             profile = data;
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
+
+                        if (!profile.userId && me.hasToken())
+                            me.removeToken();
 
                         profileLoaded = true;
                         if (done)

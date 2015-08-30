@@ -150,12 +150,16 @@ services.factory('AppControl',
                 else
                     $http.defaults.headers.common['Accept-Language'] = locale.replace('_', '-');
 
+                var me = this;
                 ProfileApi.readList({})
                     .then(function (data) {
                         if (!angular.equals(profile, data)) {
                             profile = data;
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
+
+                        if (!profile.userId && me.hasToken())
+                            me.removeToken();
 
                         profileLoaded = true;
                         if (done)
