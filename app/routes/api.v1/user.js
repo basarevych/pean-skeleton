@@ -7,6 +7,7 @@
 var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
+var moment = require('moment-timezone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
 
@@ -72,8 +73,11 @@ module.exports = function (app) {
 
                     result['email'] = validator.escape(row['email']);
 
-                    if (row['created_at'] && typeof row['created_at'].getTime == 'function')
-                        result['created_at'] = row['created_at'].getTime() / 1000;
+                    if (row['created_at']) {
+                        var utc = moment(row['created_at']); // db field is in UTC
+                        var m = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC');
+                        result['created_at'] = m.unix();
+                    }
 
                     return result;
                 });

@@ -7,6 +7,7 @@
 var locator = require('node-service-locator');
 var bcrypt = require('bcrypt');
 var q = require('q');
+var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
 function UserModel(dbRow) {
@@ -14,14 +15,16 @@ function UserModel(dbRow) {
     this.name = null;
     this.email = null;
     this.password = null;
-    this.created_at = new Date();
+    this.created_at = moment();
 
     if (dbRow) {
+        var utc = moment(dbRow.created_at); // db field is in UTC
+
         this.id = dbRow.id;
         this.name = dbRow.name;
         this.email = dbRow.email;
         this.password = dbRow.password;
-        this.created_at = dbRow.created_at;
+        this.created_at = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
     }
 };
 
@@ -91,7 +94,6 @@ UserModel.prototype.save = function (evenIfNotDirty) {
         defer.resolve(this.getId());
         return defer.promise;
     }
-
     var me = this;
     var db = repo.getPostgres();
     db.connect(function (err) {
@@ -125,7 +127,7 @@ UserModel.prototype.save = function (evenIfNotDirty) {
                 me.getName(),
                 me.getEmail(),
                 me.getPassword(),
-                me.getCreatedAt(),
+                me.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
             ];
         }
 

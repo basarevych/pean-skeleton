@@ -16,7 +16,7 @@ module.controller("UserCtrl",
             sort_column: 'id',
             mapper: function (row) {
                 if (row['created_at'] != null) {
-                    var m = moment(row['created_at'] * 1000);
+                    var m = moment.unix(row['created_at']).local();
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
