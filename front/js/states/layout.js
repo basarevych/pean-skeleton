@@ -30,7 +30,9 @@ module.controller("LayoutCtrl",
 
         $scope.logout = function () {
             $scope.appControl.removeToken();
-            $window.location.reload();
+            $scope.appControl.loadProfile(function () {
+                $state.go($state.current.name, $stateParams, { reload: true });
+            });
         };
     } ]
 );

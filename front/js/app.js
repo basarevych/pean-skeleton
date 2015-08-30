@@ -78,7 +78,9 @@ app.run(
             LoginForm()
                 .then(function (data) {
                     AppControl.setToken(data.token);
-                    $window.location.reload();
+                    AppControl.loadProfile(function () {
+                        $state.go($state.current.name, $stateParams, { reload: true });
+                    });
                 });
         };
 
