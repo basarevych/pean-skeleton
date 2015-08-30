@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-28 */
+/* pean-skeleton - v0.0.0 - 2015-08-30 */
 
 /*!
  * jQuery JavaScript Library v2.1.4
