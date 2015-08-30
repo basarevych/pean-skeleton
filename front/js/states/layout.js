@@ -3,8 +3,8 @@
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'ProfileForm',
-    function ($scope, $state, $stateParams, $cookies, $timeout, ProfileForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm',
+    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
 
@@ -30,10 +30,7 @@ module.controller("LayoutCtrl",
 
         $scope.logout = function () {
             $scope.appControl.removeToken();
-
-            $scope.appControl.loadProfile(function () {
-                $state.go($state.current.name, $stateParams, { reload: true });
-            });
+            $window.location.reload();
         };
     } ]
 );

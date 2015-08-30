@@ -1,6 +1,7 @@
 {
     "en": {
         "APP_TITLE": "P.E.A.N.",
+        "APP_LOADING": "Loading...",
         "HTTP_400": "Invalid request parameters",
         "HTTP_401": "Authentication is required",
         "HTTP_403": "Access to requested resource is denied",

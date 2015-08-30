@@ -12,7 +12,7 @@ module.exports = function () {
     var app = locator.get('app');
 
     router.get('/', function (req, res) {
-        res.render('index');
+        res.render('index', { loading: res.locals.glMessage('APP_LOADING') });
     });
 
     app.use('/', router);

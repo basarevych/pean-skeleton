@@ -80,9 +80,7 @@ app.run(
             LoginForm()
                 .then(function (data) {
                     AppControl.setToken(data.token);
-                    AppControl.loadProfile(function () {
-                        $state.go($state.current.name, $stateParams, { reload: true });
-                    });
+                    $window.location.reload();
                 });
         };
 
@@ -90,7 +88,7 @@ app.run(
             $rootScope.pageTitle = $filter('glMessage')(toState.title);
         });
         $rootScope.$on('AppInitialized', function () {
-            $rootScope.initialized = true;
+            $timeout(function () { $rootScope.initialized = true; }, 101);
         });
 
         Socket.init();
@@ -748,8 +746,8 @@ module.controller("IndexCtrl",
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$timeout', 'ProfileForm',
-    function ($scope, $state, $stateParams, $cookies, $timeout, ProfileForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm',
+    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
 
@@ -775,10 +773,7 @@ module.controller("LayoutCtrl",
 
         $scope.logout = function () {
             $scope.appControl.removeToken();
-
-            $scope.appControl.loadProfile(function () {
-                $state.go($state.current.name, $stateParams, { reload: true });
-            });
+            $window.location.reload();
         };
     } ]
 );

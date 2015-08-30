@@ -10,7 +10,12 @@ prepend head
         };
 
 block content
+    .container(ng-hide="initialized")
+        .row
+            h3(class="col-sm-offset-2 col-sm-8", style="margin-top: 50px") #{loading}
+
     div#view-wrapper(ng-show="initialized", ui-view, class="ng-cloak")
+
     ng-include#error-wrapper(src="'views/error.html'", class="forced-hide")
 
     script(src='/socket.io/socket.io.js')
