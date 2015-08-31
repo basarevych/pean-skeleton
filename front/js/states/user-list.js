@@ -1,8 +1,8 @@
 'use strict';
 
-var module = angular.module('state.user', []);
+var module = angular.module('state.user-list', []);
 
-module.controller("UserCtrl",
+module.controller("UserListCtrl",
     [ '$scope', '$window', '$filter', 'dynamicTable',
     function ($scope, $window, $filter, dynamicTable) {
         if (!$scope.appControl.aclCheckCurrentState())

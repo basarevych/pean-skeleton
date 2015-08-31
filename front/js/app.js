@@ -16,7 +16,7 @@ var app = angular.module('app', [
     'forms',
     'state.layout',
     'state.index',
-    'state.user',
+    'state.user-list',
 ]);
 
 app.config(
@@ -34,11 +34,11 @@ app.config(
                 controller: 'IndexCtrl',
                 templateUrl: 'views/index.html',
             })
-            .state('layout.user', {
+            .state('layout.user-list', {
                 url: '/user',
                 title: 'APP_TITLE',
-                controller: 'UserCtrl',
-                templateUrl: 'views/user.html',
+                controller: 'UserListCtrl',
+                templateUrl: 'views/user-list.html',
                 roles: [ 'admin' ],
             });
 
