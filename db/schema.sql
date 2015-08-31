@@ -32,7 +32,7 @@ CREATE TABLE "users" (
     "name" character varying(255) NULL,
     "email" character varying(255) NOT NULL,
     "password" character varying(255) NOT NULL,
-    "created_at" timestamp NULL,
+    "created_at" timestamp NOT NULL,
     CONSTRAINT "users_pk" PRIMARY KEY ("id"),
     CONSTRAINT "users_unique_email" UNIQUE ("email")
 );
