@@ -7,6 +7,7 @@
 var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
+var q = require('q');
 var UserModel = require('../../models/user');
 
 module.exports = function () {
@@ -14,6 +15,7 @@ module.exports = function () {
     var app = locator.get('app');
 
     function parse(field, req, res) {
+        var defer = q.defer();
         var glMessage = res.locals.glMessage;
         var form = {
             name: validator.trim(
@@ -46,13 +48,15 @@ module.exports = function () {
                 break;
         }
 
-        return {
+        defer.resolve({
             field: field,
             value: form[field],
             form: form,
             valid: errors.length == 0,
             errors: errors
-        };
+        });
+
+        return defer.promise;
     }
 
     router.get('/', function (req, res) {
@@ -97,34 +101,42 @@ module.exports = function () {
         var name = parse('name', req, res);
         var newPassword = parse('newPassword', req, res);
         var retypedPassword = parse('retypedPassword', req, res);
-        if (!name.valid || !newPassword.valid || !retypedPassword.valid) {
-            return res.json({
-                valid: false,
-                errors: [],
-                fields: {
-                    name: name.errors,
-                    newPassword: newPassword.errors,
-                    retypedPassword: retypedPassword.errors,
+        q.all([ name, newPassword, retypedPassword ])
+            .then(function (result) {
+                name = result[0];
+                newPassword = result[1];
+                retypedPassword = result[2];
+                if (!name.valid || !newPassword.valid || !retypedPassword.valid) {
+                    return res.json({
+                        valid: false,
+                        errors: [],
+                        fields: {
+                            name: name.errors,
+                            newPassword: newPassword.errors,
+                            retypedPassword: retypedPassword.errors,
+                        }
+                    });
                 }
-            });
-        }
 
-        req.user.setName(name.value.length ? name.value : null);
-        if (newPassword.value.length)
-            req.user.setPassword(UserModel.encryptPassword(newPassword.value));
+                req.user.setName(name.value.length ? name.value : null);
+                if (newPassword.value.length)
+                    req.user.setPassword(UserModel.encryptPassword(newPassword.value));
 
-        req.user.save()
-            .then(function () {
-                res.json({ valid: true });
-            })
-            .catch(function () {
-                res.json({ valid: false });
+                req.user.save()
+                    .then(function () {
+                        res.json({ valid: true });
+                    })
+                    .catch(function () {
+                        res.json({ valid: false });
+                    });
             });
     });
 
     router.post('/validate', function (req, res) {
-        var data = parse(req.body.field, req, res);
-        res.json({ valid: data.valid, errors: data.errors });
+        parse(req.body.field, req, res)
+            .then(function (data) {
+                res.json({ valid: data.valid, errors: data.errors });
+            });
     });
 
     app.use('/v1/profile', router);
