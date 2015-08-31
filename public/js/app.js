@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-30 */
+/* pean-skeleton - v0.0.0 - 2015-08-31 */
 
 'use strict';
 
