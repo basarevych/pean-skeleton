@@ -94,6 +94,7 @@ UserModel.prototype.save = function (evenIfNotDirty) {
         defer.resolve(this.getId());
         return defer.promise;
     }
+
     var me = this;
     var db = repo.getPostgres();
     db.connect(function (err) {
