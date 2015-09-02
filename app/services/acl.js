@@ -42,12 +42,12 @@ Acl.prototype.isAllowed = function (user, resource, action) {
                         permissions.forEach(function (permission) { allPermissions.push(permission); });
                         roleDefer.resolve();
                     })
-                    .catch(function () {
-                        roleDefer.reject('Acl.loadRolePermissions() - permissionRepo.findByRoleId');
+                    .catch(function (err) {
+                        roleDefer.reject('Acl.loadRolePermissions() - permissionRepo.findByRoleId', err);
                     });
             })
-            .catch(function () {
-                loadDefer.reject('Acl.loadRolePermissions() - roleRepo.find');
+            .catch(function (err) {
+                loadDefer.reject('Acl.loadRolePermissions() - roleRepo.find', err);
             });
     }
 
@@ -74,12 +74,12 @@ Acl.prototype.isAllowed = function (user, resource, action) {
                     });
                     defer.resolve(allowed);
                 })
-                .catch(function () {
-                    defer.reject('Acl.isAllowed() - loadPromises');
+                .catch(function (err) {
+                    defer.reject('Acl.isAllowed() - loadPromises', err);
                 });
         })
-        .catch(function () {
-            defer.reject('Acl.isAllowed() - roleRepo.findByUserId');
+        .catch(function (err) {
+            defer.reject('Acl.isAllowed() - roleRepo.findByUserId', err);
         });
 
     return defer.promise;

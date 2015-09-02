@@ -91,7 +91,7 @@ module.exports = function () {
                 res.json(result);
             })
             .catch(function (err) {
-                logger.error('GET profile failed', err);
+                logger.error('GET /v1/profile failed', err);
                 res.json(result);
             });
     });
@@ -132,12 +132,12 @@ module.exports = function () {
                         res.json({ valid: true });
                     })
                     .catch(function (err) {
-                        logger.error('PUT profile failed', err);
+                        logger.error('PUT /v1/profile failed', err);
                         res.json({ valid: false });
                     });
             })
             .catch(function (err) {
-                logger.error('PUT profile failed', err);
+                logger.error('PUT /v1/profile failed', err);
                 res.json({ valid: false });
             });
     });
@@ -148,7 +148,7 @@ module.exports = function () {
                 res.json({ valid: data.valid, errors: data.errors });
             })
             .catch(function (err) {
-                logger.error('POST profile/validate failed', err);
+                logger.error('POST /v1/profile/validate failed', err);
                 res.json({ valid: false, errors: [] });
             });
     });

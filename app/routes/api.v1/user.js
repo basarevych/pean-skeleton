@@ -96,7 +96,7 @@ module.exports = function (app) {
                     case 'describe':
                         table.describe(function (err, result) {
                             if (err) {
-                                logger.error('GET user/table failed', err);
+                                logger.error('GET /v1/user/table failed', err);
                                 return res.json({ success: false });
                             }
 
@@ -108,7 +108,7 @@ module.exports = function (app) {
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
                                 if (err) {
-                                    logger.error('GET user/table failed', err);
+                                    logger.error('GET /v1/user/table failed', err);
                                     return res.json({ success: false });
                                 }
 
@@ -121,7 +121,7 @@ module.exports = function (app) {
                 }
             })
             .catch(function (err) {
-                logger.error('GET user/table failed', err);
+                logger.error('GET /v1/user/table failed', err);
                 res.json({ success: false });
             });
     });

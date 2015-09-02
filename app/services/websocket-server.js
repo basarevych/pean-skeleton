@@ -46,8 +46,8 @@ WebSocketServer.prototype.start = function () {
                             params['icon'] = notification.getIcon();
                         me.server.emit('notification', params);
                     })
-                    .catch(function () {
-                        logger.error('WebSocketServer.start() - notificationRepo.find');
+                    .catch(function (err) {
+                        logger.error('WebSocketServer.start() - notificationRepo.find', err);
                     });
                 break;
         }

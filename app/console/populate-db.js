@@ -94,7 +94,15 @@ module.exports = function (argv, rl) {
                                         user.associateRole(adminRole);
                                         rl.write("==> Done\n");
                                         done();
+                                    })
+                                    .catch(function (err) {
+                                        logger.error('populate-db.run() failed', err);
+                                        done();
                                     });
+                            })
+                            .catch(function (err) {
+                                logger.error('populate-db.run() failed', err);
+                                done();
                             });
                     });
                 });
