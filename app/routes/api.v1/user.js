@@ -14,6 +14,7 @@ var PgAdapter = require('dynamic-table').pgAdapter();
 module.exports = function (app) {
     var router = express.Router();
     var app = locator.get('app');
+    var logger = locator.get('logger');
 
     router.get('/table', function (req, res) {
         if (!req.user)
@@ -95,7 +96,7 @@ module.exports = function (app) {
                     case 'describe':
                         table.describe(function (err, result) {
                             if (err) {
-                                console.error(err);
+                                logger.error('GET user/table failed', err);
                                 return res.json({ success: false });
                             }
 
@@ -107,7 +108,7 @@ module.exports = function (app) {
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
                                 if (err) {
-                                    console.error(err);
+                                    logger.error('GET user/table failed', err);
                                     return res.json({ success: false });
                                 }
 
@@ -119,7 +120,8 @@ module.exports = function (app) {
                         res.json({ success: false });
                 }
             })
-            .catch(function () {
+            .catch(function (err) {
+                logger.error('GET user/table failed', err);
                 res.json({ success: false });
             });
     });

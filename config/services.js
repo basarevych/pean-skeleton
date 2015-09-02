@@ -11,8 +11,8 @@ module.exports = function (app) {
                 path: "app/services/http-server.js",
                 instantiate: true,
             },
-            "socket-server": {
-                path: "app/services/socket-server.js",
+            "websocket-server": {
+                path: "app/services/websocket-server.js",
                 instantiate: true,
             },
             "role-repository": {

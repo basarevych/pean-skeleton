@@ -32,8 +32,9 @@ module.exports = function (argv, rl) {
             return;
         }
 
-        var notification = new NotificationModel();
+        var logger = locator.get('logger');
 
+        var notification = new NotificationModel();
         notification.setText(argv['_'][1]);
         if (argv['title'])
             notification.setTitle(argv['title']);
@@ -44,6 +45,10 @@ module.exports = function (argv, rl) {
 
         notification.save()
             .then(function () {
+                done();
+            })
+            .catch(function (err) {
+                logger.err('notify.run() failed', err);
                 done();
             });
     }

@@ -13,6 +13,7 @@ var UserModel = require('../../models/user');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
+    var logger = locator.get('logger');
 
     function parse(field, req, res) {
         var defer = q.defer();
@@ -88,6 +89,10 @@ module.exports = function () {
                     result['roles'].push(role.getHandle());
                 });
                 res.json(result);
+            })
+            .catch(function (err) {
+                logger.error('GET profile failed', err);
+                res.json(result);
             });
     });
 
@@ -126,9 +131,14 @@ module.exports = function () {
                     .then(function () {
                         res.json({ valid: true });
                     })
-                    .catch(function () {
+                    .catch(function (err) {
+                        logger.error('PUT profile failed', err);
                         res.json({ valid: false });
                     });
+            })
+            .catch(function (err) {
+                logger.error('PUT profile failed', err);
+                res.json({ valid: false });
             });
     });
 
@@ -136,6 +146,10 @@ module.exports = function () {
         parse(req.body.field, req, res)
             .then(function (data) {
                 res.json({ valid: data.valid, errors: data.errors });
+            })
+            .catch(function (err) {
+                logger.error('POST profile/validate failed', err);
+                res.json({ valid: false, errors: [] });
             });
     });
 

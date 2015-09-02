@@ -8,12 +8,15 @@ var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
 var jwt = require('jsonwebtoken');
+var q = require('q');
 
 module.exports = function (app) {
     var router = express.Router();
     var app = locator.get('app');
+    var logger = locator.get('logger');
 
     function parse(field, req, res) {
+        var defer = q.defer();
         var glMessage = res.locals.glMessage;
         var form = {
             email: validator.trim(
@@ -40,13 +43,15 @@ module.exports = function (app) {
                 break;
         }
 
-        return {
+        defer.resolve({
             field: field,
             value: form[field],
             form: form,
             valid: errors.length == 0,
             errors: errors
-        };
+        });
+
+        return defer.promise;
     }
 
     router.post('/token', function (req, res) {
@@ -56,45 +61,63 @@ module.exports = function (app) {
 
         var email = parse('email', req, res);
         var password = parse('password', req, res);
-        if (!email.valid || !password.valid) {
-            return res.json({
-                valid: false,
-                errors: [],
-                fields: {
-                    email: email.errors,
-                    password: password.errors,
-                }
-            });
-        }
-
-        var user = null;
-        userRepo.findByEmail(email.value)
-            .then(function (users) {
-                var user = users.length && users[0];
-                if (user && user.checkPassword(password.value)) {
-                    var token = jwt.sign(
-                        { user_id: user.getId() },
-                        config['jwt']['secret'],
-                        { expiresInSeconds: config['jwt']['ttl'] }
-                    );
-
+        q.all([ email, password ])
+            .then(function (result) {
+                email = result[0];
+                password = result[1];
+                if (!email.valid || !password.valid) {
                     return res.json({
-                        valid: true,
-                        token: token
+                        valid: false,
+                        errors: [],
+                        fields: {
+                            email: email.errors,
+                            password: password.errors,
+                        }
                     });
                 }
 
-                res.json({
-                    valid: false,
-                    errors: [ glMessage('INVALID_CREDENTIALS') ],
-                    fields: {},
-                });
+                userRepo.findByEmail(email.value)
+                    .then(function (users) {
+                        var user = users.length && users[0];
+                        if (user && user.checkPassword(password.value)) {
+                            var token = jwt.sign(
+                                { user_id: user.getId() },
+                                config['jwt']['secret'],
+                                { expiresInSeconds: config['jwt']['ttl'] }
+                            );
+
+                            return res.json({
+                                valid: true,
+                                token: token
+                            });
+                        }
+
+                        res.json({
+                            valid: false,
+                            errors: [ glMessage('INVALID_CREDENTIALS') ],
+                            fields: {},
+                        });
+                    })
+                    .catch(function (err) {
+                        logger.error('POST auth/token failed', err);
+                        res.json({ valid: false });
+                    });
+            })
+            .catch(function (err) {
+                logger.error('POST auth/token failed', err);
+                res.json({ valid: false });
             });
     });
 
     router.post('/validate', function (req, res) {
-        var data = parse(req.body.field, req, res);
-        res.json({ valid: data.valid, errors: data.errors });
+        parse(req.body.field, req, res)
+            .then(function (data) {
+                res.json({ valid: data.valid, errors: data.errors });
+            })
+            .catch(function (err) {
+                logger.error('POST auth/validate failed', err);
+                res.json({ valid: false, errors: [] });
+            });
     });
 
     app.use('/v1/auth', router);

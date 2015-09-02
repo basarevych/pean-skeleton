@@ -32,12 +32,12 @@ db.connect(function (err) {
 
         var httpServer = locator.get('http-server');
         httpServer.start();
-        console.log("=> HTTP server started");
+        console.log("=> HTTP server started, " + locator.get('hostname') + ':' + locator.get('port'));
         locator.register('http-server', httpServer);
 
-        var socketServer = locator.get('socket-server');
-        socketServer.start();
-        console.log("=> Socket server started");
-        locator.register('socket-server', socketServer);
+        var websocketServer = locator.get('websocket-server');
+        websocketServer.start();
+        console.log("=> WebSocket server started");
+        locator.register('websocket-server', websocketServer);
     });
 });

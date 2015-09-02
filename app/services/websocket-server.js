@@ -6,20 +6,21 @@
 
 var locator = require('node-service-locator');
 
-function SocketServer() {
+function WebSocketServer() {
     this.server = null;
 };
 
-SocketServer.prototype.setServer = function (server) {
+WebSocketServer.prototype.setServer = function (server) {
     this.server = server;
     return this;
 };
 
-SocketServer.prototype.getServer = function () {
+WebSocketServer.prototype.getServer = function () {
     return this.server;
 };
 
-SocketServer.prototype.start = function () {
+WebSocketServer.prototype.start = function () {
+    var logger = locator.get('logger');
     var httpServer = locator.get('http-server');
     var server = httpServer.getServer();
     this.setServer(require('socket.io')(server));
@@ -44,6 +45,9 @@ SocketServer.prototype.start = function () {
                         if (notification.getIcon())
                             params['icon'] = notification.getIcon();
                         me.server.emit('notification', params);
+                    })
+                    .catch(function () {
+                        logger.error('WebSocketServer.start() - notificationRepo.find');
                     });
                 break;
         }
@@ -51,8 +55,8 @@ SocketServer.prototype.start = function () {
     subscriber.subscribe(process.env.PROJECT + ":notifications");
 };
 
-SocketServer.prototype.onConnection = function (socket) {
+WebSocketServer.prototype.onConnection = function (socket) {
     console.log("[WebSocket] Connected " + socket.id);
 };
 
-module.exports = SocketServer;
+module.exports = WebSocketServer;

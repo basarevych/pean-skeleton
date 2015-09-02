@@ -24,6 +24,7 @@ module.exports = function (argv, rl) {
     }
 
     function run(done) {
+        var logger = locator.get('logger');
         var roleRepo = locator.get('role-repository');
         var permissionRepo = locator.get('permission-repository');
         var userRepo = locator.get('user-repository');
@@ -97,6 +98,10 @@ module.exports = function (argv, rl) {
                             });
                     });
                 });
+            })
+            .catch(function (err) {
+                logger.error('populate-db.run() failed', err);
+                done();
             });
     }
 
