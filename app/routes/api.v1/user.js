@@ -97,7 +97,7 @@ module.exports = function (app) {
                         table.describe(function (err, result) {
                             if (err) {
                                 logger.error('GET /v1/user/table failed', err);
-                                return res.json({ success: false });
+                                return app.abort(res, 500, 'GET /v1/user/table failed');
                             }
 
                             result['success'] = true;
@@ -109,7 +109,7 @@ module.exports = function (app) {
                             .fetch(function (err, result) {
                                 if (err) {
                                     logger.error('GET /v1/user/table failed', err);
-                                    return res.json({ success: false });
+                                    return app.abort(res, 500, 'GET /v1/user/table failed');
                                 }
 
                                 result['success'] = true;
@@ -122,7 +122,7 @@ module.exports = function (app) {
             })
             .catch(function (err) {
                 logger.error('GET /v1/user/table failed', err);
-                res.json({ success: false });
+                app.abort(res, 500, 'GET /v1/user/table failed');
             });
     });
 

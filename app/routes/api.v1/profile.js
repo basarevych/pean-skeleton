@@ -92,7 +92,7 @@ module.exports = function () {
             })
             .catch(function (err) {
                 logger.error('GET /v1/profile failed', err);
-                res.json(result);
+                app.abort(res, 500, 'GET /v1/profile failed');
             });
     });
 
@@ -133,12 +133,12 @@ module.exports = function () {
                     })
                     .catch(function (err) {
                         logger.error('PUT /v1/profile failed', err);
-                        res.json({ valid: false });
+                        app.abort(res, 500, 'PUT /v1/profile failed');
                     });
             })
             .catch(function (err) {
                 logger.error('PUT /v1/profile failed', err);
-                res.json({ valid: false });
+                app.abort(res, 500, 'PUT /v1/profile failed');
             });
     });
 
@@ -149,7 +149,7 @@ module.exports = function () {
             })
             .catch(function (err) {
                 logger.error('POST /v1/profile/validate failed', err);
-                res.json({ valid: false, errors: [] });
+                app.abort(res, 500, 'POST /v1/profile/validate failed');
             });
     });
 

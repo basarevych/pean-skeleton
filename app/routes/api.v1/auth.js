@@ -100,12 +100,12 @@ module.exports = function (app) {
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/auth/token failed', err);
-                        res.json({ valid: false });
+                        app.abort(res, 500, 'POST /v1/auth/token failed');
                     });
             })
             .catch(function (err) {
                 logger.error('POST /v1/auth/token failed', err);
-                res.json({ valid: false });
+                app.abort(res, 500, 'POST /v1/auth/token failed');
             });
     });
 
@@ -116,7 +116,7 @@ module.exports = function (app) {
             })
             .catch(function (err) {
                 logger.error('POST /v1/auth/validate failed', err);
-                res.json({ valid: false, errors: [] });
+                app.abort(res, 500, 'POST /v1/auth/validate failed');
             });
     });
 
