@@ -1,0 +1,11 @@
+[Service]
+ExecStart=/usr/bin/node /home/pean-skeleton/bin/server
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=pean
+User=pean
+Group=pean
+
+[Install]
+WantedBy=multi-user.target
