@@ -22,7 +22,7 @@ UserRepository.prototype.find = function (id) {
 
     id = parseInt(id, 10);
     if (isNaN(id)) {
-        defer.resolve([]);
+        defer.reject('UserRepository.find() - invalid parameters');
         return defer.promise;
     }
 

@@ -22,7 +22,7 @@ PermissionRepository.prototype.find = function (id) {
 
     id = parseInt(id, 10);
     if (isNaN(id)) {
-        defer.resolve([]);
+        defer.reject('PermissionRepository.find() - invalid parameters');
         return defer.promise;
     }
 
@@ -68,7 +68,7 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
 
     roleId = parseInt(roleId, 10);
     if (isNaN(roleId)) {
-        defer.resolve([]);
+        defer.reject('RoleRepository.findByRoleId() - invalid parameters');
         return defer.promise;
     }
 
@@ -117,7 +117,7 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
     if (roleId) {
         roleId = parseInt(roleId, 10);
         if (isNaN(roleId)) {
-            defer.resolve([]);
+            defer.reject('PermissionRepository.findByParams() - invalid parameters');
             return defer.promise;
         }
 

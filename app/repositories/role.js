@@ -22,7 +22,7 @@ RoleRepository.prototype.find = function (id) {
 
     id = parseInt(id, 10);
     if (isNaN(id)) {
-        defer.resolve([]);
+        defer.reject('RoleRepository.find() - invalid parameters');
         return defer.promise;
     }
 
@@ -108,7 +108,7 @@ RoleRepository.prototype.findByUserId = function (userId) {
 
     userId = parseInt(userId, 10);
     if (isNaN(userId)) {
-        defer.resolve([]);
+        defer.reject('RoleRepository.findByUserId() - invalid parameters');
         return defer.promise;
     }
 
