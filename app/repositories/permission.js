@@ -20,6 +20,12 @@ PermissionRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
+    id = parseInt(id, 10);
+    if (isNaN(id)) {
+        defer.resolve([]);
+        return defer.promise;
+    }
+
     var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
@@ -59,6 +65,12 @@ PermissionRepository.prototype.find = function (id) {
 PermissionRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
+
+    roleId = parseInt(roleId, 10);
+    if (isNaN(roleId)) {
+        defer.resolve([]);
+        return defer.promise;
+    }
 
     var db = this.getPostgres();
     db.connect(function (err) {
@@ -103,6 +115,12 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
     var ands = [], params = [];
 
     if (roleId) {
+        roleId = parseInt(roleId, 10);
+        if (isNaN(roleId)) {
+            defer.resolve([]);
+            return defer.promise;
+        }
+
         ands.push(" role_id = $" + (params.length + 1) + " ");
         params.push(roleId);
     } else {

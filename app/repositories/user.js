@@ -20,6 +20,12 @@ UserRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
+    id = parseInt(id, 10);
+    if (isNaN(id)) {
+        defer.resolve([]);
+        return defer.promise;
+    }
+
     var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {

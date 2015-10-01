@@ -20,6 +20,12 @@ RoleRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
+    id = parseInt(id, 10);
+    if (isNaN(id)) {
+        defer.resolve([]);
+        return defer.promise;
+    }
+
     var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
@@ -99,6 +105,12 @@ RoleRepository.prototype.findByHandle = function (handle) {
 RoleRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
+
+    userId = parseInt(userId, 10);
+    if (isNaN(userId)) {
+        defer.resolve([]);
+        return defer.promise;
+    }
 
     var db = this.getPostgres();
     db.connect(function (err) {

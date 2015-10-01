@@ -113,6 +113,7 @@ PermissionModel.prototype.save = function (evenIfNotDirty) {
             }
 
             db.end();
+            me.dirty(false);
 
             var id = result.rows.length && result.rows[0]['id'];
             if (id)

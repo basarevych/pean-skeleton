@@ -106,6 +106,7 @@ NotificationModel.prototype.save = function (evenIfNotDirty) {
                 }
 
                 redis.quit();
+                me.dirty(false);
                 defer.resolve(me.getId());
             });
         });
