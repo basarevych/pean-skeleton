@@ -27,6 +27,10 @@ module.exports = function (app) {
                 path: "app/repositories/user.js",
                 instantiate: true,
             },
+            "session-repository": {
+                path: "app/repositories/session.js",
+                instantiate: true,
+            },
             "notification-repository": {
                 path: "app/repositories/notification.js",
                 instantiate: true,

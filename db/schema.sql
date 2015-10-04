@@ -1,5 +1,7 @@
 DROP VIEW IF EXISTS "dt_users";
+
 DROP TABLE IF EXISTS "user_roles";
+DROP TABLE IF EXISTS "sessions";
 DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "permissions";
 DROP TABLE IF EXISTS "roles";
@@ -37,6 +39,18 @@ CREATE TABLE "users" (
     CONSTRAINT "users_unique_email" UNIQUE ("email")
 );
 
+CREATE TABLE "sessions" (
+    "id" serial NOT NULL,
+    "user_id" int NOT NULL,
+    "ip_address" character varying(255) NULL,
+    "created_at" timestamp NOT NULL,
+    "updated_at" timestamp NOT NULL,
+    CONSTRAINT "sessions_pk" PRIMARY KEY ("id"),
+    CONSTRAINT "sessions_user_fk" FOREIGN KEY("user_id")
+        REFERENCES "users"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE TABLE "user_roles" (
     "id" serial NOT NULL,
     "user_id" int NOT NULL,
@@ -58,8 +72,11 @@ CREATE VIEW dt_users AS
                   FROM roles r
                  WHERE r.id = ur.role_id
               ORDER BY r.handle),
-          ', ') AS roles
+          ', ') AS roles,
+           count(s.*) AS sessions
       FROM users u
  LEFT JOIN user_roles ur
         ON ur.user_id = u.id
+ LEFT JOIN sessions s
+        ON s.user_id = u.id
   GROUP BY u.id;

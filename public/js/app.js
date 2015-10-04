@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-08-31 */
+/* pean-skeleton - v0.0.0 - 2015-10-04 */
 
 'use strict';
 
@@ -19,6 +19,7 @@ var app = angular.module('app', [
     'state.layout',
     'state.index',
     'state.user-list',
+    'state.session-list',
 ]);
 
 app.config(
@@ -41,6 +42,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'UserListCtrl',
                 templateUrl: 'views/user-list.html',
+                roles: [ 'admin' ],
+            })
+            .state('layout.session-list', {
+                url: '/user/:userId/session',
+                title: 'APP_TITLE',
+                controller: 'SessionListCtrl',
+                templateUrl: 'views/session-list.html',
                 roles: [ 'admin' ],
             });
 
@@ -784,6 +792,51 @@ module.controller("LayoutCtrl",
 
 'use strict';
 
+var module = angular.module('state.session-list', []);
+
+module.controller("SessionListCtrl",
+    [ '$scope', '$window', '$filter', 'dynamicTable',
+    function ($scope, $window, $filter, dynamicTable) {
+        if (!$scope.appControl.aclCheckCurrentState())
+            return; // Disable this controller
+
+        var urlParam = "?user_id=" + $scope.$stateParams.userId;
+
+        $scope.hasSelection = false;
+        $scope.hasSingleSelection = false;
+        $scope.tableCtrl = dynamicTable({
+            url: $window['config']['apiUrl'] + '/session/table' + urlParam,
+            row_id_column: 'id',
+            sort_column: 'id',
+            mapper: function (row) {
+                if (row['created_at'] != null) {
+                    var m = moment.unix(row['created_at']).local();
+                    row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
+                }
+
+                if (row['updated_at'] != null) {
+                    var m = moment.unix(row['updated_at']).local();
+                    row['updated_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
+                }
+
+                return row;
+            },
+        });
+
+        $scope.$watch('tableCtrl.event', function () {
+            $scope.tableCtrl.event = null;
+            if ($scope.tableCtrl.plugin == null)
+                return;
+
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            $scope.hasSelection = (sel == 'all' || sel.length);
+            $scope.hasSingleSelection = (sel != 'all' && sel.length == 1);
+        });
+    } ]
+);
+
+'use strict';
+
 var module = angular.module('state.user-list', []);
 
 module.controller("UserListCtrl",
@@ -803,6 +856,9 @@ module.controller("UserListCtrl",
                     var m = moment.unix(row['created_at']).local();
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
+
+                if (row['sessions'] > 0)
+                    row['sessions'] = '<a href="/#/user/' + row['id'] + '/session">' + row['sessions'] + '</a>'
 
                 return row;
             },

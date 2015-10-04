@@ -7,8 +7,10 @@
 var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
+var moment = require('moment-timezone');
 var jwt = require('jsonwebtoken');
 var q = require('q');
+var SessionModel = require('../../models/session');
 
 module.exports = function (app) {
     var router = express.Router();
@@ -57,6 +59,7 @@ module.exports = function (app) {
     router.post('/token', function (req, res) {
         var config = locator.get('config');
         var userRepo = locator.get('user-repository');
+        var sessionRepo = locator.get('session-repository');
         var glMessage = res.locals.glMessage;
 
         var email = parse('email', req, res);
@@ -76,26 +79,41 @@ module.exports = function (app) {
                     });
                 }
 
+                var userId = null;
                 userRepo.findByEmail(email.value)
                     .then(function (users) {
                         var user = users.length && users[0];
-                        if (user && user.checkPassword(password.value)) {
-                            var token = jwt.sign(
-                                { user_id: user.getId() },
-                                config['jwt']['secret'],
-                                { expiresInSeconds: config['jwt']['ttl'] }
-                            );
-
-                            return res.json({
-                                valid: true,
-                                token: token
+                        if (!user || !user.checkPassword(password.value)) {
+                            res.json({
+                                valid: false,
+                                errors: [ glMessage('INVALID_CREDENTIALS') ],
+                                fields: {},
                             });
+                            return;
                         }
 
-                        res.json({
-                            valid: false,
-                            errors: [ glMessage('INVALID_CREDENTIALS') ],
-                            fields: {},
+                        userId = user.getId();
+
+                        var session = new SessionModel();
+                        session.setUserId(userId);
+                        session.setIpAddress(req.connection.remoteAddress);
+                        session.setCreatedAt(moment());
+                        session.setUpdatedAt(moment());
+                        return session.save();
+                    })
+                    .then(function (sessionId) {
+                        var token = jwt.sign(
+                            {
+                                user_id: userId,
+                                session_id: sessionId,
+                            },
+                            config['jwt']['secret'],
+                            { expiresInSeconds: config['jwt']['ttl'] }
+                        );
+
+                        return res.json({
+                            valid: true,
+                            token: token
                         });
                     })
                     .catch(function (err) {

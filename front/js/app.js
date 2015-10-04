@@ -17,6 +17,7 @@ var app = angular.module('app', [
     'state.layout',
     'state.index',
     'state.user-list',
+    'state.session-list',
 ]);
 
 app.config(
@@ -39,6 +40,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'UserListCtrl',
                 templateUrl: 'views/user-list.html',
+                roles: [ 'admin' ],
+            })
+            .state('layout.session-list', {
+                url: '/user/:userId/session',
+                title: 'APP_TITLE',
+                controller: 'SessionListCtrl',
+                templateUrl: 'views/session-list.html',
                 roles: [ 'admin' ],
             });
 

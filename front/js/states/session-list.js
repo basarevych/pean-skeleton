@@ -1,17 +1,19 @@
 'use strict';
 
-var module = angular.module('state.user-list', []);
+var module = angular.module('state.session-list', []);
 
-module.controller("UserListCtrl",
+module.controller("SessionListCtrl",
     [ '$scope', '$window', '$filter', 'dynamicTable',
     function ($scope, $window, $filter, dynamicTable) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
+        var urlParam = "?user_id=" + $scope.$stateParams.userId;
+
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/user/table',
+            url: $window['config']['apiUrl'] + '/session/table' + urlParam,
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {
@@ -20,8 +22,10 @@ module.controller("UserListCtrl",
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
-                if (row['sessions'] > 0)
-                    row['sessions'] = '<a href="/#/user/' + row['id'] + '/session">' + row['sessions'] + '</a>'
+                if (row['updated_at'] != null) {
+                    var m = moment.unix(row['updated_at']).local();
+                    row['updated_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
+                }
 
                 return row;
             },
