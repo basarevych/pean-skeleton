@@ -68,14 +68,17 @@ CREATE TABLE "user_roles" (
 
 CREATE VIEW dt_users AS
     SELECT u.*,
-           string_agg(DISTINCT r.handle, ', ') AS roles,
-           count(t.*) AS tokens
+           string_agg(
+               (SELECT DISTINCT r.handle
+                  FROM roles r
+                 WHERE r.id = ur.role_id
+              ORDER BY r.handle),
+              ', '
+           ) AS roles,
+           (SELECT count(t.*)
+              FROM tokens t
+             WHERE t.user_id = u.id) AS tokens
       FROM users u
  LEFT JOIN user_roles ur
         ON ur.user_id = u.id
- LEFT JOIN roles r
-        ON r.id = ur.role_id
- LEFT JOIN tokens t
-        ON t.user_id = u.id
-  GROUP BY u.id, r.handle
-  ORDER BY r.handle;
+  GROUP BY u.id;
