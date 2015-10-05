@@ -17,7 +17,7 @@ var app = angular.module('app', [
     'state.layout',
     'state.index',
     'state.user-list',
-    'state.session-list',
+    'state.token-list',
 ]);
 
 app.config(
@@ -42,11 +42,11 @@ app.config(
                 templateUrl: 'views/user-list.html',
                 roles: [ 'admin' ],
             })
-            .state('layout.session-list', {
-                url: '/user/:userId/session',
+            .state('layout.token-list', {
+                url: '/user/:userId/token',
                 title: 'APP_TITLE',
-                controller: 'SessionListCtrl',
-                templateUrl: 'views/session-list.html',
+                controller: 'TokenListCtrl',
+                templateUrl: 'views/token-list.html',
                 roles: [ 'admin' ],
             });
 

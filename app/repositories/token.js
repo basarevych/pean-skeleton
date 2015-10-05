@@ -1,5 +1,5 @@
 /**
- * Session repository
+ * Token repository
  */
 
 'use strict'
@@ -7,22 +7,22 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
-var SessionModel = require('../models/session');
+var TokenModel = require('../models/token');
 
-function SessionRepository() {
+function TokenRepository() {
     BaseRepository.call(this);
 }
 
-SessionRepository.prototype = new BaseRepository();
-SessionRepository.prototype.constructor = SessionRepository;
+TokenRepository.prototype = new BaseRepository();
+TokenRepository.prototype.constructor = TokenRepository;
 
-SessionRepository.prototype.find = function (id) {
+TokenRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
     id = parseInt(id, 10);
     if (isNaN(id)) {
-        defer.reject('SessionRepository.find() - invalid parameters');
+        defer.reject('TokenRepository.find() - invalid parameters');
         return defer.promise;
     }
 
@@ -30,31 +30,31 @@ SessionRepository.prototype.find = function (id) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('SessionRepository.find() - pg connect', err);
+            logger.error('TokenRepository.find() - pg connect', err);
             process.exit(1);
         }
 
         db.query(
             "SELECT * "
-          + "  FROM sessions "
+          + "  FROM tokens "
           + " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('SessionRepository.find() - pg query', err);
+                    logger.error('TokenRepository.find() - pg query', err);
                     process.exit(1);
                 }
 
                 db.end();
 
-                var sessions = [];
+                var tokens = [];
                 result.rows.forEach(function (row) {
-                    var session = new SessionModel(row);
-                    sessions.push(session);
+                    var token = new TokenModel(row);
+                    tokens.push(token);
                 });
 
-                defer.resolve(sessions);
+                defer.resolve(tokens);
             }
         );
     });
@@ -62,13 +62,13 @@ SessionRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
-SessionRepository.prototype.findByUserId = function (userId) {
+TokenRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
     userId = parseInt(userId, 10);
     if (isNaN(userId)) {
-        defer.reject('SessionRepository.findByUserId() - invalid parameters');
+        defer.reject('TokenRepository.findByUserId() - invalid parameters');
         return defer.promise;
     }
 
@@ -76,31 +76,31 @@ SessionRepository.prototype.findByUserId = function (userId) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('SessionRepository.findByUserId() - pg connect', err);
+            logger.error('TokenRepository.findByUserId() - pg connect', err);
             process.exit(1);
         }
 
         db.query(
             "    SELECT * "
-          + "      FROM sessions "
+          + "      FROM tokens "
           + "     WHERE user_id = $1 ",
             [ userId ],
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('SessionRepository.findByUserId() - pg query', err);
+                    logger.error('TokenRepository.findByUserId() - pg query', err);
                     process.exit(1);
                 }
 
                 db.end();
 
-                var sessions = [];
+                var tokens = [];
                 result.rows.forEach(function (row) {
-                    var session = new SessionModel(row);
-                    sessions.push(session);
+                    var token = new TokenModel(row);
+                    tokens.push(token);
                 });
 
-                defer.resolve(sessions);
+                defer.resolve(tokens);
             }
         );
     });
@@ -108,4 +108,4 @@ SessionRepository.prototype.findByUserId = function (userId) {
     return defer.promise;
 };
 
-module.exports = SessionRepository;
+module.exports = TokenRepository;

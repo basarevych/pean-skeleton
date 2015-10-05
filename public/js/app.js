@@ -19,7 +19,7 @@ var app = angular.module('app', [
     'state.layout',
     'state.index',
     'state.user-list',
-    'state.session-list',
+    'state.token-list',
 ]);
 
 app.config(
@@ -44,11 +44,11 @@ app.config(
                 templateUrl: 'views/user-list.html',
                 roles: [ 'admin' ],
             })
-            .state('layout.session-list', {
-                url: '/user/:userId/session',
+            .state('layout.token-list', {
+                url: '/user/:userId/token',
                 title: 'APP_TITLE',
-                controller: 'SessionListCtrl',
-                templateUrl: 'views/session-list.html',
+                controller: 'TokenListCtrl',
+                templateUrl: 'views/token-list.html',
                 roles: [ 'admin' ],
             });
 
@@ -792,9 +792,9 @@ module.controller("LayoutCtrl",
 
 'use strict';
 
-var module = angular.module('state.session-list', []);
+var module = angular.module('state.token-list', []);
 
-module.controller("SessionListCtrl",
+module.controller("TokenListCtrl",
     [ '$scope', '$window', '$filter', 'dynamicTable',
     function ($scope, $window, $filter, dynamicTable) {
         if (!$scope.appControl.aclCheckCurrentState())
@@ -805,7 +805,7 @@ module.controller("SessionListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/session/table' + urlParam,
+            url: $window['config']['apiUrl'] + '/token/table' + urlParam,
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {
@@ -857,8 +857,8 @@ module.controller("UserListCtrl",
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
-                if (row['sessions'] > 0)
-                    row['sessions'] = '<a href="/#/user/' + row['id'] + '/session">' + row['sessions'] + '</a>'
+                if (row['tokens'] > 0)
+                    row['tokens'] = '<a href="/#/user/' + row['id'] + '/token">' + row['tokens'] + '</a>'
 
                 return row;
             },

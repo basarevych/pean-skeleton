@@ -10,7 +10,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var jwt = require('jsonwebtoken');
 var q = require('q');
-var SessionModel = require('../../models/session');
+var TokenModel = require('../../models/token');
 
 module.exports = function (app) {
     var router = express.Router();
@@ -59,7 +59,7 @@ module.exports = function (app) {
     router.post('/token', function (req, res) {
         var config = locator.get('config');
         var userRepo = locator.get('user-repository');
-        var sessionRepo = locator.get('session-repository');
+        var tokenRepo = locator.get('token-repository');
         var glMessage = res.locals.glMessage;
 
         var email = parse('email', req, res);
@@ -94,24 +94,28 @@ module.exports = function (app) {
 
                         userId = user.getId();
 
-                        var session = new SessionModel();
-                        session.setUserId(userId);
-                        session.setIpAddress(req.connection.remoteAddress);
-                        session.setCreatedAt(moment());
-                        session.setUpdatedAt(moment());
-                        return session.save();
+                        var token = new TokenModel();
+                        token.setUserId(userId);
+                        token.setPayload('{ "user_id": ' + userId + ' }');
+                        token.setIpAddress(req.connection.remoteAddress);
+                        token.setCreatedAt(moment());
+                        token.setUpdatedAt(moment());
+                        return token.save();
                     })
-                    .then(function (sessionId) {
+                    .then(function (tokenId) {
+                        if (!tokenId)
+                            return;
+
                         var token = jwt.sign(
                             {
+                                token_id: tokenId,
                                 user_id: userId,
-                                session_id: sessionId,
                             },
                             config['jwt']['secret'],
                             { expiresInSeconds: config['jwt']['ttl'] }
                         );
 
-                        return res.json({
+                        res.json({
                             valid: true,
                             token: token
                         });

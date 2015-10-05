@@ -1,7 +1,7 @@
 DROP VIEW IF EXISTS "dt_users";
 
 DROP TABLE IF EXISTS "user_roles";
-DROP TABLE IF EXISTS "sessions";
+DROP TABLE IF EXISTS "tokens";
 DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "permissions";
 DROP TABLE IF EXISTS "roles";
@@ -39,9 +39,10 @@ CREATE TABLE "users" (
     CONSTRAINT "users_unique_email" UNIQUE ("email")
 );
 
-CREATE TABLE "sessions" (
+CREATE TABLE "tokens" (
     "id" serial NOT NULL,
-    "user_id" int NOT NULL,
+    "user_id" int NULL,
+    "payload" json NOT NULL,
     "ip_address" character varying(255) NULL,
     "created_at" timestamp NOT NULL,
     "updated_at" timestamp NOT NULL,
@@ -67,16 +68,14 @@ CREATE TABLE "user_roles" (
 
 CREATE VIEW dt_users AS
     SELECT u.*,
-           string_agg(
-               (SELECT r.handle
-                  FROM roles r
-                 WHERE r.id = ur.role_id
-              ORDER BY r.handle),
-          ', ') AS roles,
-           count(s.*) AS sessions
+           string_agg(DISTINCT r.handle, ', ') AS roles,
+           count(t.*) AS tokens
       FROM users u
  LEFT JOIN user_roles ur
         ON ur.user_id = u.id
- LEFT JOIN sessions s
-        ON s.user_id = u.id
-  GROUP BY u.id;
+ LEFT JOIN roles r
+        ON r.id = ur.role_id
+ LEFT JOIN tokens t
+        ON t.user_id = u.id
+  GROUP BY u.id, r.handle
+  ORDER BY r.handle;

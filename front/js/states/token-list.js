@@ -1,8 +1,8 @@
 'use strict';
 
-var module = angular.module('state.session-list', []);
+var module = angular.module('state.token-list', []);
 
-module.controller("SessionListCtrl",
+module.controller("TokenListCtrl",
     [ '$scope', '$window', '$filter', 'dynamicTable',
     function ($scope, $window, $filter, dynamicTable) {
         if (!$scope.appControl.aclCheckCurrentState())
@@ -13,7 +13,7 @@ module.controller("SessionListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/session/table' + urlParam,
+            url: $window['config']['apiUrl'] + '/token/table' + urlParam,
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {

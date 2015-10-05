@@ -20,8 +20,8 @@ module.controller("UserListCtrl",
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
-                if (row['sessions'] > 0)
-                    row['sessions'] = '<a href="/#/user/' + row['id'] + '/session">' + row['sessions'] + '</a>'
+                if (row['tokens'] > 0)
+                    row['tokens'] = '<a href="/#/user/' + row['id'] + '/token">' + row['tokens'] + '</a>'
 
                 return row;
             },

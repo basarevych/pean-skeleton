@@ -6,6 +6,7 @@
 
 var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');
+var moment = require('moment-timezone');
 
 module.exports = function () {
     var config = locator.get('config');
@@ -14,12 +15,31 @@ module.exports = function () {
 
     var app = locator.get('app');
     var logger = locator.get('logger');
+    var tokenRepo = locator.get('token-repository');
     var userRepo = locator.get('user-repository');
+
+    function loadModels(req, token, next) {
+        req.token = token;
+
+        if (!token.getUserId()) {
+            next();
+            return;
+        }
+        
+        userRepo.find(token.getUserId())
+            .then(function (users) {
+                var user = users.length && users[0];
+                if (user)
+                    req.user = user;
+
+                next();
+            });
+    }
 
     app.use(function (req, res, next) {
         if (app.get('env') == 'test') { // override token when testing
-            req.token = locator.get('token');
-            next();
+            var token = locator.get('token');
+            loadModels(req, token, next);
             return;
         }
 
@@ -28,21 +48,37 @@ module.exports = function () {
             var parts = header.split(' ');
             if (parts.length == 2 && parts[0] == 'Bearer') {
                 var token = parts[1];
-                jwt.verify(token, config['jwt']['secret'], function (err, decoded) {      
-                    if (err || !decoded) {
+                jwt.verify(token, config['jwt']['secret'], function (err, payload) {
+                    if (err || !payload) {
                         next();
                         return;
                     }
 
-                    req.token = decoded;
-                    userRepo.find(req.token.user_id)
-                        .then(function (users) {
-                            var user = users.length && users[0];
-                            if (user)
-                                req.user = user;
+                    tokenRepo.find(payload.token_id)
+                        .then(function (tokens) {
+                            token = tokens.length && tokens[0];
+                            if (!token) {
+                                next();
+                                return;
+                            }
 
+                            token.setPayload(payload);
+                            token.setIpAddress(req.connection.remoteAddress);
+                            token.setUpdatedAt(moment());
+                            return token.save();
+                        })
+                        .then(function (tokenId) {
+                            if (!tokenId) {
+                                next();
+                                return;
+                            }
+
+                            loadModels(req, token, next);
+                        })
+                        .catch(function () {
                             next();
                         });
+
                 });
                 return;
             }

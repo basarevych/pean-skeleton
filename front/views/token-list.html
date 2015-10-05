@@ -1,7 +1,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-offset-3 col-md-9">
-            <h3>{{ 'SESSION_TITLE' | glMessage }}</h3>
+            <h3>{{ 'TOKEN_TITLE' | glMessage }}</h3>
         </div>
     </div>
 
@@ -10,11 +10,15 @@
             <div sidebar="sm">
                 <div class="panel panel-default panel-actions">
                     <div class="panel-heading">
-                        <h3 class="panel-title">{{ 'SESSION_ACTIONS_TITLE' | glMessage }}</h3>
+                        <h3 class="panel-title">{{ 'TOKEN_ACTIONS_TITLE' | glMessage }}</h3>
                     </div>
                     <div class="panel-body button-panel">
-                        <button class="btn btn-default" ng-click="deleteSession()" ng-disabled="!hasSelection">
-                            {{ 'SESSION_DELETE_BUTTON' | glMessage }}
+                        <button class="btn btn-default" ng-click="viewPayload()" ng-disabled="!hasSingleSelection">
+                            {{ 'TOKEN_VIEW_PAYLOAD_BUTTON' | glMessage }}
+                        </button>
+                        <hr>
+                        <button class="btn btn-default" ng-click="deleteToken()" ng-disabled="!hasSelection">
+                            {{ 'TOKEN_DELETE_BUTTON' | glMessage }}
                         </button>
                     </div>
                 </div>

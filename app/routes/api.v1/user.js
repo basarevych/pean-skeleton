@@ -68,9 +68,9 @@ module.exports = function (app) {
                         sortable: true,
                         visible: true,
                     },
-                    sessions: {
-                        title: res.locals.glMessage('USER_SESSIONS_COLUMN'),
-                        sql_id: 'sessions',
+                    tokens: {
+                        title: res.locals.glMessage('USER_TOKENS_COLUMN'),
+                        sql_id: 'tokens',
                         type: Table.TYPE_INTEGER,
                         filters: [ Table.FILTER_BETWEEN ],
                         sortable: true,

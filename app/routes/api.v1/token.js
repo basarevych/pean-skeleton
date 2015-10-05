@@ -1,5 +1,5 @@
 /**
- * Session route
+ * Token route
  */
 
 'use strict'
@@ -21,7 +21,7 @@ module.exports = function (app) {
             return app.abort(res, 401, "Not logged in");
 
         var acl = locator.get('acl');
-        acl.isAllowed(req.user, 'session', 'read')
+        acl.isAllowed(req.user, 'token', 'read')
             .then(function (isAllowed) {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
@@ -29,7 +29,7 @@ module.exports = function (app) {
                 var table = new Table();
                 table.setColumns({
                     id: {
-                        title: res.locals.glMessage('SESSION_ID_COLUMN'),
+                        title: res.locals.glMessage('TOKEN_ID_COLUMN'),
                         sql_id: 'id',
                         type: Table.TYPE_INTEGER,
                         filters: [ Table.FILTER_EQUAL ],
@@ -37,7 +37,7 @@ module.exports = function (app) {
                         visible: true,
                     },
                     ip_address: {
-                        title: res.locals.glMessage('SESSION_IP_ADDRESS_COLUMN'),
+                        title: res.locals.glMessage('TOKEN_IP_ADDRESS_COLUMN'),
                         sql_id: 'ip_address',
                         type: Table.TYPE_STRING,
                         filters: [ Table.FILTER_LIKE, Table.FILTER_NULL ],
@@ -45,7 +45,7 @@ module.exports = function (app) {
                         visible: true,
                     },
                     created_at: {
-                        title: res.locals.glMessage('SESSION_CREATED_AT_COLUMN'),
+                        title: res.locals.glMessage('TOKEN_CREATED_AT_COLUMN'),
                         sql_id: 'created_at',
                         type: Table.TYPE_DATETIME,
                         filters: [ Table.FILTER_BETWEEN, Table.FILTER_NULL ],
@@ -53,7 +53,7 @@ module.exports = function (app) {
                         visible: true,
                     },
                     updated_at: {
-                        title: res.locals.glMessage('SESSION_UPDATED_AT_COLUMN'),
+                        title: res.locals.glMessage('TOKEN_UPDATED_AT_COLUMN'),
                         sql_id: 'updated_at',
                         type: Table.TYPE_DATETIME,
                         filters: [ Table.FILTER_BETWEEN, Table.FILTER_NULL ],
@@ -64,6 +64,7 @@ module.exports = function (app) {
                 table.setMapper(function (row) {
                     var result = row;
 
+                    result['payload'] = validator.escape(row['payload']);
                     result['ip_address'] = validator.escape(row['ip_address']);
 
                     if (row['created_at']) {
@@ -81,11 +82,11 @@ module.exports = function (app) {
                     return result;
                 });
 
-                var sessionRepo = locator.get('session-repository');
+                var tokenRepo = locator.get('token-repository');
                 var adapter = new PgAdapter();
-                adapter.setClient(sessionRepo.getPostgres());
+                adapter.setClient(tokenRepo.getPostgres());
                 adapter.setSelect("*");
-                adapter.setFrom("sessions");
+                adapter.setFrom("tokens");
                 adapter.setWhere("user_id = $1");
                 adapter.setParams([ req.query.user_id ]);
                 table.setAdapter(adapter);
@@ -94,8 +95,8 @@ module.exports = function (app) {
                     case 'describe':
                         table.describe(function (err, result) {
                             if (err) {
-                                logger.error('GET /v1/session/table failed', err);
-                                return app.abort(res, 500, 'GET /v1/session/table failed');
+                                logger.error('GET /v1/token/table failed', err);
+                                return app.abort(res, 500, 'GET /v1/token/table failed');
                             }
 
                             result['success'] = true;
@@ -106,8 +107,8 @@ module.exports = function (app) {
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
                                 if (err) {
-                                    logger.error('GET /v1/session/table failed', err);
-                                    return app.abort(res, 500, 'GET /v1/session/table failed');
+                                    logger.error('GET /v1/token/table failed', err);
+                                    return app.abort(res, 500, 'GET /v1/token/table failed');
                                 }
 
                                 result['success'] = true;
@@ -119,10 +120,10 @@ module.exports = function (app) {
                 }
             })
             .catch(function (err) {
-                logger.error('GET /v1/session/table failed', err);
-                app.abort(res, 500, 'GET /v1/session/table failed');
+                logger.error('GET /v1/token/table failed', err);
+                app.abort(res, 500, 'GET /v1/token/table failed');
             });
     });
 
-    app.use('/v1/session', router);
+    app.use('/v1/token', router);
 };

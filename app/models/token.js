@@ -1,5 +1,5 @@
 /**
- * Session model
+ * Token model
  */
 
 'use strict'
@@ -9,9 +9,10 @@ var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
-function SessionModel(dbRow) {
+function TokenModel(dbRow) {
     this.id = null;
     this.user_id = null;
+    this.payload = null;
     this.ip_address = null;
     this.created_at = moment();
     this.updated_at = moment();
@@ -22,63 +23,73 @@ function SessionModel(dbRow) {
 
         this.id = dbRow.id;
         this.user_id = dbRow.user_id;
+        this.payload = dbRow.payload;
         this.ip_address = dbRow.ip_address;
         this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
         this.updated_at = moment.tz(utcUpdated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
     }
 };
 
-SessionModel.prototype = new BaseModel();
-SessionModel.prototype.constructor = SessionModel;
+TokenModel.prototype = new BaseModel();
+TokenModel.prototype.constructor = TokenModel;
 
-SessionModel.prototype.setId = function (id) {
+TokenModel.prototype.setId = function (id) {
     this.filed('id', id);
     return this;
 };
 
-SessionModel.prototype.getId = function () {
+TokenModel.prototype.getId = function () {
     return this.field('id');
 };
 
-SessionModel.prototype.setUserId = function (userId) {
+TokenModel.prototype.setUserId = function (userId) {
     this.field('user_id', userId);
     return this;
 };
 
-SessionModel.prototype.getUserId = function () {
+TokenModel.prototype.getUserId = function () {
     return this.field('user_id');
 };
 
-SessionModel.prototype.setIpAddress = function (ipAddress) {
+TokenModel.prototype.setPayload = function (payload) {
+    this.field('payload', payload);
+    return this;
+};
+
+TokenModel.prototype.getPayload = function () {
+    return this.field('payload');
+};
+
+TokenModel.prototype.setIpAddress = function (ipAddress) {
     this.field('ip_address', ipAddress);
     return this;
 };
 
-SessionModel.prototype.getIpAddress = function () {
+TokenModel.prototype.getIpAddress = function () {
     return this.field('ip_address');
 };
 
-SessionModel.prototype.setCreatedAt = function (createdAt) {
+TokenModel.prototype.setCreatedAt = function (createdAt) {
     this.field('created_at', createdAt);
     return this;
 };
 
-SessionModel.prototype.getCreatedAt = function () {
+TokenModel.prototype.getCreatedAt = function () {
     return this.field('created_at');
 };
 
-SessionModel.prototype.setUpdatedAt = function (updatedAt) {
+TokenModel.prototype.setUpdatedAt = function (updatedAt) {
     this.field('updated_at', updatedAt);
     return this;
 };
 
-SessionModel.prototype.getUpdatedAt = function () {
+TokenModel.prototype.getUpdatedAt = function () {
     return this.field('updated_at');
 };
 
-SessionModel.prototype.save = function (evenIfNotDirty) {
+TokenModel.prototype.save = function (evenIfNotDirty) {
     var logger = locator.get('logger');
-    var repo = locator.get('session-repository');
+    var repo = locator.get('token-repository');
     var defer = q.defer();
 
     if (this.getId() && !this._dirty && evenIfNotDirty !== true) {
@@ -91,20 +102,22 @@ SessionModel.prototype.save = function (evenIfNotDirty) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('SessionModel.save() - pg connect', err);
+            logger.error('TokenModel.save() - pg connect', err);
             process.exit(1);
         }
 
         var query, params = [];
         if (me.getId()) {
-            query = "UPDATE sessions "
+            query = "UPDATE tokens "
                   + "   SET user_id = $1, "
-                  + "       ip_address = $2, "
-                  + "       created_at = $3, "
-                  + "       updated_at = $4 "
-                  + " WHERE id = $5 ";
+                  + "       payload = $2, "
+                  + "       ip_address = $3, "
+                  + "       created_at = $4, "
+                  + "       updated_at = $5 "
+                  + " WHERE id = $6 ";
             params = [
                 me.getUserId(),
+                me.getPayload(),
                 me.getIpAddress(),
                 me.getCreatedAt(),
                 me.getUpdatedAt(),
@@ -112,11 +125,12 @@ SessionModel.prototype.save = function (evenIfNotDirty) {
             ];
         } else {
             query = "   INSERT "
-                  + "     INTO sessions(user_id, ip_address, created_at, updated_at) "
-                  + "   VALUES ($1, $2, $3, $4) "
+                  + "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) "
+                  + "   VALUES ($1, $2, $3, $4, $5) "
                   + "RETURNING id ";
             params = [
                 me.getUserId(),
+                me.getPayload(),
                 me.getIpAddress(),
                 me.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 me.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
@@ -126,7 +140,7 @@ SessionModel.prototype.save = function (evenIfNotDirty) {
         db.query(query, params, function (err, result) {
             if (err) {
                 defer.reject();
-                logger.error('SessionModel.save() - pg query', err);
+                logger.error('TokenModel.save() - pg query', err);
                 process.exit(1);
             }
 
@@ -146,4 +160,4 @@ SessionModel.prototype.save = function (evenIfNotDirty) {
     return defer.promise;
 };
 
-module.exports = SessionModel;
+module.exports = TokenModel;
