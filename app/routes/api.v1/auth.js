@@ -79,10 +79,13 @@ module.exports = function (app) {
                     });
                 }
 
-                var userId = null;
+                var user = null;
+                var token = null;
+                var encryptedData = null;
+
                 userRepo.findByEmail(email.value)
                     .then(function (users) {
-                        var user = users.length && users[0];
+                        user = users.length && users[0];
                         if (!user || !user.checkPassword(password.value)) {
                             res.json({
                                 valid: false,
@@ -92,32 +95,39 @@ module.exports = function (app) {
                             return;
                         }
 
-                        userId = user.getId();
-
-                        var token = new TokenModel();
-                        token.setUserId(userId);
-                        token.setPayload('{ "user_id": ' + userId + ' }');
+                        token = new TokenModel();
+                        token.setUserId(user.getId());
+                        token.setPayload('{ "user_id": ' + user.getId() + ' }');
                         token.setIpAddress(req.connection.remoteAddress);
                         token.setCreatedAt(moment());
                         token.setUpdatedAt(moment());
                         return token.save();
                     })
-                    .then(function (tokenId) {
-                        if (!tokenId)
+                    .then(function () {
+                        if (!user || !token)
                             return;
 
-                        var token = jwt.sign(
-                            {
-                                token_id: tokenId,
-                                user_id: userId,
-                            },
+                        var payload = {
+                            token_id: token.getId(),
+                            user_id: user.getId(),
+                        };
+
+                        encryptedData = jwt.sign(
+                            payload,
                             config['jwt']['secret'],
                             { expiresInSeconds: config['jwt']['ttl'] }
                         );
 
+                        token.setPayload(JSON.stringify(payload));
+                        return token.save();
+                    })
+                    .then(function () {
+                        if (!encryptedData)
+                            return;
+
                         res.json({
                             valid: true,
-                            token: token
+                            token: encryptedData,
                         });
                     })
                     .catch(function (err) {

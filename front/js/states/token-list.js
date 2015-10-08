@@ -3,8 +3,8 @@
 var module = angular.module('state.token-list', []);
 
 module.controller("TokenListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable',
-    function ($scope, $window, $filter, dynamicTable) {
+    [ '$scope', '$window', '$filter', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
+    function ($scope, $window, $filter, dynamicTable, TokenApi, TokenPayloadForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -30,6 +30,14 @@ module.controller("TokenListCtrl",
                 return row;
             },
         });
+
+        $scope.viewPayload = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            TokenApi.read({ id: sel[0] })
+                .then(function (data) {
+                    TokenPayloadForm(data.payload);
+                });
+        };
 
         $scope.$watch('tableCtrl.event', function () {
             $scope.tableCtrl.event = null;

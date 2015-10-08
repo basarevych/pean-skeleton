@@ -125,5 +125,41 @@ module.exports = function (app) {
             });
     });
 
+    router.get('/:tokenId', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'token', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var tokenRepo = locator.get('token-repository');
+                tokenRepo.find(req.params.tokenId)
+                    .then(function (tokens) {
+                        var token = tokens.length && tokens[0];
+                        if (!token)
+                            return app.abort(res, 404, "Token " + req.params.tokenId + " not found");
+
+                        res.json({
+                            id: token.getId(),
+                            ip_address: token.getIpAddress(),
+                            created_at: token.getCreatedAt().unix(),
+                            updated_at: token.getUpdatedAt().unix(),
+                            payload: JSON.stringify(token.getPayload(), undefined, 4),
+                        });
+                    })
+                    .catch(function (err) {
+                        logger.error('GET /v1/token/' + req.params.tokenId + ' failed', err);
+                        app.abort(res, 500, 'GET /v1/token/' + req.params.tokenId + ' failed');
+                    });
+            })
+            .catch(function (err) {
+                logger.error('GET /v1/token/' + req.params.tokenId + ' failed', err);
+                app.abort(res, 500, 'GET /v1/token/' + req.params.tokenId + ' failed');
+            });
+    });
+
     app.use('/v1/token', router);
 };

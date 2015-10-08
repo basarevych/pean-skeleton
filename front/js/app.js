@@ -9,6 +9,7 @@ var app = angular.module('app', [
     'ui.router',                // AngularUI Router
     'ui.bootstrap',             // AngularUI Bootstrap
     'dynamicTable',             // DynamicTable
+    'hljs',                     // HighlightJS
     'api',
     'services',
     'directives',
@@ -67,6 +68,15 @@ app.config(
     [ 'dynamicTableProvider',
     function (dynamicTableProvider) {
         dynamicTableProvider.setTranslationFilter('glMessage');
+    } ]
+);
+
+app.config(
+    [ 'hljsServiceProvider',
+    function (hljsServiceProvider) {
+        hljsServiceProvider.setOptions({
+            tabReplace: '    ',
+        });
     } ]
 );
 

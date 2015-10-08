@@ -199,3 +199,25 @@ forms.factory('ProfileForm',
         }
     } ]
 );
+
+forms.factory('TokenPayloadForm',
+    [ '$modal', '$filter', 'ModalFormCtrl',
+    function ($modal, $filter, ModalFormCtrl) {
+        return function (payload) {
+            return $modal.open({
+                controller: ModalFormCtrl,
+                templateUrl: 'modals/token-payload.html',
+                resolve: {
+                    fields: function () {
+                        return [
+                            { name: 'payload', value: payload, focus: false },
+                        ];
+                    },
+                    locals: function () { return null; },
+                    validator: function () { return null },
+                    submitter: function () { return null },
+                }
+            }).result;
+        }
+    } ]
+);

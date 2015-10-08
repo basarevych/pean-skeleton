@@ -1,0 +1,13 @@
+<div class="modal-header">
+    <button class="close" ng-click="$dismiss()">&times;</button>
+    <h4 class="modal-title">{{ 'TOKEN_PAYLOAD_TITLE' | glMessage }}</h4>
+</div>
+
+<div class="modal-body">
+    <div hljs language="json" source="model.payload.value"></div>
+</div>
+
+<div class="modal-footer">
+    <img class="pull-left" ng-show="processing" src="img/loader.gif">
+    <button ng-disabled="processing" class="btn btn-primary" ng-click="$dismiss()">{{ 'CLOSE_BUTTON' | glMessage }}</button>
+</div>

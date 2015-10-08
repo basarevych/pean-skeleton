@@ -11,6 +11,6 @@ module.exports = function () {
     var app = locator.get('app');
 
     app.use(function(err, req, res, next) {
-        app.abort(res, 500, err);
+        app.abort(res, typeof err.status == 'undefined' ? 500 : err.status, err);
     });
 };

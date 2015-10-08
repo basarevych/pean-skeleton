@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-07 */
+/* pean-skeleton - v0.0.0 - 2015-10-08 */
 
 'use strict';
 
@@ -11,6 +11,7 @@ var app = angular.module('app', [
     'ui.router',                // AngularUI Router
     'ui.bootstrap',             // AngularUI Bootstrap
     'dynamicTable',             // DynamicTable
+    'hljs',                     // HighlightJS
     'api',
     'services',
     'directives',
@@ -69,6 +70,15 @@ app.config(
     [ 'dynamicTableProvider',
     function (dynamicTableProvider) {
         dynamicTableProvider.setTranslationFilter('glMessage');
+    } ]
+);
+
+app.config(
+    [ 'hljsServiceProvider',
+    function (hljsServiceProvider) {
+        hljsServiceProvider.setOptions({
+            tabReplace: '    ',
+        });
     } ]
 );
 
@@ -188,6 +198,21 @@ api.factory('AuthApi',
             },
             validate: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
+            },
+        };
+    } ]
+);
+
+api.factory('TokenApi',
+    [ '$resource', '$window', 'ResourceWrapper',
+    function ($resource, $window, ResourceWrapper) {
+        var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
+            read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+        });
+
+        return {
+            read: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
             },
         };
     } ]
@@ -510,6 +535,28 @@ forms.factory('ProfileForm',
     } ]
 );
 
+forms.factory('TokenPayloadForm',
+    [ '$modal', '$filter', 'ModalFormCtrl',
+    function ($modal, $filter, ModalFormCtrl) {
+        return function (payload) {
+            return $modal.open({
+                controller: ModalFormCtrl,
+                templateUrl: 'modals/token-payload.html',
+                resolve: {
+                    fields: function () {
+                        return [
+                            { name: 'payload', value: payload, focus: false },
+                        ];
+                    },
+                    locals: function () { return null; },
+                    validator: function () { return null },
+                    submitter: function () { return null },
+                }
+            }).result;
+        }
+    } ]
+);
+
 'use strict';
 
 var services = angular.module('services', [
@@ -795,8 +842,8 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.token-list', []);
 
 module.controller("TokenListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable',
-    function ($scope, $window, $filter, dynamicTable) {
+    [ '$scope', '$window', '$filter', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
+    function ($scope, $window, $filter, dynamicTable, TokenApi, TokenPayloadForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -822,6 +869,14 @@ module.controller("TokenListCtrl",
                 return row;
             },
         });
+
+        $scope.viewPayload = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            TokenApi.read({ id: sel[0] })
+                .then(function (data) {
+                    TokenPayloadForm(data.payload);
+                });
+        };
 
         $scope.$watch('tableCtrl.event', function () {
             $scope.tableCtrl.event = null;

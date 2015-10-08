@@ -38,6 +38,7 @@
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",
+        "CLOSE_BUTTON": "Close",
         "SAVE_CHANGES_BUTTON": "Save changes",
 
         "SIGN_IN_TITLE": "Sign in",
@@ -71,6 +72,7 @@
         "TOKEN_ACTIONS_TITLE": "Table actions",
         "TOKEN_VIEW_PAYLOAD_BUTTON": "View payload",
         "TOKEN_DELETE_BUTTON": "Delete token",
+        "TOKEN_PAYLOAD_TITLE": "Token payload",
 
         "DT_BANNER_LOADING": "Loading... Please wait",
         "DT_BANNER_EMPTY": "Nothing found",

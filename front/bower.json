@@ -18,6 +18,8 @@
     "angular-ui-router": "~0.2.15",
     "angular-ui-bootstrap-bower": "~0.13.1",
     "angular-globalize-wrapper": "~0.2.0",
-    "pnotify": "~2.0.1"
+    "pnotify": "~2.0.1",
+    "highlightjs": "~8.8.0",
+    "angular-highlightjs": "~0.4.3"
   }
 }

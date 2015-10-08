@@ -84,3 +84,18 @@ api.factory('AuthApi',
         };
     } ]
 );
+
+api.factory('TokenApi',
+    [ '$resource', '$window', 'ResourceWrapper',
+    function ($resource, $window, ResourceWrapper) {
+        var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
+            read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+        });
+
+        return {
+            read: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
+            },
+        };
+    } ]
+);
