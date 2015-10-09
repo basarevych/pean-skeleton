@@ -20,7 +20,7 @@
             </label>
             <div class="col-sm-8">
                 <input type="text" class="form-control" ng-model="model.name.value" focus-on="model.name.focus" on-key-enter="model.newPassword.focus = true"
-                       ng-keydown="resetValidation('name')" ng-blur="validate('name')" ng-disabled="processing">
+                       ng-keydown="resetValidation('name')" ng-blur="validate('name')" ng-disabled="processing" autofocus="autofocus">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.name">{{ message }}</li>
