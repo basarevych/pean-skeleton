@@ -6,7 +6,7 @@
 
 'use strict'
 
-var app = require('../app');
+var app = require('../app/app');
 var locator = require('node-service-locator');
 
 // check requirements

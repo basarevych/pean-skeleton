@@ -8,7 +8,7 @@
 
 process.env.CONSOLE = true;
 
-var app = require('../app');
+var app = require('../app/app');
 var fs = require('fs');
 var path = require('path');
 var argv = require('minimist')(process.argv.slice(2));

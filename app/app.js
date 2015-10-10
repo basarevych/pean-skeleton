@@ -23,7 +23,7 @@ if (trustProxy === 'true')
 app.set('trust proxy', typeof trustProxy == 'undefined' ? false : trustProxy);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'app', 'views'));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // error function
@@ -54,17 +54,17 @@ if (process.env.NODE_ENV != 'test') app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(favicon(path.join(__dirname, 'public/img', 'favicon.ico')));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(favicon(path.join(__dirname, '..', 'public', 'img', 'favicon.ico')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // load application
-require('./app/boot/init.js')(app);         // initialize the app
-require('./app/boot/logger.js')();          // logger
-require('./app/boot/lang.js')();            // translations
+require('./boot/init.js')(app);         // initialize the app
+require('./boot/logger.js')();          // logger
+require('./boot/lang.js')();            // translations
 
 if (!process.env.CONSOLE) {
-    require('./app/boot/session.js')();     // session support
-    require('./app/boot/jwt.js')();         // JSON Web Tokens
-    require('./app/boot/routes.js')();      // load routes
-    require('./app/boot/errors.js')();      // error handling
+    require('./boot/session.js')();     // session support
+    require('./boot/jwt.js')();         // JSON Web Tokens
+    require('./boot/routes.js')();      // load routes
+    require('./boot/errors.js')();      // error handling
 }
