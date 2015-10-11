@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-09 */
+/* pean-skeleton - v0.0.0 - 2015-10-11 */
 
 'use strict';
 
@@ -374,15 +374,11 @@ forms.factory('InfoDialog',
 forms.factory('ModalFormCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
-        return function ($scope, $modalInstance, fields, locals, validator, submitter) {
-            $scope.model = {};
+        return function ($scope, $modalInstance, model, locals, validator, submitter) {
+            $scope.model = model;
+            $scope.locals = locals;
             $scope.validation = { errors: [], fields: {} }; 
             $scope.processing = false;
-            $scope.locals = locals;
-
-            $.each(fields, function (index, item) {
-                $scope.model[item.name] = item;
-            });
 
             var resetFocus = function () {
                 var errorFound = false;
@@ -414,7 +410,7 @@ forms.factory('ModalFormCtrl',
                     form: {},
                 };
                 $.each($scope.model, function (key, item) {
-                    params.form[item.name] = item.value;
+                    params.form[key] = item.value;
                 });
 
                 validator(params)
@@ -455,16 +451,14 @@ forms.factory('ModalFormCtrl',
 
             $scope.submit = function () {
                 $scope.resetValidation();
-                $scope.processing = true;
-
-                if (angular.isUndefined(submitter)) {
-                    $scope.processing = false;
+                if (angular.isUndefined(submitter))
                     return;
-                }
+
+                $scope.processing = true;
 
                 var params = {};
                 $.each($scope.model, function (key, item) {
-                    params[item.name] = item.value;
+                    params[key] = item.value;
                 });
 
                 submitter(params)
@@ -495,11 +489,11 @@ forms.factory('LoginForm',
                 controller: ModalFormCtrl,
                 templateUrl: 'modals/login.html',
                 resolve: {
-                    fields: function () {
-                        return [
-                            { name: 'email',    value: '', focus: true },
-                            { name: 'password', value: '', focus: false },
-                        ];
+                    model: function () {
+                        return {
+                            'email': { value: '', focus: true },
+                            'password': { value: '', focus: false },
+                        };
                     },
                     locals: function () { return null; },
                     validator: function () { return AuthApi.validate; },
@@ -518,13 +512,13 @@ forms.factory('ProfileForm',
                 controller: ModalFormCtrl,
                 templateUrl: 'modals/profile.html',
                 resolve: {
-                    fields: function () {
-                        return [
-                            { name: 'name',            value: profile.name,   focus: true },
-                            { name: 'email',           value: profile.email,  focus: false },
-                            { name: 'newPassword',     value: '',             focus: false },
-                            { name: 'retypedPassword', value: '',             focus: false },
-                        ];
+                    model: function () {
+                        return {
+                            'name': { value: profile.name, focus: true },
+                            'email': { value: profile.email, focus: false },
+                            'new_password': { value: '', focus: false },
+                            'retyped_password': { value: '', focus: false },
+                        };
                     },
                     locals: function () { return null; },
                     validator: function () { return ProfileApi.validate; },
@@ -543,10 +537,10 @@ forms.factory('TokenPayloadForm',
                 controller: ModalFormCtrl,
                 templateUrl: 'modals/token-payload.html',
                 resolve: {
-                    fields: function () {
-                        return [
-                            { name: 'payload', value: payload, focus: false },
-                        ];
+                    model: function () {
+                        return {
+                            'payload': { value: payload, focus: false },
+                        };
                     },
                     locals: function () { return null; },
                     validator: function () { return null },
@@ -580,7 +574,7 @@ services.factory('AppControl',
                 fallback: null,
                 available: [],
             },
-            userId: null,
+            user_id: null,
             name: 'Anonymous',
             email: null,
             roles: [],
