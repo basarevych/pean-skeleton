@@ -374,9 +374,8 @@ forms.factory('InfoDialog',
 forms.factory('ModalFormCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
-        return function ($scope, $modalInstance, model, locals, validator, submitter) {
+        return function ($scope, $modalInstance, model, validator, submitter) {
             $scope.model = model;
-            $scope.locals = locals;
             $scope.validation = { errors: [], fields: {} }; 
             $scope.processing = false;
 
@@ -393,13 +392,12 @@ forms.factory('ModalFormCtrl',
 
                 if (!errorFound) {
                     $.each($scope.model, function (key, value) {
-                        $scope.model[key].focus = true;
-                        return false;
+                        if (angular.isObject($scope.model[key]) && angular.isDefined($scope.model[key]['focus'])) {
+                            $scope.model[key].focus = true;
+                            return false;
+                        }
                     });
                 }
-            };
-
-            var doValidate = function (name) {
             };
 
             $scope.resetValidation = function (name) {
@@ -431,7 +429,8 @@ forms.factory('ModalFormCtrl',
                     form: {},
                 };
                 $.each($scope.model, function (key, item) {
-                    params.form[key] = item.value;
+                    if (angular.isObject(item) && angular.isDefined(item['value']))
+                        params.form[key] = item.value;
                 });
 
                 validator(params)
@@ -456,7 +455,8 @@ forms.factory('ModalFormCtrl',
 
                 var params = {};
                 $.each($scope.model, function (key, item) {
-                    params[key] = item.value;
+                    if (angular.isObject(item) && angular.isDefined(item['value']))
+                        params[key] = item.value;
                 });
 
                 submitter(params)
@@ -493,7 +493,6 @@ forms.factory('LoginForm',
                             password: { value: '', focus: false },
                         };
                     },
-                    locals: function () { return null; },
                     validator: function () { return AuthApi.validate; },
                     submitter: function () { return AuthApi.token; },
                 }
@@ -518,7 +517,6 @@ forms.factory('ProfileForm',
                             retyped_password: { value: '', focus: false },
                         };
                     },
-                    locals: function () { return null; },
                     validator: function () { return ProfileApi.validate; },
                     submitter: function () { return ProfileApi.updateList; },
                 }
@@ -540,7 +538,6 @@ forms.factory('TokenPayloadForm',
                             payload: { value: payload, focus: false },
                         };
                     },
-                    locals: function () { return null; },
                     validator: function () { return null },
                     submitter: function () { return null },
                 }
