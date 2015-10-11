@@ -158,7 +158,7 @@ services.factory('AppControl',
                             globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
 
-                        if (!profile.userId && me.hasToken())
+                        if (!profile.user_id && me.hasToken())
                             me.removeToken();
 
                         profileLoaded = true;

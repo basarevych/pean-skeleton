@@ -40,6 +40,8 @@ module.exports = function (app) {
                     errors.push(glMessage('VALIDATOR_EMAIL'));
                 break;
             case 'password':
+                if (!validator.isLength(form.password, 1))
+                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                 if (!validator.isLength(form.password, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                 break;

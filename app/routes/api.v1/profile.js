@@ -23,27 +23,27 @@ module.exports = function () {
                 req.body.name
                 || (req.body.form && req.body.form.name)
             ),
-            newPassword: validator.trim(
-                req.body.newPassword
-                || (req.body.form && req.body.form.newPassword)
+            new_password: validator.trim(
+                req.body.new_password
+                || (req.body.form && req.body.form.new_password)
             ),
-            retypedPassword: validator.trim(
-                req.body.retypedPassword
-                || (req.body.form && req.body.form.retypedPassword)
+            retyped_password: validator.trim(
+                req.body.retyped_password
+                || (req.body.form && req.body.form.retyped_password)
             ),
         };
 
         var errors = [];
         switch (field) {
-            case 'newPassword':
-                if (form.newPassword != "" && !validator.isLength(form.newPassword, 6))
+            case 'new_password':
+                if (form.new_password != "" && !validator.isLength(form.new_password, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                 break;
-            case 'retypedPassword':
-                if (form.newPassword != "") {
-                    if (!validator.isLength(form.retypedPassword, 6))
+            case 'retyped_password':
+                if (form.new_password != "") {
+                    if (!validator.isLength(form.retyped_password, 6))
                         errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                    if (form.retypedPassword != form.newPassword)
+                    if (form.retyped_password != form.new_password)
                         errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                 }
                 break;
@@ -70,7 +70,7 @@ module.exports = function () {
                 fallback:   config['lang']['default'],
                 available:  config['lang']['locales'],
             },
-            userId: null,
+            user_id: null,
             name: 'anonymous',
             email: null,
             roles:  [],
@@ -80,7 +80,7 @@ module.exports = function () {
         if (!user)
             return res.json(result);
 
-        result['userId'] = user.getId();
+        result['user_id'] = user.getId();
         result['name'] = user.getName();
         result['email'] = user.getEmail();
         roleRepo.findByUserId(user.getId())
@@ -104,8 +104,8 @@ module.exports = function () {
             return app.abort(res, 401, "Not logged in");
 
         var name = parse('name', req, res);
-        var newPassword = parse('newPassword', req, res);
-        var retypedPassword = parse('retypedPassword', req, res);
+        var newPassword = parse('new_password', req, res);
+        var retypedPassword = parse('retyped_password', req, res);
         q.all([ name, newPassword, retypedPassword ])
             .then(function (result) {
                 name = result[0];
@@ -117,8 +117,8 @@ module.exports = function () {
                         errors: [],
                         fields: {
                             name: name.errors,
-                            newPassword: newPassword.errors,
-                            retypedPassword: retypedPassword.errors,
+                            new_password: newPassword.errors,
+                            retyped_password: retypedPassword.errors,
                         }
                     });
                 }

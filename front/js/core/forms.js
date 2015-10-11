@@ -64,8 +64,26 @@ forms.factory('ModalFormCtrl',
                 }
             };
 
-            var doValidate = function (name) {
+            $scope.resetValidation = function (name) {
+                if (angular.isDefined(name)) {
+                    $scope.validation.fields[name] = undefined;
+                } else {
+                    $scope.validation.errors = [];
+                    $scope.validation.fields = {};
+                }
+            };
+
+            $scope.setValidationError = function (name, error) {
+                if (angular.isUndefined($scope.validation.fields[name]))
+                    $scope.validation.fields[name] = [];
+                if ($.inArray(error, $scope.validation.fields[name]) == -1)
+                    $scope.validation.fields[name].push(error);
+            };
+
+            $scope.validate = function (name) {
                 if ($scope.processing)
+                    return;
+                if (!$('.modal').is(':visible'))
                     return;
                 if (angular.isUndefined(validator))
                     return;
@@ -89,37 +107,14 @@ forms.factory('ModalFormCtrl',
                     });
             };
 
-            $scope.resetValidation = function (name) {
-                if (angular.isDefined(name)) {
-                    $scope.validation.fields[name] = undefined;
-                } else {
-                    $scope.validation.errors = [];
-                    $scope.validation.fields = {};
-                }
-            };
-
-            $scope.setValidationError = function (name, error) {
-                if (angular.isUndefined($scope.validation.fields[name]))
-                    $scope.validation.fields[name] = [];
-                if ($.inArray(error, $scope.validation.fields[name]) == -1)
-                    $scope.validation.fields[name].push(error);
-            };
-
-            $scope.validate = function (name) {
-                $timeout(function () {
-                    if ($scope.processing || !$('.modal').is(':visible'))
-                        return;
-
-                    doValidate(name);
-                }, 500);
-            };
-
             $scope.submit = function () {
-                $scope.resetValidation();
-                if (angular.isUndefined(submitter))
-                    return;
-
                 $scope.processing = true;
+
+                $scope.resetValidation();
+                if (angular.isUndefined(submitter)) {
+                    $scope.processing = false;
+                    return;
+                }
 
                 var params = {};
                 $.each($scope.model, function (key, item) {
@@ -156,8 +151,8 @@ forms.factory('LoginForm',
                 resolve: {
                     model: function () {
                         return {
-                            'email': { value: '', focus: true },
-                            'password': { value: '', focus: false },
+                            email: { value: '', focus: true },
+                            password: { value: '', focus: false },
                         };
                     },
                     locals: function () { return null; },
@@ -179,10 +174,10 @@ forms.factory('ProfileForm',
                 resolve: {
                     model: function () {
                         return {
-                            'name': { value: profile.name, focus: true },
-                            'email': { value: profile.email, focus: false },
-                            'new_password': { value: '', focus: false },
-                            'retyped_password': { value: '', focus: false },
+                            name: { value: profile.name, focus: true },
+                            email: { value: profile.email, focus: false },
+                            new_password: { value: '', focus: false },
+                            retyped_password: { value: '', focus: false },
                         };
                     },
                     locals: function () { return null; },
@@ -204,7 +199,7 @@ forms.factory('TokenPayloadForm',
                 resolve: {
                     model: function () {
                         return {
-                            'payload': { value: payload, focus: false },
+                            payload: { value: payload, focus: false },
                         };
                     },
                     locals: function () { return null; },

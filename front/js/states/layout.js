@@ -23,7 +23,7 @@ module.controller("LayoutCtrl",
             ProfileForm($scope.appControl.getProfile())
                 .then(function () {
                     $scope.appControl.loadProfile(function () {
-                        $state.go($state.current.name, $stateParams, { reload: true });
+//                        $state.go($state.current.name, $stateParams, { reload: true });
                     });
                 });
         };
