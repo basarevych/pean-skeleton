@@ -956,6 +956,12 @@ module.controller("UserListCtrl",
             var event = $scope.tableCtrl.event;
             $scope.tableCtrl.event = null;
 
+            if (event == 'http-error') {
+                if ($scope.tableCtrl.statusCode == 401 || $scope.tableCtrl.statusCode == 403)
+                    $window.location.reload();
+                return;
+            }
+
             var sel = $scope.tableCtrl.plugin.getSelected();
             $scope.hasSelection = (sel == 'all' || sel.length);
             $scope.hasSingleSelection = (sel != 'all' && sel.length == 1);
