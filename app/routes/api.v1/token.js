@@ -10,6 +10,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
+var TokenModel = require('../../models/token');
 
 module.exports = function (app) {
     var router = express.Router();
@@ -17,6 +18,10 @@ module.exports = function (app) {
     var logger = locator.get('logger');
 
     router.get('/table', function (req, res) {
+        var userId = parseInt(req.query.user_id, 10);
+        if (isNaN(userId))
+            return app.abort(res, 400, "Invalid user ID");
+
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
@@ -88,7 +93,7 @@ module.exports = function (app) {
                 adapter.setSelect("*");
                 adapter.setFrom("tokens");
                 adapter.setWhere("user_id = $1");
-                adapter.setParams([ req.query.user_id ]);
+                adapter.setParams([ userId ]);
                 table.setAdapter(adapter);
 
                 switch (req.query.query) {
@@ -126,6 +131,10 @@ module.exports = function (app) {
     });
 
     router.get('/:tokenId', function (req, res) {
+        var tokenId = parseInt(req.params.tokenId, 10);
+        if (isNaN(tokenId))
+            return app.abort(res, 400, "Invalid token ID");
+
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
@@ -136,11 +145,11 @@ module.exports = function (app) {
                     return app.abort(res, 403, "ACL denied");
 
                 var tokenRepo = locator.get('token-repository');
-                tokenRepo.find(req.params.tokenId)
+                tokenRepo.find(tokenId)
                     .then(function (tokens) {
                         var token = tokens.length && tokens[0];
                         if (!token)
-                            return app.abort(res, 404, "Token " + req.params.tokenId + " not found");
+                            return app.abort(res, 404, "Token " + tokenId + " not found");
 
                         res.json({
                             id: token.getId(),
@@ -151,17 +160,57 @@ module.exports = function (app) {
                         });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/token/' + req.params.tokenId + ' failed', err);
-                        app.abort(res, 500, 'GET /v1/token/' + req.params.tokenId + ' failed');
+                        logger.error('GET /v1/token/' + tokenId + ' failed', err);
+                        app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed');
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/token/' + req.params.tokenId + ' failed', err);
-                app.abort(res, 500, 'GET /v1/token/' + req.params.tokenId + ' failed');
+                logger.error('GET /v1/token/' + tokenId + ' failed', err);
+                app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed');
+            });
+    });
+
+    router.get('/', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'token', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var tokenRepo = locator.get('token-repository');
+                tokenRepo.findAll()
+                    .then(function (tokens) {
+                        var result = [];
+                        tokens.forEach(function (token) {
+                            result.push({
+                                id: token.getId(),
+                                ip_address: token.getIpAddress(),
+                                created_at: token.getCreatedAt().unix(),
+                                updated_at: token.getUpdatedAt().unix(),
+                                payload: JSON.stringify(token.getPayload(), undefined, 4),
+                            });
+                        });
+                        res.json(result);
+                    })
+                    .catch(function (err) {
+                        logger.error('GET /v1/token failed', err);
+                        app.abort(res, 500, 'GET /v1/token failed');
+                    });
+            })
+            .catch(function (err) {
+                logger.error('GET /v1/token failed', err);
+                app.abort(res, 500, 'GET /v1/token failed');
             });
     });
 
     router.delete('/:tokenId', function (req, res) {
+        var tokenId = parseInt(req.params.tokenId, 10);
+        if (isNaN(tokenId))
+            return app.abort(res, 400, "Invalid token ID");
+
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
@@ -172,11 +221,11 @@ module.exports = function (app) {
                     return app.abort(res, 403, "ACL denied");
 
                 var tokenRepo = locator.get('token-repository');
-                tokenRepo.find(req.params.tokenId)
+                tokenRepo.find(tokenId)
                     .then(function (tokens) {
                         var token = tokens.length && tokens[0];
                         if (!token)
-                            return app.abort(res, 404, "Token " + req.params.tokenId + " not found");
+                            return app.abort(res, 404, "Token " + tokenId + " not found");
 
                         return token.delete();
                     })
@@ -184,13 +233,13 @@ module.exports = function (app) {
                         res.json({ success: count > 0 });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/token/' + req.params.tokenId + ' failed', err);
-                        app.abort(res, 500, 'DELETE /v1/token/' + req.params.tokenId + ' failed');
+                        logger.error('DELETE /v1/token/' + tokenId + ' failed', err);
+                        app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed');
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/token/' + req.params.tokenId + ' failed', err);
-                app.abort(res, 500, 'DELETE /v1/token/' + req.params.tokenId + ' failed');
+                logger.error('DELETE /v1/token/' + tokenId + ' failed', err);
+                app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed');
             });
     });
 

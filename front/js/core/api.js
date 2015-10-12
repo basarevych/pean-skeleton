@@ -90,9 +90,7 @@ api.factory('TokenApi',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
             list:       { method: 'GET', isArray: true },
-            create:     { method: 'POST', isArray: false },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
-            update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
             delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
         });
 
@@ -100,14 +98,8 @@ api.factory('TokenApi',
             list: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.list(params).$promise, noErrorHandler);
             },
-            create: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.create(params).$promise, noErrorHandler);
-            },
             read: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
-            },
-            update: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.update(params).$promise, noErrorHandler);
             },
             delete: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);

@@ -81,14 +81,52 @@ TokenRepository.prototype.findByUserId = function (userId) {
         }
 
         db.query(
-            "    SELECT * "
-          + "      FROM tokens "
-          + "     WHERE user_id = $1 ",
+            "SELECT * "
+          + "  FROM tokens "
+          + " WHERE user_id = $1 ",
             [ userId ],
             function (err, result) {
                 if (err) {
                     defer.reject();
                     logger.error('TokenRepository.findByUserId() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var tokens = [];
+                result.rows.forEach(function (row) {
+                    var token = new TokenModel(row);
+                    tokens.push(token);
+                });
+
+                defer.resolve(tokens);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+TokenRepository.prototype.findAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('TokenRepository.findAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM tokens ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('TokenRepository.findAll() - pg query', err);
                     process.exit(1);
                 }
 
@@ -121,7 +159,8 @@ TokenRepository.prototype.deleteAll = function () {
         }
 
         db.query(
-            "DELETE FROM tokens",
+            "DELETE "
+          + "  FROM tokens ",
             function (err, result) {
                 if (err) {
                     defer.reject();
