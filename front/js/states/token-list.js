@@ -3,8 +3,8 @@
 var module = angular.module('state.token-list', []);
 
 module.controller("TokenListCtrl",
-    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
-    function ($scope, $window, $filter, $q, dynamicTable, TokenApi, TokenPayloadForm) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'TokenApi', 'TokenPayloadForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, dynamicTable, TokenApi, TokenPayloadForm, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -42,18 +42,25 @@ module.controller("TokenListCtrl",
         $scope.deleteToken = function () {
             var sel = $scope.tableCtrl.plugin.getSelected();
 
-            var promises = [];
-            if (sel === 'all') {
-                promises.push(TokenApi.delete());
-            } else {
-                $.each(sel, function (index, value) {
-                    promises.push(TokenApi.delete({ id: value }));
-                });
-            }
+            InfoDialog({
+                title: 'TOKEN_CONFIRM_DELETE_TITLE',
+                text: 'TOKEN_CONFIRM_DELETE_TEXT',
+                yes: 'TOKEN_CONFIRM_DELETE_BUTTON',
+            }).result
+                .then(function () {
+                    var promises = [];
+                    if (sel === 'all') {
+                        promises.push(TokenApi.delete());
+                    } else {
+                        $.each(sel, function (index, value) {
+                            promises.push(TokenApi.delete({ id: value }));
+                        });
+                    }
 
-            $q.all(promises)
-                .finally(function () {
-                    $scope.tableCtrl.plugin.refresh();
+                    $q.all(promises)
+                        .finally(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
                 });
         };
 

@@ -73,6 +73,9 @@
         "TOKEN_VIEW_PAYLOAD_BUTTON": "View payload",
         "TOKEN_DELETE_BUTTON": "Delete token",
         "TOKEN_PAYLOAD_TITLE": "Token payload",
+        "TOKEN_CONFIRM_DELETE_TITLE": "Delete token",
+        "TOKEN_CONFIRM_DELETE_TEXT": "Delete selected tokens?",
+        "TOKEN_CONFIRM_DELETE_BUTTON": "Delete",
 
         "DT_BANNER_LOADING": "Loading... Please wait",
         "DT_BANNER_EMPTY": "Nothing found",
