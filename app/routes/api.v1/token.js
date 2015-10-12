@@ -161,5 +161,64 @@ module.exports = function (app) {
             });
     });
 
+    router.delete('/:tokenId', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'token', 'delete')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var tokenRepo = locator.get('token-repository');
+                tokenRepo.find(req.params.tokenId)
+                    .then(function (tokens) {
+                        var token = tokens.length && tokens[0];
+                        if (!token)
+                            return app.abort(res, 404, "Token " + req.params.tokenId + " not found");
+
+                        return token.delete();
+                    })
+                    .then(function (count) {
+                        res.json({ success: count > 0 });
+                    })
+                    .catch(function (err) {
+                        logger.error('DELETE /v1/token/' + req.params.tokenId + ' failed', err);
+                        app.abort(res, 500, 'DELETE /v1/token/' + req.params.tokenId + ' failed');
+                    });
+            })
+            .catch(function (err) {
+                logger.error('DELETE /v1/token/' + req.params.tokenId + ' failed', err);
+                app.abort(res, 500, 'DELETE /v1/token/' + req.params.tokenId + ' failed');
+            });
+    });
+
+    router.delete('/', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'token', 'delete')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var tokenRepo = locator.get('token-repository');
+                tokenRepo.deleteAll()
+                    .then(function (count) {
+                        res.json({ success: count > 0 });
+                    })
+                    .catch(function (err) {
+                        logger.error('DELETE /v1/token failed', err);
+                        app.abort(res, 500, 'DELETE /v1/token failed');
+                    });
+            })
+            .catch(function (err) {
+                logger.error('DELETE /v1/token failed', err);
+                app.abort(res, 500, 'DELETE /v1/token failed');
+            });
+    });
+
     app.use('/v1/token', router);
 };

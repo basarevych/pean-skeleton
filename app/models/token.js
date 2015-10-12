@@ -34,7 +34,7 @@ TokenModel.prototype = new BaseModel();
 TokenModel.prototype.constructor = TokenModel;
 
 TokenModel.prototype.setId = function (id) {
-    this.filed('id', id);
+    this.field('id', id);
     return this;
 };
 
@@ -155,6 +155,49 @@ TokenModel.prototype.save = function (evenIfNotDirty) {
 
             defer.resolve(id);
         });
+    });
+
+    return defer.promise;
+};
+
+TokenModel.prototype.delete = function () {
+    var logger = locator.get('logger');
+    var repo = locator.get('token-repository');
+    var defer = q.defer();
+
+    if (!this.getId()) {
+        defer.resolve(0);
+        return defer.promise;
+    }
+
+    var me = this;
+    var db = repo.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('TokenModel.delete() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM tokens "
+          + " WHERE id = $1 ",
+            [ me.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('TokenModel.delete() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                me.setId(null);
+                me.dirty(false);
+
+                defer.resolve(result.rowCount);
+            }
+        );
     });
 
     return defer.promise;

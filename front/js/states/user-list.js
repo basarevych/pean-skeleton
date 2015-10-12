@@ -28,9 +28,11 @@ module.controller("UserListCtrl",
         });
 
         $scope.$watch('tableCtrl.event', function () {
-            $scope.tableCtrl.event = null;
-            if ($scope.tableCtrl.plugin == null)
+            if (!$scope.tableCtrl.event)
                 return;
+
+            var event = $scope.tableCtrl.event;
+            $scope.tableCtrl.event = null;
 
             var sel = $scope.tableCtrl.plugin.getSelected();
             $scope.hasSelection = (sel == 'all' || sel.length);

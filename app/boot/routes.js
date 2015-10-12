@@ -16,6 +16,9 @@ module.exports = function () {
 
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {
+        if (res.headersSent)
+            return;
+
         var err = new Error('Route not found');
         err.status = 404;
         next(err);

@@ -3,8 +3,8 @@
 var module = angular.module('state.token-list', []);
 
 module.controller("TokenListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
-    function ($scope, $window, $filter, dynamicTable, TokenApi, TokenPayloadForm) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
+    function ($scope, $window, $filter, $q, dynamicTable, TokenApi, TokenPayloadForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -39,10 +39,36 @@ module.controller("TokenListCtrl",
                 });
         };
 
+        $scope.deleteToken = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+
+            var promises = [];
+            if (sel === 'all') {
+                promises.push(TokenApi.delete());
+            } else {
+                $.each(sel, function (index, value) {
+                    promises.push(TokenApi.delete({ id: value }));
+                });
+            }
+
+            $q.all(promises)
+                .finally(function () {
+                    $scope.tableCtrl.plugin.refresh();
+                });
+        };
+
         $scope.$watch('tableCtrl.event', function () {
-            $scope.tableCtrl.event = null;
-            if ($scope.tableCtrl.plugin == null)
+            if (!$scope.tableCtrl.event)
                 return;
+
+            var event = $scope.tableCtrl.event;
+            $scope.tableCtrl.event = null;
+
+            if (event == 'http-error') {
+                if ($scope.tableCtrl.statusCode == 401 || $scope.tableCtrl.statusCode == 403)
+                    $window.location.reload();
+                return;
+            }
 
             var sel = $scope.tableCtrl.plugin.getSelected();
             $scope.hasSelection = (sel == 'all' || sel.length);

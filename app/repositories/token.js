@@ -108,4 +108,35 @@ TokenRepository.prototype.findByUserId = function (userId) {
     return defer.promise;
 };
 
+TokenRepository.prototype.deleteAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('TokenRepository.deleteAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE FROM tokens",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('TokenRepository.deleteAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 module.exports = TokenRepository;

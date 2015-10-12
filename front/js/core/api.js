@@ -90,11 +90,15 @@ api.factory('TokenApi',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+            delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
         });
 
         return {
             read: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
+            },
+            delete: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
             },
         };
     } ]

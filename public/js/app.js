@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-11 */
+/* pean-skeleton - v0.0.0 - 2015-10-12 */
 
 'use strict';
 
@@ -208,11 +208,15 @@ api.factory('TokenApi',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+            delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
         });
 
         return {
             read: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
+            },
+            delete: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
             },
         };
     } ]
@@ -831,8 +835,8 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.token-list', []);
 
 module.controller("TokenListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
-    function ($scope, $window, $filter, dynamicTable, TokenApi, TokenPayloadForm) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'TokenApi', 'TokenPayloadForm',
+    function ($scope, $window, $filter, $q, dynamicTable, TokenApi, TokenPayloadForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -867,10 +871,36 @@ module.controller("TokenListCtrl",
                 });
         };
 
+        $scope.deleteToken = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+
+            var promises = [];
+            if (sel === 'all') {
+                promises.push(TokenApi.delete());
+            } else {
+                $.each(sel, function (index, value) {
+                    promises.push(TokenApi.delete({ id: value }));
+                });
+            }
+
+            $q.all(promises)
+                .finally(function () {
+                    $scope.tableCtrl.plugin.refresh();
+                });
+        };
+
         $scope.$watch('tableCtrl.event', function () {
-            $scope.tableCtrl.event = null;
-            if ($scope.tableCtrl.plugin == null)
+            if (!$scope.tableCtrl.event)
                 return;
+
+            var event = $scope.tableCtrl.event;
+            $scope.tableCtrl.event = null;
+
+            if (event == 'http-error') {
+                if ($scope.tableCtrl.statusCode == 401 || $scope.tableCtrl.statusCode == 403)
+                    $window.location.reload();
+                return;
+            }
 
             var sel = $scope.tableCtrl.plugin.getSelected();
             $scope.hasSelection = (sel == 'all' || sel.length);
@@ -909,9 +939,11 @@ module.controller("UserListCtrl",
         });
 
         $scope.$watch('tableCtrl.event', function () {
-            $scope.tableCtrl.event = null;
-            if ($scope.tableCtrl.plugin == null)
+            if (!$scope.tableCtrl.event)
                 return;
+
+            var event = $scope.tableCtrl.event;
+            $scope.tableCtrl.event = null;
 
             var sel = $scope.tableCtrl.plugin.getSelected();
             $scope.hasSelection = (sel == 'all' || sel.length);
