@@ -165,17 +165,17 @@ api.factory('ProfileApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/profile/:action', { }, {
-            readList:   { method: 'GET', isArray: false },
-            updateList: { method: 'PUT', isArray: false },
+            read:       { method: 'GET', isArray: false },
+            update:     { method: 'PUT', isArray: false },
             validate:   { method: 'POST', params: { action: 'validate' }, isArray: false }
         });
 
         return {
-            readList: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.readList(params).$promise, noErrorHandler);
+            read: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
             },
-            updateList: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.updateList(params).$promise, noErrorHandler);
+            update: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.update(params).$promise, noErrorHandler);
             },
             validate: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
@@ -207,13 +207,25 @@ api.factory('TokenApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
+            list:       { method: 'GET', isArray: true },
+            create:     { method: 'POST', isArray: false },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+            update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
             delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
         });
 
         return {
+            list: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.list(params).$promise, noErrorHandler);
+            },
+            create: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.create(params).$promise, noErrorHandler);
+            },
             read: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
+            },
+            update: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.update(params).$promise, noErrorHandler);
             },
             delete: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
@@ -522,7 +534,7 @@ forms.factory('ProfileForm',
                         };
                     },
                     validator: function () { return ProfileApi.validate; },
-                    submitter: function () { return ProfileApi.updateList; },
+                    submitter: function () { return ProfileApi.update; },
                 }
             }).result;
         }
@@ -703,7 +715,7 @@ services.factory('AppControl',
                     $http.defaults.headers.common['Accept-Language'] = locale.replace('_', '-');
 
                 var me = this;
-                ProfileApi.readList({})
+                ProfileApi.read()
                     .then(function (data) {
                         if (!angular.equals(profile, data)) {
                             profile = data;

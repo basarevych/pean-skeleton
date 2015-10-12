@@ -183,7 +183,7 @@ forms.factory('ProfileForm',
                         };
                     },
                     validator: function () { return ProfileApi.validate; },
-                    submitter: function () { return ProfileApi.updateList; },
+                    submitter: function () { return ProfileApi.update; },
                 }
             }).result;
         }

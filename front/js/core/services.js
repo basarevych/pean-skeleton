@@ -151,7 +151,7 @@ services.factory('AppControl',
                     $http.defaults.headers.common['Accept-Language'] = locale.replace('_', '-');
 
                 var me = this;
-                ProfileApi.readList({})
+                ProfileApi.read()
                     .then(function (data) {
                         if (!angular.equals(profile, data)) {
                             profile = data;
