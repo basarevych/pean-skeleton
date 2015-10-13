@@ -17,9 +17,10 @@ module.exports = function (app) {
     var app = locator.get('app');
     var logger = locator.get('logger');
 
-    function parse(field, req, res) {
+    function parseForm(field, req, res) {
         var defer = q.defer();
         var glMessage = res.locals.glMessage;
+
         var form = {
             email: validator.trim(
                 req.body.email
@@ -64,8 +65,8 @@ module.exports = function (app) {
         var tokenRepo = locator.get('token-repository');
         var glMessage = res.locals.glMessage;
 
-        var email = parse('email', req, res);
-        var password = parse('password', req, res);
+        var email = parseForm('email', req, res);
+        var password = parseForm('password', req, res);
         q.all([ email, password ])
             .then(function (result) {
                 email = result[0];
@@ -144,7 +145,7 @@ module.exports = function (app) {
     });
 
     router.post('/validate', function (req, res) {
-        parse(req.body.field, req, res)
+        parseForm(req.body.field, req, res)
             .then(function (data) {
                 res.json({ valid: data.valid, errors: data.errors });
             })

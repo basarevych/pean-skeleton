@@ -36,6 +36,7 @@
         "VALIDATOR_INPUT_MISMATCH": "The two values do not match",
         "VALIDATOR_MIN_LENGTH": "The input must be at least {min} character(s)",
         "VALIDATOR_EMAIL": "The input must be an email address",
+        "VALIDATOR_RECORD_EXISTS": "Value is already present in the database",
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",

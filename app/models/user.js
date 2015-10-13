@@ -248,4 +248,47 @@ UserModel.prototype.associateRole = function (role) {
     return defer.promise;
 };
 
+UserModel.prototype.delete = function () {
+    var logger = locator.get('logger');
+    var repo = locator.get('user-repository');
+    var defer = q.defer();
+
+    if (!this.getId()) {
+        defer.resolve(0);
+        return defer.promise;
+    }
+
+    var me = this;
+    var db = repo.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserModel.delete() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM users "
+          + " WHERE id = $1 ",
+            [ me.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserModel.delete() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                me.setId(null);
+                me.dirty(false);
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 module.exports = UserModel;

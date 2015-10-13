@@ -146,4 +146,74 @@ UserRepository.prototype.findByRole = function (handle) {
     return defer.promise;
 };
 
+UserRepository.prototype.findAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.findAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM users ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.findAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var users = [];
+                result.rows.forEach(function (row) {
+                    var user = new UserModel(row);
+                    users.push(user);
+                });
+
+                defer.resolve(users);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+UserRepository.prototype.deleteAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.deleteAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM users ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.deleteAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 module.exports = UserRepository;

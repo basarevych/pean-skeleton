@@ -15,9 +15,10 @@ module.exports = function () {
     var app = locator.get('app');
     var logger = locator.get('logger');
 
-    function parse(field, req, res) {
+    function parseForm(field, req, res) {
         var defer = q.defer();
         var glMessage = res.locals.glMessage;
+
         var form = {
             name: validator.trim(
                 req.body.name
@@ -97,15 +98,12 @@ module.exports = function () {
     });
 
     router.put('/', function (req, res) {
-        var config = locator.get('config');
-        var userRepo = locator.get('user-repository');
-
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
-        var name = parse('name', req, res);
-        var newPassword = parse('new_password', req, res);
-        var retypedPassword = parse('retyped_password', req, res);
+        var name = parseForm('name', req, res);
+        var newPassword = parseForm('new_password', req, res);
+        var retypedPassword = parseForm('retyped_password', req, res);
         q.all([ name, newPassword, retypedPassword ])
             .then(function (result) {
                 name = result[0];
@@ -143,7 +141,7 @@ module.exports = function () {
     });
 
     router.post('/validate', function (req, res) {
-        parse(req.body.field, req, res)
+        parseForm(req.body.field, req, res)
             .then(function (data) {
                 res.json({ valid: data.valid, errors: data.errors });
             })
