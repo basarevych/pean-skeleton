@@ -6771,6 +6771,14 @@ button.close {
 body.padded {
   padding: 60px 0;
 }
+.back-button {
+  font-size: 80%;
+  padding-bottom: 15px;
+}
+.back-button a {
+  padding: 5px 15px;
+  background-color: #eeeeee;
+}
 .required-marker {
   display: block;
   vertical-align: super;

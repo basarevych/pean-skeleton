@@ -25,6 +25,12 @@
             </div>
         </div>
         <div class="col-sm-9">
+            <div class="back-button">
+                <a ui-sref="layout.user-list" acl-sref="layout.user-list">
+                    <span class="glyphicon glyphicon-arrow-left"></span>
+                    {{ 'BACK_TO_USER_LIST_MENU' | glMessage | uppercase }}
+                </a>
+            </div>
             <div id="table" dynamic-table="tableCtrl"></div>
         </div>
     </div>

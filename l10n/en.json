@@ -14,6 +14,7 @@
 
         "ADMINISTRATION_MENU": "Administration",
         "USER_LIST_MENU": "Users",
+        "BACK_TO_USER_LIST_MENU": "Back to user list",
         "SIGN_IN_MENU": "Sign in",
         "SIGN_OUT_MENU": "Sign out",
         "PROFILE_MENU": "Profile",
