@@ -52,7 +52,7 @@
         "PROFILE_TITLE": "Profile: {email}",
         "NAME_LABEL": "Name",
         "NEW_PASSWORD_LABEL": "New password",
-        "RETYPED_PASSWORD_LABEL": "Retype new password",
+        "RETYPED_PASSWORD_LABEL": "Retype password",
         "NEW_PASSWORD_NOTICE": "Leave blank if you do not want to change it",
 
         "USER_TITLE": "Users",
