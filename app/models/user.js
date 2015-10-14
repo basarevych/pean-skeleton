@@ -155,18 +155,13 @@ UserModel.prototype.save = function (evenIfNotDirty) {
     return defer.promise;
 };
 
-UserModel.prototype.associateRole = function (role) {
+UserModel.prototype.associateRole = function (roleId) {
     var logger = locator.get('logger');
     var repo = locator.get('user-repository');
     var defer = q.defer();
 
     if (!this.getId()) {
         logger.error('save user model first');
-        process.exit(1);
-    }
-
-    if (!role.getId()) {
-        logger.error('save role model first');
         process.exit(1);
     }
 
@@ -191,7 +186,7 @@ UserModel.prototype.associateRole = function (role) {
               + "  FROM user_roles "
               + " WHERE user_id = $1 "
               + "       AND role_id = $2 ",
-                [ me.id, role.id ],
+                [ me.id, roleId ],
                 function (err, result) {
                     if (err) {
                         defer.reject();
@@ -219,7 +214,7 @@ UserModel.prototype.associateRole = function (role) {
                       + "     INTO user_roles(user_id, role_id) "
                       + "   VALUES ($1, $2) "
                       + "RETURNING id ",
-                        [ me.id, role.id ],
+                        [ me.id, roleId ],
                         function (err, result) {
                             if (err) {
                                 defer.reject();

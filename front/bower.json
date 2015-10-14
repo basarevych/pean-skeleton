@@ -20,6 +20,7 @@
     "angular-globalize-wrapper": "~0.2.0",
     "pnotify": "~2.0.1",
     "highlightjs": "~8.8.0",
-    "angular-highlightjs": "~0.4.3"
+    "angular-highlightjs": "~0.4.3",
+    "angular-ui-tree": "~2.9.0"
   }
 }

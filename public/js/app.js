@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-13 */
+/* pean-skeleton - v0.0.0 - 2015-10-14 */
 
 'use strict';
 
@@ -10,6 +10,7 @@ var app = angular.module('app', [
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
     'ui.bootstrap',             // AngularUI Bootstrap
+    'ui.tree',                  // AngularUI Tree
     'dynamicTable',             // DynamicTable
     'hljs',                     // HighlightJS
     'api',
@@ -161,13 +162,32 @@ api.factory('ResourceWrapper',
     } ]
 );
  
+api.factory('AuthApi',
+    [ '$resource', '$window', 'ResourceWrapper',
+    function ($resource, $window, ResourceWrapper) {
+        var resource = $resource($window['config']['apiUrl'] + '/auth/:action', { }, {
+            token:      { method: 'POST', params: { action: 'token' }, isArray: false },
+            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
+        });
+
+        return {
+            token: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.token(params).$promise, noErrorHandler);
+            },
+            validate: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
+            },
+        };
+    } ]
+);
+
 api.factory('ProfileApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/profile/:action', { }, {
             read:       { method: 'GET', isArray: false },
             update:     { method: 'PUT', isArray: false },
-            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false }
+            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
         });
 
         return {
@@ -184,34 +204,16 @@ api.factory('ProfileApi',
     } ]
 );
 
-api.factory('AuthApi',
+api.factory('RoleApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/auth/:action', { }, {
-            token:      { method: 'POST', params: { action: 'token' }, isArray: false },
-            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false }
-        });
-
-        return {
-            token: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.token(params).$promise, noErrorHandler);
-            },
-            validate: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
-            },
-        };
-    } ]
-);
-
-api.factory('UserApi',
-    [ '$resource', '$window', 'ResourceWrapper',
-    function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
+        var resource = $resource($window['config']['apiUrl'] + '/role/:id/:action', { }, {
             list:       { method: 'GET', isArray: true },
             create:     { method: 'POST', isArray: false },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
             update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
             delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
+            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
         });
 
         return {
@@ -229,6 +231,44 @@ api.factory('UserApi',
             },
             delete: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
+            },
+            validate: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
+            },
+        };
+    } ]
+);
+
+api.factory('UserApi',
+    [ '$resource', '$window', 'ResourceWrapper',
+    function ($resource, $window, ResourceWrapper) {
+        var resource = $resource($window['config']['apiUrl'] + '/user/:id/:action', { }, {
+            list:       { method: 'GET', isArray: true },
+            create:     { method: 'POST', isArray: false },
+            read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+            update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
+            delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
+            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
+        });
+
+        return {
+            list: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.list(params).$promise, noErrorHandler);
+            },
+            create: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.create(params).$promise, noErrorHandler);
+            },
+            read: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
+            },
+            update: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.update(params).$promise, noErrorHandler);
+            },
+            delete: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
+            },
+            validate: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
             },
         };
     } ]
@@ -528,8 +568,8 @@ forms.factory('LoginForm',
                 resolve: {
                     model: function () {
                         return {
-                            email: { value: '', focus: true },
-                            password: { value: '', focus: false },
+                            email: { value: '', focus: true, required: true },
+                            password: { value: '', focus: false, required: true },
                         };
                     },
                     validator: function () { return AuthApi.validate; },
@@ -550,14 +590,52 @@ forms.factory('ProfileForm',
                 resolve: {
                     model: function () {
                         return {
-                            name: { value: profile.name, focus: true },
-                            email: { value: profile.email, focus: false },
-                            new_password: { value: '', focus: false },
-                            retyped_password: { value: '', focus: false },
+                            name: { value: profile.name, focus: true, required: false },
+                            email: { value: profile.email, focus: false, required: true },
+                            new_password: { value: '', focus: false, required: false },
+                            retyped_password: { value: '', focus: false, required: false },
                         };
                     },
                     validator: function () { return ProfileApi.validate; },
                     submitter: function () { return ProfileApi.update; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('CreateUserForm',
+    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi',
+    function ($modal, $filter, ModalFormCtrl, UserApi) {
+        return function (roles) {
+            return $modal.open({
+                controller: ModalFormCtrl,
+                templateUrl: 'modals/create-user.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            form_type: { value: 'create', focus: false, required: false },
+                            name: { value: '', focus: true, required: false },
+                            email: { value: '', focus: false, required: true },
+                            password: { value: '', focus: false, required: true },
+                            retyped_password: { value: '', focus: false, required: true },
+                            roles: { tree: roles, value: [], focus: false, required: false },
+                            updateRoles: function () {
+                                var model = this.roles;
+
+                                function parseRole(role) {
+                                    if (role.checked)
+                                        model.value.push(role.id);
+                                    $.each(role.roles, function (index, role) { parseRole(role) });
+                                }
+
+                                model.value = [];
+                                $.each(model.tree, function (index, role) { parseRole(role); });
+                            },
+                        };
+                    },
+                    validator: function () { return UserApi.validate; },
+                    submitter: function () { return UserApi.create; },
                 }
             }).result;
         }
@@ -574,7 +652,7 @@ forms.factory('TokenPayloadForm',
                 resolve: {
                     model: function () {
                         return {
-                            payload: { value: payload, focus: false },
+                            payload: { value: payload, focus: false, required: false },
                         };
                     },
                     validator: function () { return null },
@@ -956,8 +1034,8 @@ module.controller("TokenListCtrl",
 var module = angular.module('state.user-list', []);
 
 module.controller("UserListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable',
-    function ($scope, $window, $filter, dynamicTable) {
+    [ '$scope', '$window', '$filter', 'dynamicTable', 'RoleApi', 'CreateUserForm',
+    function ($scope, $window, $filter, dynamicTable, RoleApi, CreateUserForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -979,6 +1057,23 @@ module.controller("UserListCtrl",
                 return row;
             },
         });
+
+        $scope.createUser = function () {
+            RoleApi.list()
+                .then(function (roles) {
+                    $.each(roles, function (index, role) {
+                        if (role.handle == 'member') {
+                            role.checked = true;
+                            role.focus = true;
+                            return false;
+                        }
+                    });
+                    CreateUserForm(roles)
+                        .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
 
         $scope.$watch('tableCtrl.event', function () {
             if (!$scope.tableCtrl.event)

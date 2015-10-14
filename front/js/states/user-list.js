@@ -3,8 +3,8 @@
 var module = angular.module('state.user-list', []);
 
 module.controller("UserListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable',
-    function ($scope, $window, $filter, dynamicTable) {
+    [ '$scope', '$window', '$filter', 'dynamicTable', 'RoleApi', 'CreateUserForm',
+    function ($scope, $window, $filter, dynamicTable, RoleApi, CreateUserForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -26,6 +26,23 @@ module.controller("UserListCtrl",
                 return row;
             },
         });
+
+        $scope.createUser = function () {
+            RoleApi.list()
+                .then(function (roles) {
+                    $.each(roles, function (index, role) {
+                        if (role.handle == 'member') {
+                            role.checked = true;
+                            role.focus = true;
+                            return false;
+                        }
+                    });
+                    CreateUserForm(roles)
+                        .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
 
         $scope.$watch('tableCtrl.event', function () {
             if (!$scope.tableCtrl.event)

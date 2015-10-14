@@ -8,6 +8,7 @@ var app = angular.module('app', [
     'globalizeWrapper',         // jQuery.Globalize wrapper
     'ui.router',                // AngularUI Router
     'ui.bootstrap',             // AngularUI Bootstrap
+    'ui.tree',                  // AngularUI Tree
     'dynamicTable',             // DynamicTable
     'hljs',                     // HighlightJS
     'api',

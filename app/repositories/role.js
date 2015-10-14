@@ -150,4 +150,74 @@ RoleRepository.prototype.findByUserId = function (userId) {
     return defer.promise;
 };
 
+RoleRepository.prototype.findAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('RoleRepository.findAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM roles ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('RoleRepository.findAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var roles = [];
+                result.rows.forEach(function (row) {
+                    var role = new RoleModel(row);
+                    roles.push(role);
+                });
+
+                defer.resolve(roles);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+RoleRepository.prototype.deleteAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('RoleRepository.deleteAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM roles ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('RoleRepository.deleteAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 module.exports = RoleRepository;

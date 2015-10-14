@@ -154,8 +154,8 @@ forms.factory('LoginForm',
                 resolve: {
                     model: function () {
                         return {
-                            email: { value: '', focus: true },
-                            password: { value: '', focus: false },
+                            email: { value: '', focus: true, required: true },
+                            password: { value: '', focus: false, required: true },
                         };
                     },
                     validator: function () { return AuthApi.validate; },
@@ -176,14 +176,52 @@ forms.factory('ProfileForm',
                 resolve: {
                     model: function () {
                         return {
-                            name: { value: profile.name, focus: true },
-                            email: { value: profile.email, focus: false },
-                            new_password: { value: '', focus: false },
-                            retyped_password: { value: '', focus: false },
+                            name: { value: profile.name, focus: true, required: false },
+                            email: { value: profile.email, focus: false, required: true },
+                            new_password: { value: '', focus: false, required: false },
+                            retyped_password: { value: '', focus: false, required: false },
                         };
                     },
                     validator: function () { return ProfileApi.validate; },
                     submitter: function () { return ProfileApi.update; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('CreateUserForm',
+    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi',
+    function ($modal, $filter, ModalFormCtrl, UserApi) {
+        return function (roles) {
+            return $modal.open({
+                controller: ModalFormCtrl,
+                templateUrl: 'modals/create-user.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            form_type: { value: 'create', focus: false, required: false },
+                            name: { value: '', focus: true, required: false },
+                            email: { value: '', focus: false, required: true },
+                            password: { value: '', focus: false, required: true },
+                            retyped_password: { value: '', focus: false, required: true },
+                            roles: { tree: roles, value: [], focus: false, required: false },
+                            updateRoles: function () {
+                                var model = this.roles;
+
+                                function parseRole(role) {
+                                    if (role.checked)
+                                        model.value.push(role.id);
+                                    $.each(role.roles, function (index, role) { parseRole(role) });
+                                }
+
+                                model.value = [];
+                                $.each(model.tree, function (index, role) { parseRole(role); });
+                            },
+                        };
+                    },
+                    validator: function () { return UserApi.validate; },
+                    submitter: function () { return UserApi.create; },
                 }
             }).result;
         }
@@ -200,7 +238,7 @@ forms.factory('TokenPayloadForm',
                 resolve: {
                     model: function () {
                         return {
-                            payload: { value: payload, focus: false },
+                            payload: { value: payload, focus: false, required: false },
                         };
                     },
                     validator: function () { return null },

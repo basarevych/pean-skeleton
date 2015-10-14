@@ -83,6 +83,7 @@ module.exports = function(grunt) {
                     'bower_components/angular-animate/angular-animate.js',
                     'bower_components/angular-ui-router/release/angular-ui-router.js',
                     'bower_components/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js',
+                    'bower_components/angular-ui-tree/dist/angular-ui-tree.js',
                     'bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js',
 
                     'bower_components/cldrjs/dist/cldr.js',
@@ -120,6 +121,7 @@ module.exports = function(grunt) {
                      * Add your CSS dependencies here, order is respected
                      */
                     'bower_components/angular-loading-bar/src/loading-bar.css',
+                    'bower_components/angular-ui-tree/dist/angular-ui-tree.min.css',
                     'bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
                     'bower_components/pnotify/pnotify.core.css',
                     'bower_components/pnotify/pnotify.buttons.css',

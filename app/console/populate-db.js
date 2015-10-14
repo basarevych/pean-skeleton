@@ -91,7 +91,7 @@ module.exports = function (argv, rl) {
 
                                 user.save()
                                     .then(function () {
-                                        user.associateRole(adminRole);
+                                        user.associateRole(adminRole.getId());
                                         rl.write("==> Done\n");
                                         done();
                                     })
