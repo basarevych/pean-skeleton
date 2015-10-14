@@ -69,6 +69,9 @@
         "USER_CREATE_TITLE": "Create user",
         "EMAIL_LABEL": "Email",
         "ROLES_LABEL": "Roles",
+        "USER_REGENERATE_PASSWORD_BUTTON": "Regenerate",
+        "USER_SPECIFY_PASSWORD_BUTTON": "Specify password",
+        "USER_GENERATE_PASSWORD_BUTTON": "Generate password",
 
         "TOKEN_TITLE": "User tokens",
         "TOKEN_ID_COLUMN": "ID",

@@ -191,8 +191,8 @@ forms.factory('ProfileForm',
 );
 
 forms.factory('CreateUserForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi',
-    function ($modal, $filter, ModalFormCtrl, UserApi) {
+    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
+    function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
         return function (roles) {
             return $modal.open({
                 controller: ModalFormCtrl,
@@ -217,6 +217,18 @@ forms.factory('CreateUserForm',
 
                                 model.value = [];
                                 $.each(model.tree, function (index, role) { parseRole(role); });
+                            },
+                            password_type: 'specified',
+                            generatePassword: function () {
+                                var text = PasswordGenerator.get(8);
+                                this.password_type = 'generated';
+                                this.password.value = text;
+                                this.retyped_password.value = text;
+                            },
+                            specifyPassword: function () {
+                                this.password_type = 'specified';
+                                this.password.value = "";
+                                this.retyped_password.value = "";
                             },
                         };
                     },
