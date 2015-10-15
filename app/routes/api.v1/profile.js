@@ -37,11 +37,11 @@ module.exports = function () {
         var errors = [];
         switch (field) {
             case 'new_password':
-                if (form.new_password != "" && !validator.isLength(form.new_password, 6))
+                if (form.new_password.length && !validator.isLength(form.new_password, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                 break;
             case 'retyped_password':
-                if (form.new_password != "") {
+                if (form.new_password.length) {
                     if (!validator.isLength(form.retyped_password, 6))
                         errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                     if (form.retyped_password != form.new_password)

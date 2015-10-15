@@ -3,8 +3,8 @@
 var module = angular.module('state.user-list', []);
 
 module.controller("UserListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable', 'RoleApi', 'CreateUserForm',
-    function ($scope, $window, $filter, dynamicTable, RoleApi, CreateUserForm) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'UserApi', 'CreateUserForm', 'EditUserForm',
+    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, UserApi, CreateUserForm, EditUserForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -33,11 +33,31 @@ module.controller("UserListCtrl",
                     $.each(roles, function (index, role) {
                         if (role.handle == 'member') {
                             role.checked = true;
-                            role.focus = true;
                             return false;
                         }
                     });
+                    if (roles.length > 0)
+                        roles[0]['focus'] = true;
                     CreateUserForm(roles)
+                        .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
+
+        $scope.editUser = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            $q.all([ UserApi.read({ id: sel[0] }), RoleApi.list() ])
+                .then(function (result) {
+                    var user = result[0];
+                    var roles = result[1];
+                    $.each(roles, function (index, role) {
+                        if ($.inArray(role.id, user.roles) != -1)
+                            role.checked = true;
+                    });
+                    if (roles.length > 0)
+                        roles[0]['focus'] = true;
+                    EditUserForm(user, roles)
                         .then(function () {
                             $scope.tableCtrl.plugin.refresh();
                         });

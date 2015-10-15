@@ -48,7 +48,7 @@
         </div>
 
         <div ng-show="model.password_type == 'generated'">
-            <div class="form-group" ng-class="{ 'has-error': validation.fields.password.length }">
+            <div class="form-group">
                 <label class="col-sm-4 control-label required">
                     {{ 'PASSWORD_LABEL' | glMessage }}:
                 </label>
@@ -56,15 +56,10 @@
                     <div class="input-group">
                         <input type="text" readonly="readonly" class="form-control" ng-model="model.password.value" focus-on="model.password.focus" on-key-enter="model.roles.focus = true">
                         <span class="input-group-btn">
-                            <button type="button" class="btn btn-default" ng-click="model.generatePassword()">
+                            <button type="button" class="btn btn-default" ng-click="model.generatePassword(); resetValidation('password')">
                                 {{ 'USER_REGENERATE_PASSWORD_BUTTON' | glMessage }}
                             </button>
                         </span>
-                    </div>
-                    <div class="help-block">
-                        <ul class="list-unstyled icon-list error-list">
-                            <li ng-repeat="message in validation.fields.password">{{ message }}</li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -139,8 +134,8 @@
 
 <div class="modal-footer">
     <img class="pull-left" ng-show="processing" src="img/loader.gif">
-    <button ng-show="!processing && model.password_type != 'generated'" class="btn btn-default pull-left" ng-click="model.generatePassword()">{{ 'USER_GENERATE_PASSWORD_BUTTON' | glMessage }}</button>
-    <button ng-show="!processing && model.password_type != 'specified'" class="btn btn-default pull-left" ng-click="model.specifyPassword()">{{ 'USER_SPECIFY_PASSWORD_BUTTON' | glMessage }}</button>
+    <button ng-show="!processing && model.password_type != 'generated'" class="btn btn-default pull-left" ng-click="model.generatePassword(); resetValidation('password')">{{ 'USER_GENERATE_PASSWORD_BUTTON' | glMessage }}</button>
+    <button ng-show="!processing && model.password_type != 'specified'" class="btn btn-default pull-left" ng-click="model.specifyPassword(); resetValidation('password')">{{ 'USER_SPECIFY_PASSWORD_BUTTON' | glMessage }}</button>
     <button ng-disabled="processing" class="btn btn-default" ng-click="$dismiss()">{{ 'CANCEL_BUTTON' | glMessage }}</button>
     <button ng-disabled="processing" class="btn btn-primary" ng-click="submit()">{{ 'CREATE_BUTTON' | glMessage }}</button>
 </div>

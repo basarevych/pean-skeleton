@@ -55,7 +55,7 @@ directives.directive('focusOn',
                 scope.$watch(model, function (value) {
                     if (value === true) {
                         $timeout(function() {
-                            element.focus();
+                            element.focus().select();
                             scope.$apply(model.assign(scope, false));
                         });
                     }

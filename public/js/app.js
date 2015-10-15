@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-14 */
+/* pean-skeleton - v0.0.0 - 2015-10-15 */
 
 'use strict';
 
@@ -354,7 +354,7 @@ directives.directive('focusOn',
                 scope.$watch(model, function (value) {
                     if (value === true) {
                         $timeout(function() {
-                            element.focus();
+                            element.focus().select();
                             scope.$apply(model.assign(scope, false));
                         });
                     }
@@ -496,31 +496,33 @@ forms.factory('ModalFormCtrl',
             };
 
             $scope.validate = function (name) {
-                if ($scope.processing)
-                    return;
-                if (!$('.modal').is(':visible'))
-                    return;
-                if (angular.isUndefined(validator))
-                    return;
+                $timeout(function () {
+                    if ($scope.processing)
+                        return;
+                    if (!$('.modal').is(':visible'))
+                        return;
+                    if (angular.isUndefined(validator))
+                        return;
 
-                var params = {
-                    field: name,
-                    form: {},
-                };
-                $.each($scope.model, function (key, item) {
-                    if (angular.isObject(item) && angular.isDefined(item['value']))
-                        params.form[key] = item.value;
-                });
-
-                validator(params)
-                    .then(function (data) {
-                        if (data.valid)
-                            return;
-
-                        $.each(data.errors, function (index, value) {
-                            $scope.setValidationError(name, value);
-                        });
+                    var params = {
+                        field: name,
+                        form: {},
+                    };
+                    $.each($scope.model, function (key, item) {
+                        if (angular.isObject(item) && angular.isDefined(item['value']))
+                            params.form[key] = item.value;
                     });
+
+                    validator(params)
+                        .then(function (data) {
+                            if (data.valid)
+                                return;
+
+                            $.each(data.errors, function (index, value) {
+                                $scope.setValidationError(name, value);
+                            });
+                        });
+                }, 250);
             };
 
             $scope.submit = function () {
@@ -643,11 +645,75 @@ forms.factory('CreateUserForm',
                                 this.password_type = 'specified';
                                 this.password.value = "";
                                 this.retyped_password.value = "";
+                                this.password.focus = true;
                             },
                         };
                     },
                     validator: function () { return UserApi.validate; },
                     submitter: function () { return UserApi.create; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('EditUserForm',
+    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
+    function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
+        return function (user, roles) {
+            return $modal.open({
+                controller: ModalFormCtrl,
+                templateUrl: 'modals/edit-user.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            form_type: { value: 'edit', focus: false, required: false },
+                            id: { value: user.id, focus: false, required: false },
+                            name: { value: user.name, focus: true, required: false },
+                            email: { value: '', focus: false, required: true },
+                            password: { value: '', focus: false, required: true },
+                            retyped_password: { value: '', focus: false, required: true },
+                            roles: { tree: roles, value: user.roles, focus: false, required: false },
+                            updateRoles: function () {
+                                var model = this.roles;
+
+                                function parseRole(role) {
+                                    if (role.checked)
+                                        model.value.push(role.id);
+                                    $.each(role.roles, function (index, role) { parseRole(role) });
+                                }
+
+                                model.value = [];
+                                $.each(model.tree, function (index, role) { parseRole(role); });
+                            },
+                            password_type: 'specified',
+                            generatePassword: function () {
+                                var text = PasswordGenerator.get(8);
+                                this.password_type = 'generated';
+                                this.password.value = text;
+                                this.retyped_password.value = text;
+                            },
+                            specifyPassword: function () {
+                                this.password_type = 'specified';
+                                this.password.value = "";
+                                this.retyped_password.value = "";
+                                this.password.focus = true;
+                            },
+                            email_changed: false,
+                            original_email: user.email,
+                            changeEmail: function () {
+                                this.email_changed = true;
+                                this.email.value = this.original_email;
+                                this.email.focus = true;
+                            },
+                            cancelEmail: function () {
+                                this.email_changed = false;
+                                this.email.value = "";
+                            },
+                        };
+                    },
+                    validator: function () { return UserApi.validate; },
+                    submitter: function () { return UserApi.update; },
                 }
             }).result;
         }
@@ -1060,8 +1126,8 @@ module.controller("TokenListCtrl",
 var module = angular.module('state.user-list', []);
 
 module.controller("UserListCtrl",
-    [ '$scope', '$window', '$filter', 'dynamicTable', 'RoleApi', 'CreateUserForm',
-    function ($scope, $window, $filter, dynamicTable, RoleApi, CreateUserForm) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'UserApi', 'CreateUserForm', 'EditUserForm',
+    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, UserApi, CreateUserForm, EditUserForm) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -1090,11 +1156,31 @@ module.controller("UserListCtrl",
                     $.each(roles, function (index, role) {
                         if (role.handle == 'member') {
                             role.checked = true;
-                            role.focus = true;
                             return false;
                         }
                     });
+                    if (roles.length > 0)
+                        roles[0]['focus'] = true;
                     CreateUserForm(roles)
+                        .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
+
+        $scope.editUser = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            $q.all([ UserApi.read({ id: sel[0] }), RoleApi.list() ])
+                .then(function (result) {
+                    var user = result[0];
+                    var roles = result[1];
+                    $.each(roles, function (index, role) {
+                        if ($.inArray(role.id, user.roles) != -1)
+                            role.checked = true;
+                    });
+                    if (roles.length > 0)
+                        roles[0]['focus'] = true;
+                    EditUserForm(user, roles)
                         .then(function () {
                             $scope.tableCtrl.plugin.refresh();
                         });

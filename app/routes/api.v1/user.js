@@ -31,43 +31,33 @@ module.exports = function (app) {
                 req.body.name
                 || (req.body.form && req.body.form.name)
             ),
-        };
-
-        if (form.form_type == 'create') {
-            // create form
-            form['email'] = validator.trim(
+            email: validator.trim(
                 req.body.email
                 || (req.body.form && req.body.form.email)
-            );
-            form['password'] = validator.trim(
+            ),
+            password: validator.trim(
                 req.body.password
                 || (req.body.form && req.body.form.password)
-            );
-        } else {
-            // update form
-            form['new_email'] = validator.trim(
-                req.body.new_email
-                || (req.body.form && req.body.form.new_email)
-            );
-            form['new_password'] = validator.trim(
-                req.body.new_password
-                || (req.body.form && req.body.form.new_password)
-            );
-        }
-        
-        form['retyped_password'] = validator.trim(
-            req.body.retyped_password
-            || (req.body.form && req.body.form.retyped_password)
-        );
+            ),
+            retyped_password: validator.trim(
+                req.body.retyped_password
+                || (req.body.form && req.body.form.retyped_password)
+            ),
+        };
 
         var userRepo = locator.get('user-repository');
         var errors = [];
         switch (field) {
             case 'email':
-                if (!validator.isLength(form.email, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                if (!validator.isEmail(form.email))
-                    errors.push(glMessage('VALIDATOR_EMAIL'));
+                if (form.form_type == 'create') {
+                    if (!validator.isLength(form.email, 1))
+                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                    if (!validator.isEmail(form.email))
+                        errors.push(glMessage('VALIDATOR_EMAIL'));
+                } else {
+                    if (form.email.length && !validator.isEmail(form.email))
+                        errors.push(glMessage('VALIDATOR_EMAIL'));
+                }
 
                 userRepo.findByEmail(form.email)
                     .then(function (users) {
@@ -88,14 +78,15 @@ module.exports = function (app) {
 
                 return defer.promise;
             case 'password':
-                if (!validator.isLength(form.password, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                if (!validator.isLength(form.password, 6))
-                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                break;
-            case 'new_password':
-                if (form.new_password != "" && !validator.isLength(form.new_password, 6))
-                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                if (form.form_type == 'create') {
+                    if (!validator.isLength(form.password, 1))
+                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                    if (!validator.isLength(form.password, 6))
+                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                } else {
+                    if (form.password.length && !validator.isLength(form.password, 6))
+                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                }
                 break;
             case 'retyped_password':
                 if (form.form_type == 'create') {
@@ -106,10 +97,10 @@ module.exports = function (app) {
                     if (form.retyped_password != form.password)
                         errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                 } else {
-                    if (form.new_password != "") {
+                    if (form.password.length) {
                         if (!validator.isLength(form.retyped_password, 6))
                             errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                        if (form.retyped_password != form.new_password)
+                        if (form.retyped_password != form.password)
                             errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                     }
                 }
@@ -271,18 +262,31 @@ module.exports = function (app) {
                     return app.abort(res, 403, "ACL denied");
 
                 var userRepo = locator.get('user-repository');
+                var roleRepo = locator.get('role-repository');
                 userRepo.find(userId)
                     .then(function (users) {
                         var user = users.length && users[0];
                         if (!user)
                             return app.abort(res, 404, "User " + userId + " not found");
 
-                        res.json({
-                            id: user.getId(),
-                            name: user.getName(),
-                            email: user.getEmail(),
-                            created_at: user.getCreatedAt().unix(),
-                        });
+                        roleRepo.findByUserId(userId)
+                            .then(function (roles) {
+                                var roleIds = [];
+                                roles.forEach(function (role) {
+                                    roleIds.push(role.getId());
+                                });
+                                res.json({
+                                    id: user.getId(),
+                                    name: user.getName(),
+                                    email: user.getEmail(),
+                                    created_at: user.getCreatedAt().unix(),
+                                    roles: roleIds,
+                                });
+                            })
+                            .catch(function (err) {
+                                logger.error('GET /v1/user/' + userId + ' failed', err);
+                                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed');
+                            });
                     })
                     .catch(function (err) {
                         logger.error('GET /v1/user/' + userId + ' failed', err);
@@ -419,29 +423,30 @@ module.exports = function (app) {
                     return app.abort(res, 403, "ACL denied");
 
                 var name = parseForm('name', req, res);
-                var newEmail = parseForm('new_email', req, res);
-                var newPassword = parseForm('new_password', req, res);
+                var email = parseForm('email', req, res);
+                var password = parseForm('password', req, res);
                 var retypedPassword = parseForm('retyped_password', req, res);
-                q.all([ name, newEmail, newPassword, retypedPassword ])
+                q.all([ name, email, password, retypedPassword ])
                     .then(function (result) {
                         name = result[0];
-                        newEmail = result[1];
-                        newPassword = result[2];
+                        email = result[1];
+                        password = result[2];
                         retypedPassword = result[3];
-                        if (!name.valid || !newEmail.valid || !newPassword.valid || !retypedPassword.valid) {
+                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid) {
                             return res.json({
                                 valid: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
-                                    new_email: newEmail.errors,
-                                    new_password: newPassword.errors,
+                                    email: email.errors,
+                                    password: password.errors,
                                     retyped_password: retypedPassword.errors,
                                 }
                             });
                         }
 
                         var userRepo = locator.get('user-repository');
+                        var roleRepo = locator.get('role-repository');
                         userRepo.find(userId)
                             .then(function (users) {
                                 var user = users.length && users[0];
@@ -449,14 +454,38 @@ module.exports = function (app) {
                                     return app.abort(res, 404, "User " + userId + " not found");
 
                                 user.setName(name.value.length ? name.value : null);
-                                if (newEmail.value.length)
-                                    user.setEmail(newEmail.value);
-                                if (newPassword.value.length)
-                                    user.setPassword(UserModel.encryptPassword(newPassword.value));
+                                if (email.value.length)
+                                    user.setEmail(email.value);
+                                if (password.value.length)
+                                    user.setPassword(UserModel.encryptPassword(password.value));
 
-                                user.save()
-                                    .then(function () {
-                                        res.json({ valid: true });
+                                var roleIds = req.body.roles || (req.body.form && req.body.form.roles);
+                                if (typeof roleIds != 'object' || typeof roleIds.forEach != 'function')
+                                    return app.abort(res, 400, "User roles are not in array");
+
+                                q.all([ user.save(), roleRepo.findByUserId(userId) ])
+                                    .then(function (result) {
+                                        var userId = result[0];
+                                        var oldRoles = result[1];
+                                        if (userId === null)
+                                            return res.json({ valid: false });
+
+                                        var promises = [];
+                                        oldRoles.forEach(function (oldRole) {
+                                            if (roleIds.indexOf(oldRole.getId()) == -1)
+                                                promises.push(user.deassociateRole(oldRole.getId()));
+                                        });
+                                        roleIds.forEach(function (roleId) {
+                                            promises.push(user.associateRole(roleId));
+                                        });
+                                        q.all(promises)
+                                            .then(function () {
+                                                res.json({ valid: true });
+                                            })
+                                            .catch(function (err) {
+                                                logger.error('POST /v1/user failed', err);
+                                                app.abort(res, 500, 'POST /v1/user failed');
+                                            });
                                     })
                                     .catch(function (err) {
                                         logger.error('PUT /v1/user/' + userId + ' failed', err);

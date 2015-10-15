@@ -243,6 +243,91 @@ UserModel.prototype.associateRole = function (roleId) {
     return defer.promise;
 };
 
+UserModel.prototype.deassociateRole = function (roleId) {
+    var logger = locator.get('logger');
+    var repo = locator.get('user-repository');
+    var defer = q.defer();
+
+    if (!this.getId()) {
+        logger.error('save user model first');
+        process.exit(1);
+    }
+
+    var me = this;
+    var db = repo.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserModel.deassociateRole() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('UserModel.deassociateRole() - pg query', err);
+                process.exit(1);
+            }
+
+            db.query(
+                "SELECT * "
+              + "  FROM user_roles "
+              + " WHERE user_id = $1 "
+              + "       AND role_id = $2 ",
+                [ me.id, roleId ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('UserModel.deassociateRole() - pg query', err);
+                        process.exit(1);
+                    }
+
+                    if (!result.rows.length) {
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserModel.deassociateRole() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            defer.resolve();
+                        });
+                        return;
+                    }
+
+                    db.query(
+                        "DELETE "
+                      + "  FROM user_roles "
+                      + " WHERE user_id = $1 AND role_id = $2 ",
+                        [ me.id, roleId ],
+                        function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserModel.deassociateRole() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('UserModel.deassociateRole() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                db.end();
+                                defer.resolve();
+                            });
+                        }
+                    );
+                }
+            );
+        });
+    });
+
+    return defer.promise;
+};
+
 UserModel.prototype.delete = function () {
     var logger = locator.get('logger');
     var repo = locator.get('user-repository');
