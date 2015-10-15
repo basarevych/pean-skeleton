@@ -32,11 +32,11 @@ module.exports = function () {
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                 break;
             case 'retyped_password':
-                if (form.new_password.length) {
-                    if (!validator.isLength(form.retyped_password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                    if (form.retyped_password != form.new_password)
-                        errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
+                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                if ((form.new_password.length || form.retyped_password.length)
+                        && form.retyped_password != form.new_password) {
+                    errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                 }
                 break;
         }
