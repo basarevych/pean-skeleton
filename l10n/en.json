@@ -74,6 +74,9 @@
         "USER_REGENERATE_PASSWORD_BUTTON": "Regenerate",
         "USER_SPECIFY_PASSWORD_BUTTON": "Specify password",
         "USER_GENERATE_PASSWORD_BUTTON": "Generate password",
+        "USER_CONFIRM_DELETE_TITLE": "Delete user",
+        "USER_CONFIRM_DELETE_TEXT": "Delete selected users?",
+        "USER_CONFIRM_DELETE_BUTTON": "Delete",
 
         "TOKEN_TITLE": "User tokens",
         "TOKEN_ID_COLUMN": "ID",

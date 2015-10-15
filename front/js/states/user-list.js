@@ -3,8 +3,8 @@
 var module = angular.module('state.user-list', []);
 
 module.controller("UserListCtrl",
-    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'UserApi', 'CreateUserForm', 'EditUserForm',
-    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, UserApi, CreateUserForm, EditUserForm) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'UserApi', 'CreateUserForm', 'EditUserForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, UserApi, CreateUserForm, EditUserForm, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -61,6 +61,31 @@ module.controller("UserListCtrl",
                         roles[0]['focus'] = true;
                     EditUserForm(user, roles)
                         .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
+
+        $scope.deleteUser = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+
+            InfoDialog({
+                title: 'USER_CONFIRM_DELETE_TITLE',
+                text: 'USER_CONFIRM_DELETE_TEXT',
+                yes: 'USER_CONFIRM_DELETE_BUTTON',
+            }).result
+                .then(function () {
+                    var promises = [];
+                    if (sel === 'all') {
+                        promises.push(UserApi.delete());
+                    } else {
+                        $.each(sel, function (index, value) {
+                            promises.push(UserApi.delete({ id: value }));
+                        });
+                    }
+
+                    $q.all(promises)
+                        .finally(function () {
                             $scope.tableCtrl.plugin.refresh();
                         });
                 });

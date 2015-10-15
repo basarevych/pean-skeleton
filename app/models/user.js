@@ -37,7 +37,7 @@ UserModel.encryptPassword = function (password) {
 };
 
 UserModel.prototype.setId = function (id) {
-    this.filed('id', id);
+    this.field('id', id);
     return this;
 };
 
