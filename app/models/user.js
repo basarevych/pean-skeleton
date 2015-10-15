@@ -104,51 +104,94 @@ UserModel.prototype.save = function (evenIfNotDirty) {
             process.exit(1);
         }
 
-        var query, params = [];
-        if (me.getId()) {
-            query = "UPDATE users "
-                  + "   SET name = $1, "
-                  + "       email = $2, "
-                  + "       password = $3, "
-                  + "       created_at = $4 "
-                  + " WHERE id = $5 ";
-            params = [
-                me.getName(),
-                me.getEmail(),
-                me.getPassword(),
-                me.getCreatedAt(),
-                me.getId(),
-            ];
-        } else {
-            query = "   INSERT "
-                  + "     INTO users(name, email, password, created_at) "
-                  + "   VALUES ($1, $2, $3, $4) "
-                  + "RETURNING id ";
-            params = [
-                me.getName(),
-                me.getEmail(),
-                me.getPassword(),
-                me.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-            ];
-        }
-
-        db.query(query, params, function (err, result) {
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
                 defer.reject();
                 logger.error('UserModel.save() - pg query', err);
                 process.exit(1);
             }
 
-            db.end();
-            me.dirty(false);
+            db.query(
+                "SELECT email "
+              + "  FROM users "
+              + " WHERE id <> $1 AND email = $2 ",
+                [ me.getId(), me.getEmail() ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('UserModel.save() - pg query', err);
+                        process.exit(1);
+                    }
 
-            var id = result.rows.length && result.rows[0]['id'];
-            if (id) {
-                me.id = id;
-            } else
-                id = me.id;
+                    if (result.rows.length) {
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserModel.save() - pg query', err);
+                                process.exit(1);
+                            }
 
-            defer.resolve(id);
+                            db.end();
+                            defer.resolve(null);
+                        });
+                        return;
+                    }
+
+                    var query, params = [];
+                    if (me.getId()) {
+                        query = "UPDATE users "
+                              + "   SET name = $1, "
+                              + "       email = $2, "
+                              + "       password = $3, "
+                              + "       created_at = $4 "
+                              + " WHERE id = $5 ";
+                        params = [
+                            me.getName(),
+                            me.getEmail(),
+                            me.getPassword(),
+                            me.getCreatedAt(),
+                            me.getId(),
+                        ];
+                    } else {
+                        query = "   INSERT "
+                              + "     INTO users(name, email, password, created_at) "
+                              + "   VALUES ($1, $2, $3, $4) "
+                              + "RETURNING id ";
+                        params = [
+                            me.getName(),
+                            me.getEmail(),
+                            me.getPassword(),
+                            me.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                        ];
+                    }
+
+                    db.query(query, params, function (err, result) {
+                        if (err) {
+                            defer.reject();
+                            logger.error('UserModel.save() - pg query', err);
+                            process.exit(1);
+                        }
+
+                        var id = result.rows.length && result.rows[0]['id'];
+                        if (id) {
+                            me.id = id;
+                        } else
+                            id = me.id;
+
+                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserModel.save() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            me.dirty(false);
+                            defer.resolve(id);
+                        });
+                    });
+                }
+            );
         });
     });
 

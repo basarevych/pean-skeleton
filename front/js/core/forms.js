@@ -195,7 +195,7 @@ forms.factory('ProfileForm',
 forms.factory('CreateUserForm',
     [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
     function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
-        return function (roles) {
+        return function (preselectedRoles, allRoles) {
             return $modal.open({
                 controller: ModalFormCtrl,
                 templateUrl: 'modals/create-user.html',
@@ -207,7 +207,7 @@ forms.factory('CreateUserForm',
                             email: { value: '', focus: false, required: true },
                             password: { value: '', focus: false, required: true },
                             retyped_password: { value: '', focus: false, required: true },
-                            roles: { tree: roles, value: [], focus: false, required: false },
+                            roles: { tree: allRoles, value: preselectedRoles, focus: false, required: false },
                             updateRoles: function () {
                                 var model = this.roles;
 
