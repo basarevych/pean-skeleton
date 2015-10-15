@@ -73,7 +73,7 @@ module.exports = function (app) {
                 password = result[1];
                 if (!email.valid || !password.valid) {
                     return res.json({
-                        valid: false,
+                        success: false,
                         errors: [],
                         fields: {
                             email: email.errors,
@@ -91,7 +91,7 @@ module.exports = function (app) {
                         user = users.length && users[0];
                         if (!user || !user.checkPassword(password.value)) {
                             res.json({
-                                valid: false,
+                                success: false,
                                 errors: [ glMessage('INVALID_CREDENTIALS') ],
                                 fields: {},
                             });
@@ -129,7 +129,7 @@ module.exports = function (app) {
                             return;
 
                         res.json({
-                            valid: true,
+                            success: true,
                             token: encryptedData,
                         });
                     })
@@ -147,7 +147,7 @@ module.exports = function (app) {
     router.post('/validate', function (req, res) {
         parseForm(req.body.field, req, res)
             .then(function (data) {
-                res.json({ valid: data.valid, errors: data.errors });
+                res.json({ success: data.valid, errors: data.errors });
             })
             .catch(function (err) {
                 logger.error('POST /v1/auth/validate failed', err);

@@ -111,7 +111,7 @@ module.exports = function () {
                 retypedPassword = result[2];
                 if (!name.valid || !newPassword.valid || !retypedPassword.valid) {
                     return res.json({
-                        valid: false,
+                        success: false,
                         errors: [],
                         fields: {
                             name: name.errors,
@@ -127,7 +127,7 @@ module.exports = function () {
 
                 req.user.save()
                     .then(function () {
-                        res.json({ valid: true });
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('PUT /v1/profile failed', err);
@@ -143,7 +143,7 @@ module.exports = function () {
     router.post('/validate', function (req, res) {
         parseForm(req.body.field, req, res)
             .then(function (data) {
-                res.json({ valid: data.valid, errors: data.errors });
+                res.json({ success: data.valid, errors: data.errors });
             })
             .catch(function (err) {
                 logger.error('POST /v1/profile/validate failed', err);

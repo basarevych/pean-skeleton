@@ -101,7 +101,7 @@ forms.factory('ModalFormCtrl',
 
                     validator(params)
                         .then(function (data) {
-                            if (data.valid)
+                            if (data.success)
                                 return;
 
                             $.each(data.errors, function (index, value) {
@@ -128,7 +128,7 @@ forms.factory('ModalFormCtrl',
 
                 submitter(params)
                     .then(function (data) {
-                        if (data.valid) {
+                        if (data.success) {
                             $scope.$close(data);
                             return;
                         }

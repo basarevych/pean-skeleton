@@ -239,7 +239,7 @@ module.exports = function (app) {
     router.post('/validate', function (req, res) {
         parseForm(req.body.field, req, res)
             .then(function (data) {
-                res.json({ valid: data.valid, errors: data.errors });
+                res.json({ success: data.valid, errors: data.errors });
             })
             .catch(function (err) {
                 logger.error('POST /v1/user/validate failed', err);
@@ -356,7 +356,7 @@ module.exports = function (app) {
                         retypedPassword = result[3];
                         if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid) {
                             return res.json({
-                                valid: false,
+                                success: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
@@ -385,7 +385,7 @@ module.exports = function (app) {
                                 });
                                 q.all(promises)
                                     .then(function () {
-                                        res.json({ valid: userId !== null });
+                                        res.json({ success: userId !== null });
                                     })
                                     .catch(function (err) {
                                         logger.error('POST /v1/user failed', err);
@@ -434,7 +434,7 @@ module.exports = function (app) {
                         retypedPassword = result[3];
                         if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid) {
                             return res.json({
-                                valid: false,
+                                success: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
@@ -468,7 +468,7 @@ module.exports = function (app) {
                                         var userId = result[0];
                                         var oldRoles = result[1];
                                         if (userId === null)
-                                            return res.json({ valid: false });
+                                            return res.json({ success: false });
 
                                         var promises = [];
                                         oldRoles.forEach(function (oldRole) {
@@ -480,7 +480,7 @@ module.exports = function (app) {
                                         });
                                         q.all(promises)
                                             .then(function () {
-                                                res.json({ valid: true });
+                                                res.json({ success: true });
                                             })
                                             .catch(function (err) {
                                                 logger.error('POST /v1/user failed', err);
