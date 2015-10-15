@@ -504,14 +504,12 @@ forms.factory('ModalFormCtrl',
                     if (angular.isUndefined(validator))
                         return;
 
-                    var params = {
-                        field: name,
-                        form: {},
-                    };
+                    var params = {};
                     $.each($scope.model, function (key, item) {
                         if (angular.isObject(item) && angular.isDefined(item['value']))
-                            params.form[key] = item.value;
+                            params[key] = item.value;
                     });
+                    params['_field'] = name;
 
                     validator(params)
                         .then(function (data) {
@@ -616,7 +614,6 @@ forms.factory('CreateUserForm',
                 resolve: {
                     model: function () {
                         return {
-                            form_type: { value: 'create', focus: false, required: false },
                             name: { value: '', focus: true, required: false },
                             email: { value: '', focus: false, required: true },
                             password: { value: '', focus: false, required: true },
@@ -649,7 +646,12 @@ forms.factory('CreateUserForm',
                             },
                         };
                     },
-                    validator: function () { return UserApi.validate; },
+                    validator: function () {
+                        return function (params) {
+                            params['_form_type'] = 'create';
+                            return UserApi.validate(params);
+                        };
+                    },
                     submitter: function () { return UserApi.create; },
                 }
             }).result;
@@ -667,12 +669,11 @@ forms.factory('EditUserForm',
                 resolve: {
                     model: function () {
                         return {
-                            form_type: { value: 'edit', focus: false, required: false },
                             id: { value: user.id, focus: false, required: false },
                             name: { value: user.name, focus: true, required: false },
                             email: { value: '', focus: false, required: true },
-                            password: { value: '', focus: false, required: true },
-                            retyped_password: { value: '', focus: false, required: true },
+                            password: { value: '', focus: false, required: false },
+                            retyped_password: { value: '', focus: false, required: false },
                             roles: { tree: roles, value: user.roles, focus: false, required: false },
                             updateRoles: function () {
                                 var model = this.roles;
@@ -712,7 +713,12 @@ forms.factory('EditUserForm',
                             },
                         };
                     },
-                    validator: function () { return UserApi.validate; },
+                    validator: function () {
+                        return function (params) {
+                            params['_form_type'] = 'edit';
+                            return UserApi.validate(params);
+                        };
+                    },
                     submitter: function () { return UserApi.update; },
                 }
             }).result;

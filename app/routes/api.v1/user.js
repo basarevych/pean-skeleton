@@ -23,26 +23,11 @@ module.exports = function (app) {
         var glMessage = res.locals.glMessage;
 
         var form = {
-            form_type: validator.trim(
-                req.body.form_type
-                || (req.body.form && req.body.form.form_type)
-            ),
-            name: validator.trim(
-                req.body.name
-                || (req.body.form && req.body.form.name)
-            ),
-            email: validator.trim(
-                req.body.email
-                || (req.body.form && req.body.form.email)
-            ),
-            password: validator.trim(
-                req.body.password
-                || (req.body.form && req.body.form.password)
-            ),
-            retyped_password: validator.trim(
-                req.body.retyped_password
-                || (req.body.form && req.body.form.retyped_password)
-            ),
+            form_type: validator.trim(req.body._form_type),
+            name: validator.trim(req.body.name),
+            email: validator.trim(req.body.email),
+            password: validator.trim(req.body.password),
+            retyped_password: validator.trim(req.body.retyped_password),
         };
 
         var userRepo = locator.get('user-repository');
@@ -97,11 +82,11 @@ module.exports = function (app) {
                     if (form.retyped_password != form.password)
                         errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                 } else {
-                    if (form.password.length) {
-                        if (!validator.isLength(form.retyped_password, 6))
-                            errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                        if (form.retyped_password != form.password)
-                            errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                    if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
+                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                    if ((form.password.length || form.retyped_password.length)
+                            && form.retyped_password != form.password) {
+                        errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                     }
                 }
                 break;
@@ -237,7 +222,7 @@ module.exports = function (app) {
     });
 
     router.post('/validate', function (req, res) {
-        parseForm(req.body.field, req, res)
+        parseForm(req.body._field, req, res)
             .then(function (data) {
                 res.json({ success: data.valid, errors: data.errors });
             })
@@ -362,6 +347,7 @@ module.exports = function (app) {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                req.body._form_type = 'create';
                 var name = parseForm('name', req, res);
                 var email = parseForm('email', req, res);
                 var password = parseForm('password', req, res);
@@ -440,6 +426,7 @@ module.exports = function (app) {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                req.body._form_type = 'edit';
                 var name = parseForm('name', req, res);
                 var email = parseForm('email', req, res);
                 var password = parseForm('password', req, res);

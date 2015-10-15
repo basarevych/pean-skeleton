@@ -22,14 +22,8 @@ module.exports = function (app) {
         var glMessage = res.locals.glMessage;
 
         var form = {
-            email: validator.trim(
-                req.body.email
-                || (req.body.form && req.body.form.email)
-            ),
-            password: validator.trim(
-                req.body.password
-                || (req.body.form && req.body.form.password)
-            ),
+            email: validator.trim(req.body.email),
+            password: validator.trim(req.body.password),
         };
 
         var errors = [];

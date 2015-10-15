@@ -20,18 +20,9 @@ module.exports = function () {
         var glMessage = res.locals.glMessage;
 
         var form = {
-            name: validator.trim(
-                req.body.name
-                || (req.body.form && req.body.form.name)
-            ),
-            new_password: validator.trim(
-                req.body.new_password
-                || (req.body.form && req.body.form.new_password)
-            ),
-            retyped_password: validator.trim(
-                req.body.retyped_password
-                || (req.body.form && req.body.form.retyped_password)
-            ),
+            name: validator.trim(req.body.name),
+            new_password: validator.trim(req.body.new_password),
+            retyped_password: validator.trim(req.body.retyped_password),
         };
 
         var errors = [];
