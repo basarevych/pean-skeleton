@@ -310,9 +310,11 @@ module.exports = function (app) {
                     return app.abort(res, 403, "ACL denied");
 
                 var userRepo = locator.get('user-repository');
+                var roleRepo = locator.get('role-repository');
                 userRepo.findAll()
                     .then(function (users) {
                         var result = [];
+                        var promises = [];
                         users.forEach(function (user) {
                             result.push({
                                 id: user.getId(),
@@ -320,8 +322,24 @@ module.exports = function (app) {
                                 email: user.getEmail(),
                                 created_at: user.getCreatedAt().unix(),
                             });
+                            promises.push(roleRepo.findByUserId(user.getId()));
                         });
-                        res.json(result);
+
+                        q.all(promises)
+                            .then(function (userRoles) {
+                                for (var i = 0; i < userRoles.length; i++) {
+                                    var roleIds = [];
+                                    userRoles[i].forEach(function (role) {
+                                        roleIds.push(role.getId());
+                                    });
+                                    result[i]['roles'] = roleIds;
+                                }
+                                res.json(result);
+                            })
+                            .catch(function (err) {
+                                logger.error('GET /v1/user failed', err);
+                                app.abort(res, 500, 'GET /v1/user failed');
+                            });
                     })
                     .catch(function (err) {
                         logger.error('GET /v1/user failed', err);
