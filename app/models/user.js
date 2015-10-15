@@ -262,67 +262,22 @@ UserModel.prototype.deassociateRole = function (roleId) {
             process.exit(1);
         }
 
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                defer.reject();
-                logger.error('UserModel.deassociateRole() - pg query', err);
-                process.exit(1);
-            }
-
-            db.query(
-                "SELECT * "
-              + "  FROM user_roles "
-              + " WHERE user_id = $1 "
-              + "       AND role_id = $2 ",
-                [ me.id, roleId ],
-                function (err, result) {
-                    if (err) {
-                        defer.reject();
-                        logger.error('UserModel.deassociateRole() - pg query', err);
-                        process.exit(1);
-                    }
-
-                    if (!result.rows.length) {
-                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                            if (err) {
-                                defer.reject();
-                                logger.error('UserModel.deassociateRole() - pg query', err);
-                                process.exit(1);
-                            }
-
-                            db.end();
-                            defer.resolve();
-                        });
-                        return;
-                    }
-
-                    db.query(
-                        "DELETE "
-                      + "  FROM user_roles "
-                      + " WHERE user_id = $1 AND role_id = $2 ",
-                        [ me.id, roleId ],
-                        function (err, result) {
-                            if (err) {
-                                defer.reject();
-                                logger.error('UserModel.deassociateRole() - pg query', err);
-                                process.exit(1);
-                            }
-
-                            db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                if (err) {
-                                    defer.reject();
-                                    logger.error('UserModel.deassociateRole() - pg query', err);
-                                    process.exit(1);
-                                }
-
-                                db.end();
-                                defer.resolve();
-                            });
-                        }
-                    );
+        db.query(
+            "DELETE "
+          + "  FROM user_roles "
+          + " WHERE user_id = $1 AND role_id = $2 ",
+            [ me.id, roleId ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserModel.deassociateRole() - pg query', err);
+                    process.exit(1);
                 }
-            );
-        });
+
+                db.end();
+                defer.resolve();
+            }
+        );
     });
 
     return defer.promise;
