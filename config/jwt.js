@@ -14,7 +14,7 @@ module.exports = function (app) {
         jwt: {
             enable: true,                   // enable JWT support
             secret: sha256,                 // encrypt token with this passphrase
-            ttl: 14 * 24 * 60 * 60,         // time to live, seconds, or 0 for browser session
+            ttl: 14 * 24 * 60 * 60,         // time to live, seconds
         },
     };
 };

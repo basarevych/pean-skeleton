@@ -57,7 +57,8 @@ module.exports = function () {
                     tokenRepo.find(payload.token_id)
                         .then(function (tokens) {
                             token = tokens.length && tokens[0];
-                            if (!token) {
+                            var now = moment();
+                            if (!token || (now.unix() - token.getUpdatedAt().unix() > config['jwt']['ttl'])) {
                                 next();
                                 return;
                             }

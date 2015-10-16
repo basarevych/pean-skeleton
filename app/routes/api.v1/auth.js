@@ -109,11 +109,7 @@ module.exports = function (app) {
                             user_id: user.getId(),
                         };
 
-                        encryptedData = jwt.sign(
-                            payload,
-                            config['jwt']['secret'],
-                            { expiresInSeconds: config['jwt']['ttl'] }
-                        );
+                        encryptedData = jwt.sign(payload, config['jwt']['secret']);
 
                         token.setPayload(JSON.stringify(payload));
                         return token.save();
