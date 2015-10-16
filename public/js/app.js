@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-15 */
+/* pean-skeleton - v0.0.0 - 2015-10-16 */
 
 'use strict';
 
@@ -1046,10 +1046,16 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.token-list', []);
 
 module.controller("TokenListCtrl",
-    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'TokenApi', 'TokenPayloadForm', 'InfoDialog',
-    function ($scope, $window, $filter, $q, dynamicTable, TokenApi, TokenPayloadForm, InfoDialog) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'UserApi', 'TokenApi', 'TokenPayloadForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, dynamicTable, UserApi, TokenApi, TokenPayloadForm, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
+
+        $scope.userEmail = null;
+        UserApi.read({ id: $scope.$stateParams.userId })
+            .then(function (data) {
+                $scope.userEmail = data.email;
+            });
 
         var urlParam = "?user_id=" + $scope.$stateParams.userId;
 
