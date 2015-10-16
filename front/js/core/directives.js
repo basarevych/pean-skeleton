@@ -56,7 +56,8 @@ directives.directive('focusOn',
                     if (value === true) {
                         $timeout(function() {
                             element.focus().select();
-                            scope.$apply(model.assign(scope, false));
+                            if (typeof model.assign == 'function')
+                                scope.$apply(model.assign(scope, false));
                         });
                     }
                 });

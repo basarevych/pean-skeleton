@@ -22,6 +22,7 @@
 
         "en": "English",
 
+        "ERROR_OPERATION_FAILED": "Operation failed",
         "ERROR_STATE_DENIED_TITLE": "Access denied",
         "ERROR_STATE_DENIED_TEXT": "Requested page requires specific access level",
         "ERROR_API_DENIED_TITLE": "Action was cancelled",

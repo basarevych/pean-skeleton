@@ -143,7 +143,8 @@
                 <script type="text/ng-template" id="nodes_renderer.html">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" ng-model="node.checked" ng-change="model.updateRoles()" focus-on="node.focus ? model.roles.focus : false" on-key-enter="submit()">
+                            <input type="checkbox" ng-show="node.focus" ng-model="node.checked" ng-change="model.updateRoles()" focus-on="model.roles.focus" on-key-enter="submit()">
+                            <input type="checkbox" ng-hide="node.focus" ng-model="node.checked" ng-change="model.updateRoles()" on-key-enter="submit()">
                             {{ node.title | glMessage }}
                         </label>
                     </div>

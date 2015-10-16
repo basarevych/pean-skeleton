@@ -389,7 +389,10 @@ module.exports = function (app) {
                                 });
                                 q.all(promises)
                                     .then(function () {
-                                        res.json({ success: userId !== null });
+                                        if (userID === null)
+                                            res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                        else
+                                            res.json({ success: true });
                                     })
                                     .catch(function (err) {
                                         logger.error('POST /v1/user failed', err);
@@ -473,7 +476,7 @@ module.exports = function (app) {
                                         var userId = result[0];
                                         var oldRoles = result[1];
                                         if (userId === null)
-                                            return res.json({ success: false });
+                                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                         var promises = [];
                                         oldRoles.forEach(function (oldRole) {

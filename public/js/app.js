@@ -355,7 +355,8 @@ directives.directive('focusOn',
                     if (value === true) {
                         $timeout(function() {
                             element.focus().select();
-                            scope.$apply(model.assign(scope, false));
+                            if (typeof model.assign == 'function')
+                                scope.$apply(model.assign(scope, false));
                         });
                     }
                 });
@@ -516,9 +517,11 @@ forms.factory('ModalFormCtrl',
                             if (data.success)
                                 return;
 
-                            $.each(data.errors, function (index, value) {
-                                $scope.setValidationError(name, value);
-                            });
+                            if (angular.isDefined(data.errors)) {
+                                $.each(data.errors, function (index, value) {
+                                    $scope.setValidationError(name, value);
+                                });
+                            }
                         });
                 }, 250);
             };
@@ -545,8 +548,10 @@ forms.factory('ModalFormCtrl',
                             return;
                         }
 
-                        $scope.validation.errors = data.errors;
-                        $scope.validation.fields = data.fields;
+                        if (angular.isDefined(data.errors))
+                            $scope.validation.errors = data.errors;
+                        if (angular.isDefined(data.fields))
+                            $scope.validation.fields = data.fields;
 
                         resetFocus();
                     })
