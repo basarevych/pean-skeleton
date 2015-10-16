@@ -389,7 +389,7 @@ module.exports = function (app) {
                                 });
                                 q.all(promises)
                                     .then(function () {
-                                        if (userID === null)
+                                        if (userId === null)
                                             res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                         else
                                             res.json({ success: true });
