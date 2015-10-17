@@ -9,10 +9,15 @@ require('dotenv').load();
 var express = require('express');
 var http = require('http');
 var path = require('path');
+var fs = require('fs');
 var favicon = require('serve-favicon');
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+
+// check .env file presence
+var fd = fs.openSync(__dirname + "/../.env", "r");
+fs.closeSync(fd);
 
 var app = module.exports = express();
 
