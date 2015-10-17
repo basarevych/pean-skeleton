@@ -206,9 +206,7 @@ services.factory('Socket',
                 icon: message.icon,
                 title: message.title && $filter('glMessage')(message.title, variables),
                 text: $filter('glMessage')(message.text, variables),
-                desktop: {
-                    desktop: true
-                },
+                mouse_reset: false,
             });
         }
 

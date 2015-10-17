@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-16 */
+/* pean-skeleton - v0.0.0 - 2015-10-17 */
 
 'use strict';
 
@@ -960,9 +960,7 @@ services.factory('Socket',
                 icon: message.icon,
                 title: message.title && $filter('glMessage')(message.title, variables),
                 text: $filter('glMessage')(message.text, variables),
-                desktop: {
-                    desktop: true
-                },
+                mouse_reset: false,
             });
         }
 
