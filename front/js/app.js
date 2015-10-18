@@ -20,6 +20,7 @@ var app = angular.module('app', [
     'state.index',
     'state.user-list',
     'state.token-list',
+    'state.send-notification',
 ]);
 
 app.config(
@@ -49,6 +50,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'TokenListCtrl',
                 templateUrl: 'views/token-list.html',
+                roles: [ 'admin' ],
+            })
+            .state('layout.send-notification', {
+                url: '/notify',
+                title: 'APP_TITLE',
+                controller: 'SendNotificationCtrl',
+                templateUrl: 'views/send-notification.html',
                 roles: [ 'admin' ],
             });
 

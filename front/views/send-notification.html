@@ -1,0 +1,88 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h3>{{ 'NOTIFICATION_TITLE' | glMessage }}</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="list-group">
+                <a href="javascript:void(0)" class="list-group-item" ng-class="{ active: premadeSelection == 'custom' }" ng-click="selectPremade('custom')">
+                    {{ 'NOTIFICATION_CUSTOM_LABEL' | glMessage }}
+                </a>
+                <a href="javascript:void(0)" class="list-group-item" ng-class="{ active: premadeSelection == 'shutdown' }" ng-click="selectPremade('shutdown')">
+                    {{ 'NOTIFICATION_SHUTDOWN_LABEL' | glMessage }}
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{ 'NOTIFICATION_PANEL_TITLE' | glMessage }}</h3>
+                </div>
+                <div class="panel-body">
+                    <form role="form" novalidate ng-show="premadeSelection == 'custom'">
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ 'TITLE_LABEL' | glMessage }}:
+                            </label>
+                            <input type="text" class="form-control" ng-model="modelCustom.title" focus-on="focusCustom.title" on-key-enter="focusCustom.icon = true" ng-change="updatePreview()" autofocus="autofocus">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ 'ICON_LABEL' | glMessage }}:
+                            </label>
+                            <input type="text" class="form-control" ng-model="modelCustom.icon" focus-on="focusCustom.icon" on-key-enter="focusCustom.text = true" ng-change="updatePreview()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label required">
+                                {{ 'TEXT_LABEL' | glMessage }}:
+                            </label>
+                            <textarea class="form-control" ng-model="modelCustom.text" focus-on="focusCustom.text" ng-change="updatePreview()"></textarea>
+                        </div>
+                    </form>
+                    <form role="form" novalidate ng-show="premadeSelection == 'shutdown'">
+                        <div class="form-group">
+                            <label class="control-label">
+                                {{ 'MINUTES_LABEL' | glMessage }}:
+                            </label>
+                            <input type="text" class="form-control" ng-model="modelShutdown.minutes" focus-on="focusShutdown.minutes" ng-change="updatePreview()" autofocus="autofocus">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{ 'NOTIFICATION_PREVIEW_TITLE' | glMessage }}</h3>
+                </div>
+                <div class="panel-body">
+                    <form role="form" novalidate ng-show="premadeSelection != 'custom'">
+                        <label class="control-label">
+                            {{ 'USER_LOCALE_LABEL' | glMessage }}:
+                        </label>
+                        <select ng-model="selectedLocale" class="form-control" ng-change="updatePreview()">
+                            <option ng-repeat="option in availableLocales" value="{{ option }}">{{ option | glMessage }}</option>
+                        </select>
+                        <hr>
+                    </form>
+                    <div class="alert alert-warning">
+                        <div class="ui-pnotify-icon">
+                            <span class="{{ preview.icon }}"></span>
+                        </div>
+                        <h4 class="ui-pnotify-title">{{ preview.title }}</h4>
+                        <div class="ui-pnotify-text">{{ preview.text }}</div>
+                    </div>
+                    <hr>
+                    <button type="button" class="btn btn-primary">
+                        {{ 'NOTIFICATION_SEND_BUTTON' | glMessage }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

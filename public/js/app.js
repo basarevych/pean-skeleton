@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-17 */
+/* pean-skeleton - v0.0.0 - 2015-10-18 */
 
 'use strict';
 
@@ -22,6 +22,7 @@ var app = angular.module('app', [
     'state.index',
     'state.user-list',
     'state.token-list',
+    'state.send-notification',
 ]);
 
 app.config(
@@ -51,6 +52,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'TokenListCtrl',
                 templateUrl: 'views/token-list.html',
+                roles: [ 'admin' ],
+            })
+            .state('layout.send-notification', {
+                url: '/notify',
+                title: 'APP_TITLE',
+                controller: 'SendNotificationCtrl',
+                templateUrl: 'views/send-notification.html',
                 roles: [ 'admin' ],
             });
 
@@ -451,7 +459,7 @@ forms.factory('InfoDialog',
     } ]
 );
 
-forms.factory('ModalFormCtrl',
+forms.factory('ValidationCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
         return function ($scope, $modalInstance, model, validator, submitter) {
@@ -544,7 +552,8 @@ forms.factory('ModalFormCtrl',
                 submitter(params)
                     .then(function (data) {
                         if (data.success) {
-                            $scope.$close(data);
+                            if (typeof $scope['$close'] == 'function')
+                                $scope.$close(data);
                             return;
                         }
 
@@ -564,11 +573,11 @@ forms.factory('ModalFormCtrl',
 );
 
 forms.factory('LoginForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'AuthApi',
-    function ($modal, $filter, ModalFormCtrl, AuthApi) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'AuthApi',
+    function ($modal, $filter, ValidationCtrl, AuthApi) {
         return function () {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/login.html',
                 resolve: {
                     model: function () {
@@ -586,11 +595,11 @@ forms.factory('LoginForm',
 );
 
 forms.factory('ProfileForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'ProfileApi',
-    function ($modal, $filter, ModalFormCtrl, ProfileApi) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'ProfileApi',
+    function ($modal, $filter, ValidationCtrl, ProfileApi) {
         return function (profile) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/profile.html',
                 resolve: {
                     model: function () {
@@ -610,11 +619,11 @@ forms.factory('ProfileForm',
 );
 
 forms.factory('CreateUserForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
-    function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (preselectedRoles, allRoles) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/create-user.html',
                 resolve: {
                     model: function () {
@@ -665,11 +674,11 @@ forms.factory('CreateUserForm',
 );
 
 forms.factory('EditUserForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
-    function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (user, roles) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/edit-user.html',
                 resolve: {
                     model: function () {
@@ -732,11 +741,11 @@ forms.factory('EditUserForm',
 );
 
 forms.factory('TokenPayloadForm',
-    [ '$modal', '$filter', 'ModalFormCtrl',
-    function ($modal, $filter, ModalFormCtrl) {
+    [ '$modal', '$filter', 'ValidationCtrl',
+    function ($modal, $filter, ValidationCtrl) {
         return function (payload) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/token-payload.html',
                 resolve: {
                     model: function () {
@@ -957,7 +966,7 @@ services.factory('Socket',
         function onNotification(message) {
             var variables = JSON.parse(message.variables);
             new PNotify({
-                icon: message.icon,
+                icon: message.icon && $filter('glMessage')(message.icon, variables),
                 title: message.title && $filter('glMessage')(message.title, variables),
                 text: $filter('glMessage')(message.text, variables),
                 mouse_reset: false,
@@ -1041,6 +1050,74 @@ module.controller("LayoutCtrl",
                 $state.go($state.current.name, $stateParams, { reload: true });
             });
         };
+    } ]
+);
+
+'use strict';
+
+var module = angular.module('state.send-notification', []);
+
+module.controller("SendNotificationCtrl",
+    [ '$scope', 'globalizeWrapper',
+    function ($scope, globalizeWrapper) {
+        if (!$scope.appControl.aclCheckCurrentState())
+            return; // Disable this controller
+
+        $scope.availableLocales = $scope.appControl.getProfile().locale.available;
+        $scope.selectedLocale = $scope.availableLocales[0];
+
+        $scope.premadeSelection = 'custom';
+        $scope.modelCustom = {
+            title: 'Notification',
+            icon: 'glyphicon glyphicon-envelope',
+            text: 'Sample text',
+        };
+        $scope.focusCustom = {
+            title: true,
+            icon: false,
+            text: false,
+        };
+        $scope.modelShutdown = {
+            minutes: 3,
+        };
+        $scope.focusShutdown = {
+            minutes: true,
+        };
+        $scope.preview = {
+            title: '',
+            text: '',
+        };
+
+        $scope.updatePreview = function () {
+            var gl = globalizeWrapper.getGlobalize($scope.selectedLocale);
+            switch ($scope.premadeSelection) {
+                case 'custom':
+                    $scope.preview.title = $scope.modelCustom.title;
+                    $scope.preview.icon = $scope.modelCustom.icon;
+                    $scope.preview.text = $scope.modelCustom.text;
+                    break;
+                case 'shutdown':
+                    var variables = { minutes: $scope.modelShutdown.minutes };
+                    $scope.preview.title = gl.formatMessage('NOTIFICATION_SHUTDOWN_TITLE', variables);
+                    $scope.preview.icon = gl.formatMessage('NOTIFICATION_SHUTDOWN_ICON', variables);
+                    $scope.preview.text = gl.formatMessage('NOTIFICATION_SHUTDOWN_TEXT', variables);
+                    break;
+            }
+        };
+
+        $scope.selectPremade = function (selection) {
+            $scope.premadeSelection = selection;
+            switch (selection) {
+                case 'custom':
+                    $scope.focusCustom.title = true;
+                    break;
+                case 'shutdown':
+                    $scope.focusShutdown.minutes = true;
+            }
+            $scope.updatePreview();
+        };
+
+        $scope.selectPremade('custom');
     } ]
 );
 

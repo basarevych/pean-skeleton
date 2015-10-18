@@ -36,7 +36,7 @@ forms.factory('InfoDialog',
     } ]
 );
 
-forms.factory('ModalFormCtrl',
+forms.factory('ValidationCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
         return function ($scope, $modalInstance, model, validator, submitter) {
@@ -129,7 +129,8 @@ forms.factory('ModalFormCtrl',
                 submitter(params)
                     .then(function (data) {
                         if (data.success) {
-                            $scope.$close(data);
+                            if (typeof $scope['$close'] == 'function')
+                                $scope.$close(data);
                             return;
                         }
 
@@ -149,11 +150,11 @@ forms.factory('ModalFormCtrl',
 );
 
 forms.factory('LoginForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'AuthApi',
-    function ($modal, $filter, ModalFormCtrl, AuthApi) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'AuthApi',
+    function ($modal, $filter, ValidationCtrl, AuthApi) {
         return function () {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/login.html',
                 resolve: {
                     model: function () {
@@ -171,11 +172,11 @@ forms.factory('LoginForm',
 );
 
 forms.factory('ProfileForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'ProfileApi',
-    function ($modal, $filter, ModalFormCtrl, ProfileApi) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'ProfileApi',
+    function ($modal, $filter, ValidationCtrl, ProfileApi) {
         return function (profile) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/profile.html',
                 resolve: {
                     model: function () {
@@ -195,11 +196,11 @@ forms.factory('ProfileForm',
 );
 
 forms.factory('CreateUserForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
-    function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (preselectedRoles, allRoles) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/create-user.html',
                 resolve: {
                     model: function () {
@@ -250,11 +251,11 @@ forms.factory('CreateUserForm',
 );
 
 forms.factory('EditUserForm',
-    [ '$modal', '$filter', 'ModalFormCtrl', 'UserApi', 'PasswordGenerator',
-    function ($modal, $filter, ModalFormCtrl, UserApi, PasswordGenerator) {
+    [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (user, roles) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/edit-user.html',
                 resolve: {
                     model: function () {
@@ -317,11 +318,11 @@ forms.factory('EditUserForm',
 );
 
 forms.factory('TokenPayloadForm',
-    [ '$modal', '$filter', 'ModalFormCtrl',
-    function ($modal, $filter, ModalFormCtrl) {
+    [ '$modal', '$filter', 'ValidationCtrl',
+    function ($modal, $filter, ValidationCtrl) {
         return function (payload) {
             return $modal.open({
-                controller: ModalFormCtrl,
+                controller: ValidationCtrl,
                 templateUrl: 'modals/token-payload.html',
                 resolve: {
                     model: function () {
