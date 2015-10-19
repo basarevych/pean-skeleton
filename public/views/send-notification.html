@@ -78,7 +78,7 @@
                         <div class="ui-pnotify-text">{{ preview.text }}</div>
                     </div>
                     <hr>
-                    <button type="button" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" ng-click="sendNotification()" ng-disabled="!sendButtonActive">
                         {{ 'NOTIFICATION_SEND_BUTTON' | glMessage }}
                     </button>
                 </div>

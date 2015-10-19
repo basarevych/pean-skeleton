@@ -158,7 +158,7 @@ api.factory('UserApi',
 api.factory('TokenApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/token/:id/:action', { }, {
+        var resource = $resource($window['config']['apiUrl'] + '/token/:id', { }, {
             list:       { method: 'GET', isArray: true },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
             delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
@@ -173,6 +173,21 @@ api.factory('TokenApi',
             },
             delete: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
+            },
+        };
+    } ]
+);
+
+api.factory('NotificationApi',
+    [ '$resource', '$window', 'ResourceWrapper',
+    function ($resource, $window, ResourceWrapper) {
+        var resource = $resource($window['config']['apiUrl'] + '/notification', { }, {
+            create:     { method: 'POST', isArray: false },
+        });
+
+        return {
+            create: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.create(params).$promise, noErrorHandler);
             },
         };
     } ]

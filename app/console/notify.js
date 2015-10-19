@@ -41,7 +41,7 @@ module.exports = function (argv, rl) {
         if (argv['icon'])
             notification.setIcon(argv['icon']);
         if (argv['variables'])
-            notification.setIcon(argv['variables']);
+            notification.setVariables(argv['variables']);
 
         notification.save()
             .then(function () {
