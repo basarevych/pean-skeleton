@@ -232,6 +232,36 @@ module.exports = function (app) {
             });
     });
 
+    router.post('/lookup-email', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'user', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var userRepo = locator.get('user-repository');
+                userRepo.searchByEmail(req.body.search)
+                    .then(function (users) {
+                        var result = [];
+                        users.forEach(function (user) {
+                            result.push({ id: user.getId(), email: user.getEmail() });
+                        });
+                        res.json(result);
+                    })
+                    .catch(function (err) {
+                        logger.error('POST /v1/user/lookup-email failed', err);
+                        app.abort(res, 500, 'POST /v1/user/lookup-email failed');
+                    });
+            })
+            .catch(function (err) {
+                logger.error('POST /v1/user/lookup-email failed', err);
+                app.abort(res, 500, 'POST /v1/user/lookup-email failed');
+            });
+    });
+
     router.get('/:userId', function (req, res) {
         var userId = parseInt(req.params.userId, 10);
         if (isNaN(userId))

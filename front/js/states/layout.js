@@ -3,10 +3,11 @@
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm',
-    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm', 'SocketServer',
+    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm, SocketServer) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
+        $scope.socket = SocketServer;
 
         $scope.setLocale = function (locale) {
             if (locale === null)
@@ -23,7 +24,7 @@ module.controller("LayoutCtrl",
             ProfileForm($scope.appControl.getProfile())
                 .then(function () {
                     $scope.appControl.loadProfile(function () {
-//                        $state.go($state.current.name, $stateParams, { reload: true });
+                        $state.go($state.current.name, $stateParams, { reload: true });
                     });
                 });
         };

@@ -7,6 +7,28 @@
 
     <div class="row">
         <div class="col-md-4">
+            <form role="form" novalidate>
+                <div class="form-group">
+                    <div class="radio">
+                        <label class="control-label">
+                            <input type="radio" ng-model="recipientType" value="all">
+                            {{ 'NOTIFICATION_ALL_USERS_LABEL' | glMessage }}
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label class="control-label">
+                            <input type="radio" ng-model="recipientType" value="user">
+                            {{ 'NOTIFICATION_SPECIFIC_USER_LABEL' | glMessage }}
+                            <div class="input-group" ng-show="recipientType == 'user'">
+                                <span class="input-group-addon">
+                                    {{ 'EMAIL_LABEL' | glMessage }}
+                                </span>
+                                <input type="text" class="form-control" ng-model="recipientUser" typeahead="result as result.email for result in getEmail($viewValue)">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </form>
             <div class="list-group">
                 <a href="javascript:void(0)" class="list-group-item" ng-class="{ active: premadeSelection == 'custom' }" ng-click="selectPremade('custom')">
                     {{ 'NOTIFICATION_CUSTOM_LABEL' | glMessage }}

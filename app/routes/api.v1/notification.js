@@ -29,6 +29,7 @@ module.exports = function () {
                 var title = validator.trim(req.body.title);
                 var icon = validator.trim(req.body.icon);
                 var variables = req.body.variables;
+                var userId = validator.trim(req.body.user_id);
 
                 if (!text.length || typeof variables != "object")
                     return res.json({ success: false });
@@ -40,9 +41,11 @@ module.exports = function () {
                 if (icon.length)
                     notification.setIcon(icon);
                 notification.setVariables(JSON.stringify(variables));
+                if (userId.length)
+                    notification.setUserId(userId);
 
                 notification.save()
-                    .then(function () {
+                    .then(function (userId) {
                         res.json({ success: true });
                     })
                     .catch(function (err) {

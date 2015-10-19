@@ -90,12 +90,11 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'Socket', 'LoginForm',
-    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, Socket, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'SocketServer', 'LoginForm',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, SocketServer, LoginForm) {
         PNotify.prototype.options.styling = "bootstrap3";
 
         $rootScope.appControl = AppControl;
-        $rootScope.socket = Socket;
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
         $rootScope.pageTitle = 'Loading...',
@@ -106,6 +105,7 @@ app.run(
                 .then(function (data) {
                     AppControl.setToken(data.token);
                     AppControl.loadProfile(function () {
+                        SocketServer.getSocket().emit('token', data.token);
                         $state.go($state.current.name, $stateParams, { reload: true });
                     });
                 });
@@ -118,7 +118,7 @@ app.run(
             $timeout(function () { $rootScope.initialized = true; }, 101);
         });
 
-        Socket.init();
+        SocketServer.init();
         AppControl.init();
     } ]
 );

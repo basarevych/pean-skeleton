@@ -92,12 +92,11 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'Socket', 'LoginForm',
-    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, Socket, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'SocketServer', 'LoginForm',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, SocketServer, LoginForm) {
         PNotify.prototype.options.styling = "bootstrap3";
 
         $rootScope.appControl = AppControl;
-        $rootScope.socket = Socket;
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
         $rootScope.pageTitle = 'Loading...',
@@ -108,6 +107,7 @@ app.run(
                 .then(function (data) {
                     AppControl.setToken(data.token);
                     AppControl.loadProfile(function () {
+                        SocketServer.getSocket().emit('token', data.token);
                         $state.go($state.current.name, $stateParams, { reload: true });
                     });
                 });
@@ -120,7 +120,7 @@ app.run(
             $timeout(function () { $rootScope.initialized = true; }, 101);
         });
 
-        Socket.init();
+        SocketServer.init();
         AppControl.init();
     } ]
 );
@@ -251,12 +251,13 @@ api.factory('UserApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/user/:id/:action', { }, {
-            list:       { method: 'GET', isArray: true },
-            create:     { method: 'POST', isArray: false },
-            read:       { method: 'GET', params: { id: '@id' }, isArray: false },
-            update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
-            delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
-            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
+            list:        { method: 'GET', isArray: true },
+            create:      { method: 'POST', isArray: false },
+            read:        { method: 'GET', params: { id: '@id' }, isArray: false },
+            update:      { method: 'PUT', params: { id: '@id' }, isArray: false },
+            delete:      { method: 'DELETE', params: { id: '@id' }, isArray: false },
+            validate:    { method: 'POST', params: { action: 'validate' }, isArray: false },
+            lookupEmail: { method: 'POST', params: { action: 'lookup-email' }, isArray: true },
         });
 
         return {
@@ -277,6 +278,9 @@ api.factory('UserApi',
             },
             validate: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
+            },
+            lookupEmail: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.lookupEmail(params).$promise, noErrorHandler);
             },
         };
     } ]
@@ -870,6 +874,9 @@ services.factory('AppControl',
             hasToken: function () {
                 return token !== null;
             },
+            getToken: function () {
+                return token;
+            },
             setToken: function (newToken) {
                 token = newToken;
                 localStorage.setItem(tokenStorageKey, token);
@@ -960,7 +967,7 @@ services.factory('AppControl',
     } ]
 );
 
-services.factory('Socket',
+services.factory('SocketServer',
     [ '$rootScope', '$filter',
     function ($rootScope, $filter) {
         var socket = null;
@@ -970,6 +977,9 @@ services.factory('Socket',
             connected = true;
             if (!$rootScope.$$phase)
                 $rootScope.$digest();
+
+            if ($rootScope.appControl.hasToken())
+                socket.emit('token', $rootScope.appControl.getToken());
         }
 
         function onDisconnect() {
@@ -992,10 +1002,12 @@ services.factory('Socket',
             getConnected: function () {
                 return connected;
             },
+            getSocket: function () {
+                return socket;
+            },
             init: function () {
                 socket = io.connect();
                 socket.on('connect', onConnect);
-                socket.on('reconnect', onConnect);
                 socket.on('disconnect', onDisconnect);
                 socket.on('notification', onNotification);
             },
@@ -1034,10 +1046,11 @@ module.controller("IndexCtrl",
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm',
-    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm', 'SocketServer',
+    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm, SocketServer) {
         $scope.locale = $scope.appControl.getProfile().locale;
         $scope.locale.cookie = $cookies.get('locale');
+        $scope.socket = SocketServer;
 
         $scope.setLocale = function (locale) {
             if (locale === null)
@@ -1054,7 +1067,7 @@ module.controller("LayoutCtrl",
             ProfileForm($scope.appControl.getProfile())
                 .then(function () {
                     $scope.appControl.loadProfile(function () {
-//                        $state.go($state.current.name, $stateParams, { reload: true });
+                        $state.go($state.current.name, $stateParams, { reload: true });
                     });
                 });
         };
@@ -1073,10 +1086,13 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.send-notification', []);
 
 module.controller("SendNotificationCtrl",
-    [ '$scope', 'globalizeWrapper', 'NotificationApi',
-    function ($scope, globalizeWrapper, NotificationApi) {
+    [ '$scope', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'InfoDialog',
+    function ($scope, globalizeWrapper, NotificationApi, UserApi, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
+
+        $scope.recipientType = 'all';
+        $scope.recipientUser = null;
 
         $scope.availableLocales = $scope.appControl.getProfile().locale.available;
         $scope.selectedLocale = $scope.availableLocales[0];
@@ -1107,21 +1123,36 @@ module.controller("SendNotificationCtrl",
 
         $scope.updatePreview = function () {
             var gl = globalizeWrapper.getGlobalize($scope.selectedLocale);
+
+            var targetValid = false;
+            switch ($scope.recipientType) {
+                case 'all':
+                    targetValid = true;
+                    break;
+                case 'user':
+                    targetValid = angular.isObject($scope.recipientUser)
+                        && typeof $scope.recipientUser['id'] != 'undefined';
+                    break;
+            }
+
+            var composeValid = false;
             switch ($scope.premadeSelection) {
                 case 'custom':
                     $scope.preview.title = $scope.modelCustom.title;
                     $scope.preview.icon = $scope.modelCustom.icon;
                     $scope.preview.text = $scope.modelCustom.text;
-                    $scope.sendButtonActive = $scope.modelCustom.text.length > 0;
+                    composeValid = $scope.modelCustom.text.length > 0;
                     break;
                 case 'shutdown':
                     var variables = { minutes: $scope.modelShutdown.minutes };
                     $scope.preview.title = gl.formatMessage('NOTIFICATION_SHUTDOWN_TITLE', variables);
                     $scope.preview.icon = gl.formatMessage('NOTIFICATION_SHUTDOWN_ICON', variables);
                     $scope.preview.text = gl.formatMessage('NOTIFICATION_SHUTDOWN_TEXT', variables);
-                    $scope.sendButtonActive = $scope.modelShutdown.minutes.length > 0;
+                    composeValid = $scope.modelShutdown.minutes.length > 0;
                     break;
             }
+
+            $scope.sendButtonActive = targetValid && composeValid;
         };
 
         $scope.selectPremade = function (selection) {
@@ -1155,11 +1186,33 @@ module.controller("SendNotificationCtrl",
                     break;
             }
 
+            switch ($scope.recipientType) {
+                case 'user':
+                    params['user_id'] = $scope.recipientUser.id;
+                    break;
+            }
+
             NotificationApi.create(params)
-                .then(function () {
+                .then(function (data) {
+                    if (!data.success) {
+                        InfoDialog({
+                            title: 'NOTIFICATION_ERROR_TITLE',
+                            text: 'NOTIFICATION_ERROR_TEXT',
+                        });
+                    }
                     $scope.sendButtonActive = true;
                 });
         };
+
+        $scope.getEmail = function (search) {
+            return UserApi.lookupEmail({ search: search })
+                .then(function (data) {
+                    return data;
+                });
+        };
+
+        $scope.$watch('recipientType', function () { $scope.updatePreview(); });
+        $scope.$watch('recipientUser', function () { $scope.updatePreview(); });
 
         $scope.selectPremade('custom');
     } ]

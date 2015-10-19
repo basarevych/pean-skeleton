@@ -3,10 +3,13 @@
 var module = angular.module('state.send-notification', []);
 
 module.controller("SendNotificationCtrl",
-    [ '$scope', 'globalizeWrapper', 'NotificationApi',
-    function ($scope, globalizeWrapper, NotificationApi) {
+    [ '$scope', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'InfoDialog',
+    function ($scope, globalizeWrapper, NotificationApi, UserApi, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
+
+        $scope.recipientType = 'all';
+        $scope.recipientUser = null;
 
         $scope.availableLocales = $scope.appControl.getProfile().locale.available;
         $scope.selectedLocale = $scope.availableLocales[0];
@@ -37,21 +40,36 @@ module.controller("SendNotificationCtrl",
 
         $scope.updatePreview = function () {
             var gl = globalizeWrapper.getGlobalize($scope.selectedLocale);
+
+            var targetValid = false;
+            switch ($scope.recipientType) {
+                case 'all':
+                    targetValid = true;
+                    break;
+                case 'user':
+                    targetValid = angular.isObject($scope.recipientUser)
+                        && typeof $scope.recipientUser['id'] != 'undefined';
+                    break;
+            }
+
+            var composeValid = false;
             switch ($scope.premadeSelection) {
                 case 'custom':
                     $scope.preview.title = $scope.modelCustom.title;
                     $scope.preview.icon = $scope.modelCustom.icon;
                     $scope.preview.text = $scope.modelCustom.text;
-                    $scope.sendButtonActive = $scope.modelCustom.text.length > 0;
+                    composeValid = $scope.modelCustom.text.length > 0;
                     break;
                 case 'shutdown':
                     var variables = { minutes: $scope.modelShutdown.minutes };
                     $scope.preview.title = gl.formatMessage('NOTIFICATION_SHUTDOWN_TITLE', variables);
                     $scope.preview.icon = gl.formatMessage('NOTIFICATION_SHUTDOWN_ICON', variables);
                     $scope.preview.text = gl.formatMessage('NOTIFICATION_SHUTDOWN_TEXT', variables);
-                    $scope.sendButtonActive = $scope.modelShutdown.minutes.length > 0;
+                    composeValid = $scope.modelShutdown.minutes.length > 0;
                     break;
             }
+
+            $scope.sendButtonActive = targetValid && composeValid;
         };
 
         $scope.selectPremade = function (selection) {
@@ -85,11 +103,33 @@ module.controller("SendNotificationCtrl",
                     break;
             }
 
+            switch ($scope.recipientType) {
+                case 'user':
+                    params['user_id'] = $scope.recipientUser.id;
+                    break;
+            }
+
             NotificationApi.create(params)
-                .then(function () {
+                .then(function (data) {
+                    if (!data.success) {
+                        InfoDialog({
+                            title: 'NOTIFICATION_ERROR_TITLE',
+                            text: 'NOTIFICATION_ERROR_TEXT',
+                        });
+                    }
                     $scope.sendButtonActive = true;
                 });
         };
+
+        $scope.getEmail = function (search) {
+            return UserApi.lookupEmail({ search: search })
+                .then(function (data) {
+                    return data;
+                });
+        };
+
+        $scope.$watch('recipientType', function () { $scope.updatePreview(); });
+        $scope.$watch('recipientUser', function () { $scope.updatePreview(); });
 
         $scope.selectPremade('custom');
     } ]

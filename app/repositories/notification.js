@@ -38,6 +38,8 @@ NotificationRepository.prototype.find = function (id) {
         if (reply['icon'])
             notification.setIcon(reply['icon']);
         notification.setVariables(reply['variables']);
+        if (reply['user_id'])
+            notification.setUserId(reply['user_id']);
 
         notification.dirty(false);
         defer.resolve([ notification ]);

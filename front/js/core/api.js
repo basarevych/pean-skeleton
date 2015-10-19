@@ -124,12 +124,13 @@ api.factory('UserApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
         var resource = $resource($window['config']['apiUrl'] + '/user/:id/:action', { }, {
-            list:       { method: 'GET', isArray: true },
-            create:     { method: 'POST', isArray: false },
-            read:       { method: 'GET', params: { id: '@id' }, isArray: false },
-            update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
-            delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
-            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
+            list:        { method: 'GET', isArray: true },
+            create:      { method: 'POST', isArray: false },
+            read:        { method: 'GET', params: { id: '@id' }, isArray: false },
+            update:      { method: 'PUT', params: { id: '@id' }, isArray: false },
+            delete:      { method: 'DELETE', params: { id: '@id' }, isArray: false },
+            validate:    { method: 'POST', params: { action: 'validate' }, isArray: false },
+            lookupEmail: { method: 'POST', params: { action: 'lookup-email' }, isArray: true },
         });
 
         return {
@@ -150,6 +151,9 @@ api.factory('UserApi',
             },
             validate: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
+            },
+            lookupEmail: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.lookupEmail(params).$promise, noErrorHandler);
             },
         };
     } ]

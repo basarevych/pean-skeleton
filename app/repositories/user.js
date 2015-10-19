@@ -184,6 +184,48 @@ UserRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+UserRepository.prototype.searchByEmail = function (search) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.searchByEmail() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM users "
+          + " WHERE email LIKE $1 "
+          + " LIMIT 8 ",
+            [ '%' + search + '%' ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.searchByEmail() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var users = [];
+                result.rows.forEach(function (row) {
+                    var user = new UserModel(row);
+                    users.push(user);
+                });
+
+                defer.resolve(users);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+
 UserRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

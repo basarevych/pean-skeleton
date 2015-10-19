@@ -26,10 +26,11 @@ HttpServer.prototype.start = function () {
     locator.register('hostname', hostname);
     locator.register('port', port);
 
+    var me = this;
     var app = locator.get('app');
     this.setServer(http.createServer(app));
 
-    this.server.on('error', this.onError);
+    this.server.on('error', function (error) { me.onError(error); });
     this.server.listen(port, hostname);
 };
 

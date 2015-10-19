@@ -92,6 +92,9 @@ services.factory('AppControl',
             hasToken: function () {
                 return token !== null;
             },
+            getToken: function () {
+                return token;
+            },
             setToken: function (newToken) {
                 token = newToken;
                 localStorage.setItem(tokenStorageKey, token);
@@ -182,7 +185,7 @@ services.factory('AppControl',
     } ]
 );
 
-services.factory('Socket',
+services.factory('SocketServer',
     [ '$rootScope', '$filter',
     function ($rootScope, $filter) {
         var socket = null;
@@ -192,6 +195,9 @@ services.factory('Socket',
             connected = true;
             if (!$rootScope.$$phase)
                 $rootScope.$digest();
+
+            if ($rootScope.appControl.hasToken())
+                socket.emit('token', $rootScope.appControl.getToken());
         }
 
         function onDisconnect() {
@@ -214,10 +220,12 @@ services.factory('Socket',
             getConnected: function () {
                 return connected;
             },
+            getSocket: function () {
+                return socket;
+            },
             init: function () {
                 socket = io.connect();
                 socket.on('connect', onConnect);
-                socket.on('reconnect', onConnect);
                 socket.on('disconnect', onDisconnect);
                 socket.on('notification', onNotification);
             },

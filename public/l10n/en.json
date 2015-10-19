@@ -94,6 +94,8 @@
         "TOKEN_CONFIRM_DELETE_BUTTON": "Delete",
 
         "NOTIFICATION_TITLE": "Send notification",
+        "NOTIFICATION_ALL_USERS_LABEL": "All users",
+        "NOTIFICATION_SPECIFIC_USER_LABEL": "Specific user",
         "NOTIFICATION_CUSTOM_LABEL": "Custom message",
         "NOTIFICATION_SHUTDOWN_LABEL": "Site shutdown warning",
         "NOTIFICATION_PANEL_TITLE": "Compose notification",
