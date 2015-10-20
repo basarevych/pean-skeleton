@@ -521,8 +521,8 @@ module.exports = function (app) {
                                                 res.json({ success: true });
                                             })
                                             .catch(function (err) {
-                                                logger.error('POST /v1/user failed', err);
-                                                app.abort(res, 500, 'POST /v1/user failed');
+                                                logger.error('PUT /v1/user/' + userId + ' failed', err);
+                                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
                                             });
                                     })
                                     .catch(function (err) {
@@ -531,21 +531,20 @@ module.exports = function (app) {
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('PUT /v1/user' + userId + ' failed', err);
-                                app.abort(res, 500, 'PUT /v1/user' + userId + ' failed');
+                                logger.error('PUT /v1/user/' + userId + ' failed', err);
+                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
                             });
                     })
                     .catch(function (err) {
-                        logger.error('PUT /v1/user' + userId + ' failed', err);
-                        app.abort(res, 500, 'PUT /v1/user' + userId + ' failed');
+                        logger.error('PUT /v1/user/' + userId + ' failed', err);
+                        app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
                     });
             })
             .catch(function (err) {
-                logger.error('PUT /v1/user' + userId + ' failed', err);
-                app.abort(res, 500, 'PUT /v1/user' + userId + ' failed');
+                logger.error('PUT /v1/user/' + userId + ' failed', err);
+                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
             });
     });
-
 
     router.delete('/:userId', function (req, res) {
         var userId = parseInt(req.params.userId, 10);
