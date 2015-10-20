@@ -16,13 +16,16 @@ module.exports = function (argv, rl) {
     }
 
     function help(done) {
-        rl.write("\nUsage:\tbin/console notify [--title=<title>] [--icon=<icon>] [--variables=<variables>] <text>\n\n");
+        rl.write("\nUsage:");
+        rl.write("\tbin/console notify [--title=<title>] [--icon=<icon>] [--variables=<variables>]\\\n");
+        rl.write("\t                   [--user-id=<user-id>] <text>\n\n");
         rl.write("\tPopup notification in web-interface\n");
         rl.write("\nParameters:\n\n");
         rl.write("\t<text>\t\t\tText of the notification\n");
         rl.write("\t<title>\t\t\tTitle of the notification\n");
         rl.write("\t<icon>\t\t\tCSS class of the icon\n");
         rl.write("\t<variables>\t\tJSON string representing substitution variables\n");
+        rl.write("\t<user-id>\t\tIf not specified all the users will get the notification\n");
         done();
     }
 
@@ -42,6 +45,8 @@ module.exports = function (argv, rl) {
             notification.setIcon(argv['icon']);
         if (argv['variables'])
             notification.setVariables(argv['variables']);
+        if (argv['user-id'])
+            notification.setUserId(argv['user-id']);
 
         notification.save()
             .then(function () {
