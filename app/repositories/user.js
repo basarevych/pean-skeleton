@@ -102,7 +102,55 @@ UserRepository.prototype.findByEmail = function (email) {
     return defer.promise;
 };
 
-UserRepository.prototype.findByRole = function (handle) {
+UserRepository.prototype.findByRoleId = function (roleId) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    roleId = parseInt(roleId, 10);
+    if (isNaN(roleId)) {
+        defer.reject('UserRepository.findByRoleId() - invalid parameters');
+        return defer.promise;
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.findByRoleId() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "    SELECT u.* "
+          + "      FROM users u "
+          + "INNER JOIN user_roles ur "
+          + "        ON ur.user_id = u.id "
+          + "     WHERE ur.role_id = $1 ",
+            [ roleId ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.findByRoleId() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var users = [];
+                result.rows.forEach(function (row) {
+                    var user = new UserModel(row);
+                    users.push(user);
+                });
+
+                defer.resolve(users);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+UserRepository.prototype.findByRoleHandle = function (handle) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -110,7 +158,7 @@ UserRepository.prototype.findByRole = function (handle) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('UserRepository.findByRole() - pg connect', err);
+            logger.error('UserRepository.findByRoleHandle() - pg connect', err);
             process.exit(1);
         }
 
@@ -126,7 +174,7 @@ UserRepository.prototype.findByRole = function (handle) {
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('UserRepository.findByRole() - pg query', err);
+                    logger.error('UserRepository.findByRoleHandle() - pg query', err);
                     process.exit(1);
                 }
 

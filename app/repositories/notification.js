@@ -40,6 +40,8 @@ NotificationRepository.prototype.find = function (id) {
         notification.setVariables(reply['variables']);
         if (reply['user_id'])
             notification.setUserId(reply['user_id']);
+        if (reply['role_id'])
+            notification.setRoleId(reply['role_id']);
 
         notification.dirty(false);
         defer.resolve([ notification ]);

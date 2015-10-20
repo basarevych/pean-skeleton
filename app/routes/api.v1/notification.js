@@ -30,6 +30,7 @@ module.exports = function () {
                 var icon = validator.trim(req.body.icon);
                 var variables = req.body.variables;
                 var userId = validator.trim(req.body.user_id);
+                var roleId = validator.trim(req.body.role_id);
 
                 if (!text.length || typeof variables != "object")
                     return res.json({ success: false });
@@ -43,6 +44,8 @@ module.exports = function () {
                 notification.setVariables(JSON.stringify(variables));
                 if (userId.length)
                     notification.setUserId(userId);
+                if (roleId.length)
+                    notification.setRoleId(roleId);
 
                 notification.save()
                     .then(function (userId) {

@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-19 */
+/* pean-skeleton - v0.0.0 - 2015-10-20 */
 
 'use strict';
 
@@ -1086,13 +1086,22 @@ module.controller("LayoutCtrl",
 var module = angular.module('state.send-notification', []);
 
 module.controller("SendNotificationCtrl",
-    [ '$scope', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'InfoDialog',
-    function ($scope, globalizeWrapper, NotificationApi, UserApi, InfoDialog) {
+    [ '$scope', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'RoleApi', 'InfoDialog',
+    function ($scope, globalizeWrapper, NotificationApi, UserApi, RoleApi, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
         $scope.recipientType = 'all';
+        $scope.recipientRole = null;
         $scope.recipientUser = null;
+
+        $scope.roleTree = [];
+        RoleApi.list()
+            .then(function (roles) {
+                $scope.roleTree = roles;
+                if (roles.length > 0)
+                    $scope.recipientRole = { id: roles[0].id };
+            });
 
         $scope.availableLocales = $scope.appControl.getProfile().locale.available;
         $scope.selectedLocale = $scope.availableLocales[0];
@@ -1129,9 +1138,11 @@ module.controller("SendNotificationCtrl",
                 case 'all':
                     targetValid = true;
                     break;
+                case 'role':
+                    targetValid = angular.isObject($scope.recipientRole) && angular.isDefined($scope.recipientRole['id']);
+                    break;
                 case 'user':
-                    targetValid = angular.isObject($scope.recipientUser)
-                        && typeof $scope.recipientUser['id'] != 'undefined';
+                    targetValid = angular.isObject($scope.recipientUser) && angular.isDefined($scope.recipientUser['id']);
                     break;
             }
 
@@ -1187,6 +1198,9 @@ module.controller("SendNotificationCtrl",
             }
 
             switch ($scope.recipientType) {
+                case 'role':
+                    params['role_id'] = $scope.recipientRole.id;
+                    break;
                 case 'user':
                     params['user_id'] = $scope.recipientUser.id;
                     break;
@@ -1212,7 +1226,8 @@ module.controller("SendNotificationCtrl",
         };
 
         $scope.$watch('recipientType', function () { $scope.updatePreview(); });
-        $scope.$watch('recipientUser', function () { $scope.updatePreview(); });
+        $scope.$watch('recipientRole.id', function () { $scope.updatePreview(); });
+        $scope.$watch('recipientUser.id', function () { $scope.updatePreview(); });
 
         $scope.selectPremade('custom');
     } ]

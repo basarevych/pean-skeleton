@@ -39,6 +39,7 @@ WebSocketServer.prototype.start = function () {
     this.server.on('connect', function (socket) { me.onConnect(socket); });
 
     var notificationRepo = locator.get('notification-repository');
+    var userRepo = locator.get('user-repository');
     var subscriber = notificationRepo.getRedis();
     subscriber.on("message", function (channel, message) {
         switch (channel) {
@@ -61,6 +62,20 @@ WebSocketServer.prototype.start = function () {
                                 if (userId == notification.getUserId())
                                     me.server.to(socketId).emit('notification', params);
                             }
+                        } else if (notification.getRoleId()) {
+                            userRepo.findByRoleId(notification.getRoleId())
+                                .then(function (users) {
+                                    for (var socketId in me.clients) {
+                                        var userId = me.clients[socketId];
+                                        users.forEach(function (user) {
+                                            if (userId == user.getId())
+                                                me.server.to(socketId).emit('notification', params);
+                                        });
+                                    }
+                                })
+                                .catch(function (err) {
+                                    logger.error('WebSocketServer.start() - userRepo.findByRoleId', err);
+                                });
                         } else {
                             me.server.emit('notification', params);
                         }

@@ -17,6 +17,28 @@
                     </div>
                     <div class="radio">
                         <label class="control-label">
+                            <input type="radio" ng-model="recipientType" value="role">
+                            {{ 'NOTIFICATION_SPECIFIC_ROLE_LABEL' | glMessage }}
+                            <script type="text/ng-template" id="nodes_renderer.html">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" ng-model="recipientRole.id" ng-value="node.id">
+                                        {{ node.title | glMessage }}
+                                    </label>
+                                </div>
+                                <ul ui-tree-nodes="" ng-model="node.roles">
+                                    <li ng-repeat="node in node.roles" ui-tree-node ng-include="'nodes_renderer.html'"></li>
+                                </ul>
+                            </script>
+                            <div ui-tree data-drag-enabled="false" ng-show="recipientType == 'role'">
+                                <ul ui-tree-nodes="" ng-model="roleTree" id="tree-root">
+                                    <li ng-repeat="node in roleTree" ui-tree-node ng-include="'nodes_renderer.html'"></li>
+                                </ul>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label class="control-label">
                             <input type="radio" ng-model="recipientType" value="user">
                             {{ 'NOTIFICATION_SPECIFIC_USER_LABEL' | glMessage }}
                             <div class="input-group" ng-show="recipientType == 'user'">

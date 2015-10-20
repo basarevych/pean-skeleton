@@ -16,6 +16,7 @@ function NotificationModel() {
     this.icon = null;
     this.variables = "{}";
     this.user_id = null;
+    this.role_id = null;
 };
 
 NotificationModel.prototype = new BaseModel();
@@ -75,6 +76,15 @@ NotificationModel.prototype.getUserId = function () {
     return this.field('user_id');
 };
 
+NotificationModel.prototype.setRoleId = function (roleId) {
+    this.field('role_id', roleId);
+    return this;
+};
+
+NotificationModel.prototype.getRoleId = function () {
+    return this.field('role_id');
+};
+
 NotificationModel.prototype.save = function (evenIfNotDirty) {
     var logger = locator.get('logger');
     var repo = locator.get('notification-repository');
@@ -93,6 +103,8 @@ NotificationModel.prototype.save = function (evenIfNotDirty) {
         value['icon'] = this.getIcon();
     if (this.getUserId())
         value['user_id'] = this.getUserId();
+    if (this.getRoleId())
+        value['role_id'] = this.getRoleId();
 
     var me = this;
     var redis = repo.getRedis();
