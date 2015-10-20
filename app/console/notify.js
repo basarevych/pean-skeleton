@@ -18,14 +18,15 @@ module.exports = function (argv, rl) {
     function help(done) {
         rl.write("\nUsage:");
         rl.write("\tbin/console notify [--title=<title>] [--icon=<icon>] [--variables=<variables>]\\\n");
-        rl.write("\t                   [--user-id=<user-id>] <text>\n\n");
+        rl.write("\t                   [--user-id=<user-id>] | --role-id=<role-id>]<text>\n\n");
         rl.write("\tPopup notification in web-interface\n");
         rl.write("\nParameters:\n\n");
         rl.write("\t<text>\t\t\tText of the notification\n");
         rl.write("\t<title>\t\t\tTitle of the notification\n");
         rl.write("\t<icon>\t\t\tCSS class of the icon\n");
         rl.write("\t<variables>\t\tJSON string representing substitution variables\n");
-        rl.write("\t<user-id>\t\tIf not specified all the users will get the notification\n");
+        rl.write("\t<user-id>\t\tIf specified then only this user will get the notification\n");
+        rl.write("\t<role-id>\t\tIf specified then only users of this role will get the notification\n");
         done();
     }
 
@@ -47,6 +48,8 @@ module.exports = function (argv, rl) {
             notification.setVariables(argv['variables']);
         if (argv['user-id'])
             notification.setUserId(argv['user-id']);
+        else if (argv['role-id'])
+            notification.setRoleId(argv['role-id']);
 
         notification.save()
             .then(function () {
