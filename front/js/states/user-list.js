@@ -28,7 +28,7 @@ module.controller("UserListCtrl",
         });
 
         $scope.createUser = function () {
-            RoleApi.list()
+            RoleApi.list({ view: 'tree' })
                 .then(function (roles) {
                     var preselected = [];
                     $.each(roles, function (index, role) {
@@ -49,14 +49,20 @@ module.controller("UserListCtrl",
 
         $scope.editUser = function () {
             var sel = $scope.tableCtrl.plugin.getSelected();
-            $q.all([ UserApi.read({ id: sel[0] }), RoleApi.list() ])
+            $q.all([ UserApi.read({ id: sel[0] }), RoleApi.list({ view: 'tree' }) ])
                 .then(function (result) {
                     var user = result[0];
                     var roles = result[1];
-                    $.each(roles, function (index, role) {
-                        if ($.inArray(role.id, user.roles) != -1)
-                            role.checked = true;
-                    });
+
+                    function selectRoles(arr) {
+                        $.each(arr, function (index, role) {
+                            if ($.inArray(role.id, user.roles) != -1)
+                                role.checked = true;
+                            selectRoles(role.roles);
+                        });
+                    }
+                    selectRoles(roles);
+
                     if (roles.length > 0)
                         roles[0]['focus'] = true;
                     EditUserForm(user, roles)

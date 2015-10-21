@@ -37,6 +37,7 @@ module.exports = function (argv, rl) {
                 var role = roles.length && roles[0];
                 if (!role) {
                     role = new RoleModel();
+                    role.setParentId(null);
                     role.setHandle("member");
                     role.setTitle("ROLE_MEMBER");
                     return role.save();
@@ -50,6 +51,7 @@ module.exports = function (argv, rl) {
                 var role = roles.length && roles[0];
                 if (!role) {
                     role = new RoleModel();
+                    role.setParentId(null);
                     role.setHandle("admin");
                     role.setTitle("ROLE_ADMIN");
                     adminRole = role;

@@ -163,8 +163,9 @@ RoleRepository.prototype.findAll = function () {
         }
 
         db.query(
-            "SELECT * "
-          + "  FROM roles ",
+            "  SELECT * "
+          + "    FROM roles "
+          + "ORDER BY handle ",
             function (err, result) {
                 if (err) {
                     defer.reject();

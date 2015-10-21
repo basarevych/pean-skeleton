@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-20 */
+/* pean-skeleton - v0.0.0 - 2015-10-21 */
 
 'use strict';
 
@@ -20,6 +20,7 @@ var app = angular.module('app', [
     'forms',
     'state.layout',
     'state.index',
+    'state.role-list',
     'state.user-list',
     'state.token-list',
     'state.send-notification',
@@ -39,6 +40,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'IndexCtrl',
                 templateUrl: 'views/index.html',
+            })
+            .state('layout.role-list', {
+                url: '/role',
+                title: 'APP_TITLE',
+                controller: 'RoleListCtrl',
+                templateUrl: 'views/role-list.html',
+                roles: [ 'admin' ],
             })
             .state('layout.user-list', {
                 url: '/user',
@@ -637,6 +645,74 @@ forms.factory('ProfileForm',
     } ]
 );
 
+forms.factory('CreateRoleForm',
+    [ '$modal', '$filter', 'ValidationCtrl', 'RoleApi',
+    function ($modal, $filter, ValidationCtrl, RoleApi) {
+        return function (roles) {
+            return $modal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/create-role.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            handle: { value: '', focus: true, required: true },
+                            title: { value: '', focus: false, required: true },
+                            parent_id: { tree: roles, value: null, focus: false, required: true },
+                        };
+                    },
+                    validator: function () {
+                        return function (params) {
+                            params['_form_type'] = 'create';
+                            return RoleApi.validate(params);
+                        };
+                    },
+                    submitter: function () { return RoleApi.create; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('EditRoleForm',
+    [ '$modal', '$filter', 'ValidationCtrl', 'RoleApi',
+    function ($modal, $filter, ValidationCtrl, RoleApi) {
+        return function (role, roles) {
+            return $modal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/edit-role.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            id: { value: role.id, focus: false, required: false },
+                            handle: { value: '', focus: false, required: true },
+                            title: { value: role.title, focus: true, required: true },
+                            parent_id: { tree: roles, value: role.parent_id, focus: false, required: true },
+                            handle_changed: false,
+                            original_handle: role.handle,
+                            changeHandle: function () {
+                                this.handle_changed = true;
+                                this.handle.value = this.original_handle;
+                                this.handle.focus = true;
+                            },
+                            cancelHandle: function () {
+                                this.handle_changed = false;
+                                this.handle.value = "";
+                            },
+                        };
+                    },
+                    validator: function () {
+                        return function (params) {
+                            params['_form_type'] = 'edit';
+                            return RoleApi.validate(params);
+                        };
+                    },
+                    submitter: function () { return RoleApi.update; },
+                }
+            }).result;
+        }
+    } ]
+);
+
 forms.factory('CreateUserForm',
     [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
     function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
@@ -1083,6 +1159,116 @@ module.controller("LayoutCtrl",
 
 'use strict';
 
+var module = angular.module('state.role-list', []);
+
+module.controller("RoleListCtrl",
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'CreateRoleForm', 'EditRoleForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, CreateRoleForm, EditRoleForm, InfoDialog) {
+        if (!$scope.appControl.aclCheckCurrentState())
+            return; // Disable this controller
+
+        $scope.hasSelection = false;
+        $scope.hasSingleSelection = false;
+        $scope.tableCtrl = dynamicTable({
+            url: $window['config']['apiUrl'] + '/role/table',
+            row_id_column: 'id',
+            sort_column: 'id',
+        });
+
+        $scope.createRole = function () {
+            RoleApi.list({ view: 'tree' })
+                .then(function (roles) {
+                    roles.unshift({
+                        id: null,
+                        handle: "null",
+                        title: "ROLE_TOP_LEVEL",
+                        roles: [],
+                        focus: true,
+                    });
+                    CreateRoleForm(roles)
+                        .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
+
+        $scope.editRole = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            $q.all([ RoleApi.read({ id: sel[0] }), RoleApi.list({ view: 'tree' }) ])
+                .then(function (result) {
+                    var role = result[0];
+                    var roles = result[1];
+                    roles.unshift({
+                        id: null,
+                        handle: "null",
+                        title: "ROLE_TOP_LEVEL",
+                        roles: [],
+                        focus: true,
+                    });
+
+                    function disableRoles(arr) {
+                        $.each(arr, function (index, item) {
+                            if (item.id == role.id)
+                                item.disabled = true;
+                            disableRoles(item.roles);
+                        });
+                    }
+                    disableRoles(roles);
+
+                    EditRoleForm(role, roles)
+                        .then(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
+
+        $scope.deleteRole = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+
+            InfoDialog({
+                title: 'ROLE_CONFIRM_DELETE_TITLE',
+                text: 'ROLE_CONFIRM_DELETE_TEXT',
+                yes: 'ROLE_CONFIRM_DELETE_BUTTON',
+            }).result
+                .then(function () {
+                    var promises = [];
+                    if (sel === 'all') {
+                        promises.push(RoleApi.delete());
+                    } else {
+                        $.each(sel, function (index, value) {
+                            promises.push(RoleApi.delete({ id: value }));
+                        });
+                    }
+
+                    $q.all(promises)
+                        .finally(function () {
+                            $scope.tableCtrl.plugin.refresh();
+                        });
+                });
+        };
+
+        $scope.$watch('tableCtrl.event', function () {
+            if (!$scope.tableCtrl.event)
+                return;
+
+            var event = $scope.tableCtrl.event;
+            $scope.tableCtrl.event = null;
+
+            if (event == 'http-error') {
+                if ($scope.tableCtrl.statusCode == 401 || $scope.tableCtrl.statusCode == 403)
+                    $window.location.reload();
+                return;
+            }
+
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            $scope.hasSelection = (sel == 'all' || sel.length);
+            $scope.hasSingleSelection = (sel != 'all' && sel.length == 1);
+        });
+    } ]
+);
+
+'use strict';
+
 var module = angular.module('state.send-notification', []);
 
 module.controller("SendNotificationCtrl",
@@ -1355,7 +1541,7 @@ module.controller("UserListCtrl",
         });
 
         $scope.createUser = function () {
-            RoleApi.list()
+            RoleApi.list({ view: 'tree' })
                 .then(function (roles) {
                     var preselected = [];
                     $.each(roles, function (index, role) {
@@ -1376,14 +1562,20 @@ module.controller("UserListCtrl",
 
         $scope.editUser = function () {
             var sel = $scope.tableCtrl.plugin.getSelected();
-            $q.all([ UserApi.read({ id: sel[0] }), RoleApi.list() ])
+            $q.all([ UserApi.read({ id: sel[0] }), RoleApi.list({ view: 'tree' }) ])
                 .then(function (result) {
                     var user = result[0];
                     var roles = result[1];
-                    $.each(roles, function (index, role) {
-                        if ($.inArray(role.id, user.roles) != -1)
-                            role.checked = true;
-                    });
+
+                    function selectRoles(arr) {
+                        $.each(arr, function (index, role) {
+                            if ($.inArray(role.id, user.roles) != -1)
+                                role.checked = true;
+                            selectRoles(role.roles);
+                        });
+                    }
+                    selectRoles(roles);
+
                     if (roles.length > 0)
                         roles[0]['focus'] = true;
                     EditUserForm(user, roles)

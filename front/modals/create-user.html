@@ -116,7 +116,7 @@
                         <label>
                             <input type="checkbox" ng-show="node.focus" ng-model="node.checked" ng-change="model.updateRoles()" focus-on="model.roles.focus" on-key-enter="submit()">
                             <input type="checkbox" ng-hide="node.focus" ng-model="node.checked" ng-change="model.updateRoles()" on-key-enter="submit()">
-                            {{ node.title | glMessage }}
+                            {{ node.title | glMessage }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">

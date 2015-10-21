@@ -66,6 +66,13 @@ CREATE TABLE "user_roles" (
 );
 
 
+CREATE VIEW dt_roles AS
+    SELECT r1.*,
+           r2.handle AS parent
+      FROM roles r1
+ LEFT JOIN roles r2
+        ON r2.id = r1.parent_id;
+
 CREATE VIEW dt_users AS
     SELECT u.*,
            string_agg(

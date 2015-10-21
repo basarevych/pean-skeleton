@@ -18,6 +18,7 @@ var app = angular.module('app', [
     'forms',
     'state.layout',
     'state.index',
+    'state.role-list',
     'state.user-list',
     'state.token-list',
     'state.send-notification',
@@ -37,6 +38,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'IndexCtrl',
                 templateUrl: 'views/index.html',
+            })
+            .state('layout.role-list', {
+                url: '/role',
+                title: 'APP_TITLE',
+                controller: 'RoleListCtrl',
+                templateUrl: 'views/role-list.html',
+                roles: [ 'admin' ],
             })
             .state('layout.user-list', {
                 url: '/user',

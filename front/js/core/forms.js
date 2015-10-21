@@ -195,6 +195,74 @@ forms.factory('ProfileForm',
     } ]
 );
 
+forms.factory('CreateRoleForm',
+    [ '$modal', '$filter', 'ValidationCtrl', 'RoleApi',
+    function ($modal, $filter, ValidationCtrl, RoleApi) {
+        return function (roles) {
+            return $modal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/create-role.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            handle: { value: '', focus: true, required: true },
+                            title: { value: '', focus: false, required: true },
+                            parent_id: { tree: roles, value: null, focus: false, required: true },
+                        };
+                    },
+                    validator: function () {
+                        return function (params) {
+                            params['_form_type'] = 'create';
+                            return RoleApi.validate(params);
+                        };
+                    },
+                    submitter: function () { return RoleApi.create; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('EditRoleForm',
+    [ '$modal', '$filter', 'ValidationCtrl', 'RoleApi',
+    function ($modal, $filter, ValidationCtrl, RoleApi) {
+        return function (role, roles) {
+            return $modal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/edit-role.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            id: { value: role.id, focus: false, required: false },
+                            handle: { value: '', focus: false, required: true },
+                            title: { value: role.title, focus: true, required: true },
+                            parent_id: { tree: roles, value: role.parent_id, focus: false, required: true },
+                            handle_changed: false,
+                            original_handle: role.handle,
+                            changeHandle: function () {
+                                this.handle_changed = true;
+                                this.handle.value = this.original_handle;
+                                this.handle.focus = true;
+                            },
+                            cancelHandle: function () {
+                                this.handle_changed = false;
+                                this.handle.value = "";
+                            },
+                        };
+                    },
+                    validator: function () {
+                        return function (params) {
+                            params['_form_type'] = 'edit';
+                            return RoleApi.validate(params);
+                        };
+                    },
+                    submitter: function () { return RoleApi.update; },
+                }
+            }).result;
+        }
+    } ]
+);
+
 forms.factory('CreateUserForm',
     [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
     function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {

@@ -24,7 +24,7 @@ module.exports = function (app) {
 
         var form = {
             form_type: validator.trim(req.body._form_type),
-            parent_id: validator.trim(req.body.parent_id),
+            parent_id: req.body.parent_id,
             handle: validator.trim(req.body.handle),
             title: validator.trim(req.body.title),
         };
@@ -32,6 +32,10 @@ module.exports = function (app) {
         var roleRepo = locator.get('role-repository');
         var errors = [];
         switch (field) {
+            case 'parent_id':
+                if (form.parent_id !== null && !validator.isLength(form.parent_id, 1))
+                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                break;
             case 'handle':
                 if (form.form_type == 'create') {
                     if (!validator.isLength(form.handle, 1))
@@ -250,7 +254,19 @@ module.exports = function (app) {
                 var roleRepo = locator.get('role-repository');
                 roleRepo.findAll()
                     .then(function (roles) {
-                        var result = loadRoles(roles, null);
+                        var result = [];
+                        if (req.query.view === 'tree') {
+                            result = loadRoles(roles, null);
+                        } else {
+                            roles.forEach(function (role) {
+                                result.push({
+                                    id: role.getId(),
+                                    parent_id: role.getParentId(),
+                                    handle: role.getHandle(),
+                                    title: role.getTitle(),
+                                });
+                            });
+                        }
                         res.json(result);
                     })
                     .catch(function (err) {
@@ -296,9 +312,9 @@ module.exports = function (app) {
                         }
 
                         var role = new RoleModel();
-                        user.setParentId(parentId.value.length ? parentId.value : null);
-                        user.setHandle(handle.value);
-                        user.setTitle(title.value);
+                        role.setParentId(parentId.value);
+                        role.setHandle(handle.value);
+                        role.setTitle(title.value);
 
                         role.save()
                             .then(function (roleId) {
@@ -358,6 +374,9 @@ module.exports = function (app) {
                             });
                         }
 
+                        if (parentId.value == roleId)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
                         var roleRepo = locator.get('role-repository');
                         roleRepo.find(roleId)
                             .then(function (roles) {
@@ -365,7 +384,7 @@ module.exports = function (app) {
                                 if (!role)
                                     return app.abort(res, 404, "Role " + roleId + " not found");
 
-                                role.setParentId(parentId.value.length ? parentId.value : null);
+                                role.setParentId(parentId.value);
                                 if (handle.value.length)
                                     role.setHandle(handle.value);
                                 role.setTitle(title.value);
