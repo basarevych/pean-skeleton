@@ -74,10 +74,11 @@ module.exports = function(grunt) {
                     'bower_components/jquery/dist/jquery.js',
                     'bower_components/bootstrap/dist/js/bootstrap.js',
                     'bower_components/moment/min/moment-with-locales.js',
+                    'bower_components/moment-timezone/builds/moment-timezone-with-data.js',
 
                     'bower_components/angular/angular.js',
                     'bower_components/angular-loader/angular-loader.js',
-                    'bower_components/angular-loading-bar/src/loading-bar.js',
+                    'bower_components/angular-loading-bar/build/loading-bar.js',
                     'bower_components/angular-resource/angular-resource.js',
                     'bower_components/angular-cookies/angular-cookies.js',
                     'bower_components/angular-animate/angular-animate.js',
@@ -99,11 +100,11 @@ module.exports = function(grunt) {
 
                     'bower_components/angular-globalize-wrapper/dist/angular-globalize-wrapper.js',
 
-                    'bower_components/pnotify/pnotify.core.js',
-                    'bower_components/pnotify/pnotify.buttons.js',
+                    'bower_components/pnotify/src/pnotify.core.js',
+                    'bower_components/pnotify/src/pnotify.buttons.js',
 
                     'bower_components/highlightjs/highlight.pack.js',
-                    'bower_components/angular-highlightjs/angular-highlightjs.js',
+                    'bower_components/angular-highlightjs/build/angular-highlightjs.js',
 
                     '../node_modules/dynamic-table/dist/jquery.dynamic-table.js',
                     '../node_modules/dynamic-table/dist/angularjs.dynamic-table.js',
@@ -119,13 +120,13 @@ module.exports = function(grunt) {
                     /*
                      * Add your CSS dependencies here, order is respected
                      */
-                    'bower_components/angular-loading-bar/src/loading-bar.css',
+                    'bower_components/angular-loading-bar/build/loading-bar.css',
                     'bower_components/angular-ui-tree/dist/angular-ui-tree.min.css',
 
                     'bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
 
-                    'bower_components/pnotify/pnotify.core.css',
-                    'bower_components/pnotify/pnotify.buttons.css',
+                    'bower_components/pnotify/src/pnotify.core.css',
+                    'bower_components/pnotify/src/pnotify.buttons.css',
 
                     'bower_components/highlightjs/styles/default.css',
 

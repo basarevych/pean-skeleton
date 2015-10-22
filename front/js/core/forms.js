@@ -3,8 +3,8 @@
 var forms = angular.module('forms', []);
 
 forms.factory('InfoDialog',
-    [ '$modal', 'globalizeWrapper',
-    function ($modal, globalizeWrapper) {
+    [ '$uibModal', 'globalizeWrapper',
+    function ($uibModal, globalizeWrapper) {
         var isOpened = false;
 
         var ModalCtrl = function ($scope, $modalInstance, title, text, yes, variables) {
@@ -20,7 +20,7 @@ forms.factory('InfoDialog',
                 return null;
 
             isOpened = true;
-            var modal = $modal.open({
+            var modal = $uibModal.open({
                 controller: ModalCtrl,
                 templateUrl: 'modals/info-dialog.html',
                 resolve: {
@@ -150,10 +150,10 @@ forms.factory('ValidationCtrl',
 );
 
 forms.factory('LoginForm',
-    [ '$modal', '$filter', 'ValidationCtrl', 'AuthApi',
-    function ($modal, $filter, ValidationCtrl, AuthApi) {
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'AuthApi',
+    function ($uibModal, $filter, ValidationCtrl, AuthApi) {
         return function () {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/login.html',
                 resolve: {
@@ -172,10 +172,10 @@ forms.factory('LoginForm',
 );
 
 forms.factory('ProfileForm',
-    [ '$modal', '$filter', 'ValidationCtrl', 'ProfileApi',
-    function ($modal, $filter, ValidationCtrl, ProfileApi) {
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'ProfileApi',
+    function ($uibModal, $filter, ValidationCtrl, ProfileApi) {
         return function (profile) {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/profile.html',
                 resolve: {
@@ -196,10 +196,10 @@ forms.factory('ProfileForm',
 );
 
 forms.factory('CreateRoleForm',
-    [ '$modal', '$filter', 'ValidationCtrl', 'RoleApi',
-    function ($modal, $filter, ValidationCtrl, RoleApi) {
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'RoleApi',
+    function ($uibModal, $filter, ValidationCtrl, RoleApi) {
         return function (roles) {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/create-role.html',
                 resolve: {
@@ -224,10 +224,10 @@ forms.factory('CreateRoleForm',
 );
 
 forms.factory('EditRoleForm',
-    [ '$modal', '$filter', 'ValidationCtrl', 'RoleApi',
-    function ($modal, $filter, ValidationCtrl, RoleApi) {
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'RoleApi',
+    function ($uibModal, $filter, ValidationCtrl, RoleApi) {
         return function (role, roles) {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/edit-role.html',
                 resolve: {
@@ -264,10 +264,10 @@ forms.factory('EditRoleForm',
 );
 
 forms.factory('CreateUserForm',
-    [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
-    function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($uibModal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (preselectedRoles, allRoles) {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/create-user.html',
                 resolve: {
@@ -319,10 +319,10 @@ forms.factory('CreateUserForm',
 );
 
 forms.factory('EditUserForm',
-    [ '$modal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
-    function ($modal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($uibModal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (user, roles) {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/edit-user.html',
                 resolve: {
@@ -386,10 +386,10 @@ forms.factory('EditUserForm',
 );
 
 forms.factory('TokenPayloadForm',
-    [ '$modal', '$filter', 'ValidationCtrl',
-    function ($modal, $filter, ValidationCtrl) {
+    [ '$uibModal', '$filter', 'ValidationCtrl',
+    function ($uibModal, $filter, ValidationCtrl) {
         return function (payload) {
-            return $modal.open({
+            return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/token-payload.html',
                 resolve: {

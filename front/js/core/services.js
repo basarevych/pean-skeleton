@@ -209,7 +209,7 @@ services.factory('SocketServer',
         function onNotification(message) {
             var variables = JSON.parse(message.variables);
             new PNotify({
-                icon: message.icon && $filter('glMessage')(message.icon, variables),
+                icon: message.icon,
                 title: message.title && $filter('glMessage')(message.title, variables),
                 text: $filter('glMessage')(message.text, variables),
                 mouse_reset: false,

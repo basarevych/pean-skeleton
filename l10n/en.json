@@ -69,6 +69,7 @@
         "ROLE_EDIT_BUTTON": "Edit role",
         "ROLE_DELETE_BUTTON": "Delete role",
         "ROLE_CREATE_TITLE": "Create role",
+        "ROLE_EDIT_TITLE": "Edit role",
         "HANDLE_LABEL": "Handle",
         "PARENT_LABEL": "Parent",
         "ROLE_CHANGE_HANDLE_BUTTON": "Change",

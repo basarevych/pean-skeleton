@@ -45,7 +45,7 @@
                                 <span class="input-group-addon">
                                     {{ 'EMAIL_LABEL' | glMessage }}
                                 </span>
-                                <input type="text" class="form-control" ng-model="recipientUser" typeahead="result as result.email for result in getEmail($viewValue)">
+                                <input type="text" class="form-control" ng-model="recipientUser" uib-typeahead="result as result.email for result in getEmail($viewValue)">
                             </div>
                         </label>
                     </div>

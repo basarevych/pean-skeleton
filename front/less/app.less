@@ -1,11 +1,11 @@
 @import "../bower_components/bootstrap/less/bootstrap";
 
-.ng-cloak, .forced-hide {
-  display: none !important;
+body.padded {
+    padding-top: 70px;
 }
 
-body.padded {
-    padding: 60px 0;
+.ng-cloak, .forced-hide {
+  display: none !important;
 }
 
 .back-button {
@@ -48,16 +48,16 @@ body.padded {
     }
 }
 
-[ui-view].ng-enter {
+.main-view.ng-enter {
     transition: 0.75s cubic-bezier(0.25, 0.1, 0.25, 1.0) all;
     opacity: 0;
     padding-top: 25px;
 }
-[ui-view].ng-enter.ng-enter-active {
+.main-view.ng-enter.ng-enter-active {
     opacity: 1;
     padding-top: 0;
 }
-[ui-view].ng-leave {
+.main-view.ng-leave {
     opacity: 0;
 }
 
