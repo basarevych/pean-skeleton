@@ -16,8 +16,13 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 
 // check .env file presence
-var fd = fs.openSync(__dirname + "/../.env", "r");
-fs.closeSync(fd);
+try {
+    var fd = fs.openSync(path.join(__dirname, "..", ".env"), "r");
+    fs.closeSync(fd);
+} catch (err) {
+    console.log("Could not open .env file");
+    process.exit(1);
+}
 
 var app = module.exports = express();
 

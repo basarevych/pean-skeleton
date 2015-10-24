@@ -20,7 +20,7 @@ module.exports = function () {
 
     if (app.get('env') != 'test') {
         store = new FileStore({
-            path: path.join(__dirname, '/../..', 'sessions'),
+            path: path.join(__dirname, '..', '..', 'sessions'),
             ttl: ttl ? ttl : 24 * 60 * 60,  // time to live or one day, seconds
             retries: -1,                    // do not retry
         });
