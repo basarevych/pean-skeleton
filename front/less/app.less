@@ -5,7 +5,7 @@ body.padded {
 }
 
 .ng-cloak, .forced-hide {
-  display: none !important;
+    display: none !important;
 }
 
 .back-button {
@@ -23,20 +23,24 @@ body.padded {
     font-size: 65%;
 }
 
-.icon-list li {
-    padding: 0 0 5px 20px;
-    display: block;
-    position: relative;
+.icon-list {
+    li {
+        padding: 0 0 5px 20px;
+        display: block;
+        position: relative;
+    }
+    li:before {
+        font-family: 'Glyphicons Halflings';
+        position: absolute;
+        left: 0px;
+        top: 3px;
+        font-size: 80%;
+    }
 }
-.icon-list li:before {
-    font-family: 'Glyphicons Halflings';
-    position: absolute;
-    left: 0px;
-    top: 3px;
-    font-size: 80%;
-}
-.error-list li:before {
-    content: '\e090';
+.error-list {
+    li:before {
+        content: '\e090';
+    }
 }
 
 .panel-actions {
@@ -48,17 +52,19 @@ body.padded {
     }
 }
 
-[ui-view].ng-enter {
-    transition: 0.75s cubic-bezier(0.25, 0.1, 0.25, 1.0) all;
-    opacity: 0;
-    padding-top: 25px;
-}
-[ui-view].ng-enter.ng-enter-active {
-    opacity: 1;
-    padding-top: 0;
-}
-[ui-view].ng-leave {
-    opacity: 0;
+[ui-view] {
+    &.ng-enter {
+        transition: 0.75s cubic-bezier(0.25, 0.1, 0.25, 1.0) all;
+        opacity: 0;
+        padding-top: 25px;
+        &.ng-enter-active {
+            opacity: 1;
+            padding-top: 0;
+        }
+    }
+    &.ng-leave {
+        opacity: 0;
+    }
 }
 
 .ui-pnotify-icon {
