@@ -73,9 +73,8 @@ module.exports = function () {
         if (res.locals.hasMessages) {
             // empty or "flush" the messages so they don't build up
             req.session.messages = [];
-            req.session.save(function () { next(); });
-        } else {
-            next();
         }
+
+        next();
     });
 };
