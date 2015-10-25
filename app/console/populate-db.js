@@ -88,9 +88,9 @@ module.exports = function (argv, rl) {
                                     user = new UserModel();
                                     user.setName('Admin');
                                     user.setEmail(email);
-                                    user.setPassword(UserModel.encryptPassword(password));
                                 }
 
+                                user.setPassword(UserModel.encryptPassword(password));
                                 user.save()
                                     .then(function () {
                                         user.associateRole(adminRole.getId());
