@@ -173,9 +173,9 @@ UserModel.prototype.save = function (evenIfNotDirty) {
                         }
 
                         var id = result.rows.length && result.rows[0]['id'];
-                        if (id) {
+                        if (id)
                             me.id = id;
-                        } else
+                        else
                             id = me.id;
 
                         db.query("COMMIT TRANSACTION", [], function (err, result) {

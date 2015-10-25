@@ -148,9 +148,9 @@ TokenModel.prototype.save = function (evenIfNotDirty) {
             me.dirty(false);
 
             var id = result.rows.length && result.rows[0]['id'];
-            if (id) {
+            if (id)
                 me.id = id;
-            } else
+            else
                 id = me.id;
 
             defer.resolve(id);
