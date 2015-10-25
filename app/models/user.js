@@ -149,7 +149,7 @@ UserModel.prototype.save = function (evenIfNotDirty) {
                             me.getName(),
                             me.getEmail(),
                             me.getPassword(),
-                            me.getCreatedAt(),
+                            me.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                             me.getId(),
                         ];
                     } else {

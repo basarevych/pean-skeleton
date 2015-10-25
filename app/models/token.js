@@ -119,8 +119,8 @@ TokenModel.prototype.save = function (evenIfNotDirty) {
                 me.getUserId(),
                 me.getPayload(),
                 me.getIpAddress(),
-                me.getCreatedAt(),
-                me.getUpdatedAt(),
+                me.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                me.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 me.getId(),
             ];
         } else {
