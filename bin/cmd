@@ -14,10 +14,10 @@ var path = require('path');
 var argv = require('minimist')(process.argv.slice(2));
 var readline = require('readline');
 
-var dir = path.join(__dirname, '..', 'app', 'console');
+var dir = path.join(__dirname, '..', 'app', 'commands');
 if (argv['_'].length == 0) {
-    console.log("\nUsage:\tbin/console <command> [<options>]\n\n");
-    console.log("Run \"bin/console help <command>\" for help\n\n");
+    console.log("\nUsage:\tbin/cmd <command> [<options>]\n");
+    console.log("Run \"bin/cmd help <command>\" for help\n");
     console.log("Available commands:\n");
     fs.readdirSync(dir).forEach(function (name) {
         var rl = readline.createInterface({
@@ -34,7 +34,7 @@ if (argv['_'].length == 0) {
 var name = argv['_'][0];
 if (name == 'help') {
     if (argv['_'].length <= 1) {
-        console.log("\nRun \"bin/console help <command>\" for help\n");
+        console.log("\nRun \"bin/cmd help <command>\" for help\n");
         return;
     }
 
@@ -42,9 +42,12 @@ if (name == 'help') {
 }
 
 var objPath = dir + '/' + name + '.js';
-if (!fs.existsSync(objPath)) {
-    console.log("\nUnknown command: " + name + "\n\n");
-    return;
+try {
+    var fd = fs.openSync(objPath, "r");
+    fs.closeSync(fd);
+} catch (err) {
+    console.log("\nUnknown command: " + name + "\n");
+    process.exit(1);
 }
 
 var rl = readline.createInterface({

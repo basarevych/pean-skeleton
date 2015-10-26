@@ -17,8 +17,8 @@ module.exports = function (argv, rl) {
 
     function help(done) {
         rl.write("\nUsage:");
-        rl.write("\tbin/console notify [--title=<title>] [--icon=<icon>] [--variables=<variables>]\\\n");
-        rl.write("\t                   [--user-id=<user-id>] | --role-id=<role-id>]<text>\n\n");
+        rl.write("\tbin/cmd notify [--title=<title>] [--icon=<icon>] [--variables=<variables>]\\\n");
+        rl.write("\t               [--user-id=<user-id>] | --role-id=<role-id>]<text>\n\n");
         rl.write("\tPopup notification in web-interface\n");
         rl.write("\nParameters:\n\n");
         rl.write("\t<text>\t\t\tText of the notification\n");

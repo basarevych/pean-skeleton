@@ -18,7 +18,7 @@ module.exports = function (argv, rl) {
     }
 
     function help(done) {
-        rl.write("\nUsage:\tbin/console populate-db\n\n");
+        rl.write("\nUsage:\tbin/cmd populate-db\n\n");
         rl.write("\tThis command will populate the database with initial data\n");
         done();
     }
