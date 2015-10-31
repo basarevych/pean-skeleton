@@ -68,7 +68,7 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
 
     roleId = parseInt(roleId, 10);
     if (isNaN(roleId)) {
-        defer.reject('PermisssionRepository.findByRoleId() - invalid parameters');
+        defer.reject('PermissionRepository.findByRoleId() - invalid parameters');
         return defer.promise;
     }
 
@@ -264,7 +264,7 @@ PermissionRepository.prototype.save = function (permission) {
 
             var id = result.rows.length && result.rows[0]['id'];
             if (id)
-                permisssion.setId(id);
+                permission.setId(id);
             else
                 id = permission.getId();
 
