@@ -47,7 +47,7 @@ module.exports = function () {
                 if (roleId.length)
                     notification.setRoleId(roleId);
 
-                var notificationRepo = locator.get('notification-repo');
+                var notificationRepo = locator.get('notification-repository');
                 notificationRepo.save(notification)
                     .then(function (userId) {
                         res.json({ success: true });
