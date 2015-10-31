@@ -1,4 +1,5 @@
 DROP VIEW IF EXISTS "dt_users";
+DROP VIEW IF EXISTS "dt_roles";
 
 DROP TABLE IF EXISTS "user_roles";
 DROP TABLE IF EXISTS "tokens";
