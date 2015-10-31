@@ -468,7 +468,7 @@ UserRepository.prototype.associateRole = function (user, role) {
     return defer.promise;
 };
 
-UserModel.prototype.deassociateRole = function (user, role) {
+UserRepository.prototype.deassociateRole = function (user, role) {
     var logger = locator.get('logger');
     var defer = q.defer();
 

@@ -258,7 +258,7 @@ RoleRepository.prototype.delete = function (role) {
         return defer.promise;
     }
 
-    var db = role.getPostgres();
+    var db = this.getPostgres();
     db.connect(function (err) {
         if (err) {
             defer.reject();

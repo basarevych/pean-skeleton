@@ -428,7 +428,7 @@ module.exports = function (app) {
 
                                 q.all(promises)
                                     .then(function () {
-                                        res.json({ success: true });
+                                        res.json({ success: true, id: userId });
                                     })
                                     .catch(function (err) {
                                         logger.error('POST /v1/user failed', err);

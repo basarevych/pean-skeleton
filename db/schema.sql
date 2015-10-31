@@ -78,8 +78,7 @@ CREATE VIEW dt_users AS
            string_agg(
                (SELECT DISTINCT r.handle
                   FROM roles r
-                 WHERE r.id = ur.role_id
-              ORDER BY r.handle),
+                 WHERE r.id = ur.role_id),
               ', '
            ) AS roles,
            (SELECT count(t.*)

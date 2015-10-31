@@ -66,7 +66,7 @@ module.exports = function () {
                             token.setPayload(payload);
                             token.setIpAddress(req.connection.remoteAddress);
                             token.setUpdatedAt(moment());
-                            return token.save();
+                            return tokenRepo.save(token);
                         })
                         .then(function (tokenId) {
                             if (!tokenId) {

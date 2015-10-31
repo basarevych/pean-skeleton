@@ -322,7 +322,7 @@ module.exports = function (app) {
                                 if (roleId === null)
                                     res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                 else
-                                    res.json({ success: true });
+                                    res.json({ success: true, id: roleId });
                             })
                             .catch(function (err) {
                                 logger.error('POST /v1/role failed', err);
