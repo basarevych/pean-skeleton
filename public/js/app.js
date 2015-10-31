@@ -1,4 +1,4 @@
-/* pean-skeleton - v0.0.0 - 2015-10-30 */
+/* pean-skeleton - v0.0.0 - 2015-10-31 */
 
 'use strict';
 
@@ -1366,6 +1366,7 @@ module.controller("SendNotificationCtrl",
 
         $scope.sendNotification = function () {
             $scope.sendButtonActive = false;
+            var gl = globalizeWrapper.getGlobalize($scope.selectedLocale);
 
             var params = {};
             switch ($scope.premadeSelection) {
@@ -1378,7 +1379,7 @@ module.controller("SendNotificationCtrl",
                 case 'shutdown':
                     params['text'] = 'NOTIFICATION_SHUTDOWN_TEXT';
                     params['title'] = 'NOTIFICATION_SHUTDOWN_TITLE';
-                    params['icon'] = 'NOTIFICATION_SHUTDOWN_ICON';
+                    params['icon'] = gl.formatMessage('NOTIFICATION_SHUTDOWN_ICON');
                     params['variables'] = { minutes: $scope.modelShutdown.minutes };
                     break;
             }
