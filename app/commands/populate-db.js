@@ -40,7 +40,7 @@ module.exports = function (argv, rl) {
                     role.setParentId(null);
                     role.setHandle("member");
                     role.setTitle("ROLE_MEMBER");
-                    return role.save();
+                    return roleRepo.save(role);
                 }
             })
             .then(function () {
@@ -55,7 +55,7 @@ module.exports = function (argv, rl) {
                     role.setHandle("admin");
                     role.setTitle("ROLE_ADMIN");
                     adminRole = role;
-                    return role.save();
+                    return roleRepo.save(role);
                 }
                 adminRole = role;
             })
@@ -71,7 +71,7 @@ module.exports = function (argv, rl) {
                     permission.setRoleId(adminRole.id);
                     permission.setResource(null);
                     permission.setAction(null);
-                    return permission.save();
+                    return permissionRepo.save(permission);
                 }
             })
             .then(function () {
@@ -91,9 +91,9 @@ module.exports = function (argv, rl) {
                                 }
 
                                 user.setPassword(UserModel.encryptPassword(password));
-                                user.save()
+                                userRepo.save(user)
                                     .then(function () {
-                                        user.associateRole(adminRole.getId());
+                                        userRepo.associateRole(user, adminRole);
                                         rl.write("==> Done\n");
                                         done();
                                     })

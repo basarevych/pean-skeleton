@@ -116,7 +116,8 @@ module.exports = function () {
                 if (newPassword.value.length)
                     req.user.setPassword(UserModel.encryptPassword(newPassword.value));
 
-                req.user.save()
+                var userRepo = locator.get('user-repository');
+                userRepo.save(req.user)
                     .then(function () {
                         res.json({ success: true });
                     })

@@ -98,7 +98,7 @@ module.exports = function (app) {
                         token.setIpAddress(req.connection.remoteAddress);
                         token.setCreatedAt(moment());
                         token.setUpdatedAt(moment());
-                        return token.save();
+                        return tokenRepo.save(token);
                     })
                     .then(function () {
                         if (!user || !token)
@@ -112,7 +112,7 @@ module.exports = function (app) {
                         encryptedData = jwt.sign(payload, config['jwt']['secret']);
 
                         token.setPayload(JSON.stringify(payload));
-                        return token.save();
+                        return tokenRepo.save(token);
                     })
                     .then(function () {
                         if (!encryptedData)

@@ -227,7 +227,7 @@ module.exports = function (app) {
                         if (!token)
                             return app.abort(res, 404, "Token " + tokenId + " not found");
 
-                        return token.delete();
+                        return tokenRepo.delete(token);
                     })
                     .then(function (count) {
                         res.json({ success: count > 0 });

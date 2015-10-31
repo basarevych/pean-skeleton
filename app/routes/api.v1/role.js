@@ -316,7 +316,8 @@ module.exports = function (app) {
                         role.setHandle(handle.value);
                         role.setTitle(title.value);
 
-                        role.save()
+                        var roleRepo = locator.get('role-repository');
+                        roleRepo.save(role)
                             .then(function (roleId) {
                                 if (roleId === null)
                                     res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
@@ -389,7 +390,7 @@ module.exports = function (app) {
                                     role.setHandle(handle.value);
                                 role.setTitle(title.value);
 
-                                role.save()
+                                roleRepo.save(role)
                                     .then(function (roleId) {
                                         if (roleId === null)
                                             res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
@@ -438,7 +439,7 @@ module.exports = function (app) {
                         if (!role)
                             return app.abort(res, 404, "Role " + roleId + " not found");
 
-                        return role.delete();
+                        return roleRepo.delete(role);
                     })
                     .then(function (count) {
                         res.json({ success: count > 0 });

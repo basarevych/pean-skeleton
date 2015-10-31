@@ -407,22 +407,28 @@ module.exports = function (app) {
                         user.setPassword(UserModel.encryptPassword(password.value));
                         user.setCreatedAt(moment());
 
-                        var roleIds = req.body.roles || (req.body.form && req.body.form.roles);
+                        var roleIds = req.body.roles;
                         if (typeof roleIds != 'object' || typeof roleIds.forEach != 'function')
                             return app.abort(res, 400, "User roles are not in array");
 
-                        user.save()
-                            .then(function (userId) {
+                        var userRepo = locator.get('user-repository');
+                        var roleRepo = locator.get('role-repository');
+                        q.all([ userRepo.save(user), roleRepo.findAll() ])
+                            .then(function (result) {
+                                var userId = result[0];
+                                var allRoles = result[1];
+                                if (userId === null)
+                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
                                 var promises = [];
-                                roleIds.forEach(function (roleId) {
-                                    promises.push(user.associateRole(roleId));
+                                allRoles.forEach(function (role) {
+                                    if (roleIds.indexOf(role.getId()) != -1)
+                                        promises.push(userRepo.associateRole(user, role));
                                 });
+
                                 q.all(promises)
                                     .then(function () {
-                                        if (userId === null)
-                                            res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
-                                        else
-                                            res.json({ success: true });
+                                        res.json({ success: true });
                                     })
                                     .catch(function (err) {
                                         logger.error('POST /v1/user failed', err);
@@ -501,21 +507,21 @@ module.exports = function (app) {
                                 if (typeof roleIds != 'object' || typeof roleIds.forEach != 'function')
                                     return app.abort(res, 400, "User roles are not in array");
 
-                                q.all([ user.save(), roleRepo.findByUserId(userId) ])
+                                q.all([ userRepo.save(user), roleRepo.findAll() ])
                                     .then(function (result) {
                                         var userId = result[0];
-                                        var oldRoles = result[1];
+                                        var allRoles = result[1];
                                         if (userId === null)
                                             return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                         var promises = [];
-                                        oldRoles.forEach(function (oldRole) {
-                                            if (roleIds.indexOf(oldRole.getId()) == -1)
-                                                promises.push(user.deassociateRole(oldRole.getId()));
+                                        allRoles.forEach(function (role) {
+                                            if (roleIds.indexOf(role.getId()) == -1)
+                                                promises.push(userRepo.deassociateRole(user, role));
+                                            else
+                                                promises.push(userRepo.associateRole(user, role));
                                         });
-                                        roleIds.forEach(function (roleId) {
-                                            promises.push(user.associateRole(roleId));
-                                        });
+
                                         q.all(promises)
                                             .then(function () {
                                                 res.json({ success: true });
@@ -567,7 +573,7 @@ module.exports = function (app) {
                         if (!user)
                             return app.abort(res, 404, "User " + userId + " not found");
 
-                        return user.delete();
+                        return userRepo.delete(user);
                     })
                     .then(function (count) {
                         res.json({ success: count > 0 });
