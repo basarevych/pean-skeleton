@@ -7,7 +7,7 @@ forms.factory('InfoDialog',
     function ($uibModal, globalizeWrapper) {
         var isOpened = false;
 
-        var ModalCtrl = function ($scope, $modalInstance, title, text, yes, variables) {
+        var ModalCtrl = function ($scope, $uibModalInstance, title, text, yes, variables) {
             $scope.title = title;
             $scope.text = text;
             $scope.yes = yes;
@@ -39,7 +39,7 @@ forms.factory('InfoDialog',
 forms.factory('ValidationCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
-        return function ($scope, $modalInstance, model, validator, submitter) {
+        return function ($scope, $uibModalInstance, model, validator, submitter) {
             $scope.model = model;
             $scope.validation = { errors: [], fields: {} }; 
             $scope.processing = false;
