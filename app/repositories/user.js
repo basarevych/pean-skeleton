@@ -273,6 +273,284 @@ UserRepository.prototype.searchByEmail = function (search) {
     return defer.promise;
 };
 
+UserRepository.prototype.save = function (user) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.save() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('UserRepository.save() - pg query', err);
+                process.exit(1);
+            }
+
+            db.query(
+                "SELECT email "
+              + "  FROM users "
+              + " WHERE id <> $1 AND email = $2 ",
+                [ user.getId(), user.getEmail() ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('UserRepository.save() - pg query', err);
+                        process.exit(1);
+                    }
+
+                    if (result.rows.length) {
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserRepository.save() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            defer.resolve(null);
+                        });
+                        return;
+                    }
+
+                    var query, params = [];
+                    if (user.getId()) {
+                        query = "UPDATE users "
+                              + "   SET name = $1, "
+                              + "       email = $2, "
+                              + "       password = $3, "
+                              + "       created_at = $4 "
+                              + " WHERE id = $5 ";
+                        params = [
+                            user.getName(),
+                            user.getEmail(),
+                            user.getPassword(),
+                            user.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                            user.getId(),
+                        ];
+                    } else {
+                        query = "   INSERT "
+                              + "     INTO users(name, email, password, created_at) "
+                              + "   VALUES ($1, $2, $3, $4) "
+                              + "RETURNING id ";
+                        params = [
+                            user.getName(),
+                            user.getEmail(),
+                            user.getPassword(),
+                            user.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                        ];
+                    }
+
+                    db.query(query, params, function (err, result) {
+                        if (err) {
+                            defer.reject();
+                            logger.error('UserRepository.save() - pg query', err);
+                            process.exit(1);
+                        }
+
+                        var id = result.rows.length && result.rows[0]['id'];
+                        if (id)
+                            user.setId(id);
+                        else
+                            id = user.getId();
+
+                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserRepository.save() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            user.dirty(false);
+                            defer.resolve(id);
+                        });
+                    });
+                }
+            );
+        });
+    });
+
+    return defer.promise;
+};
+
+UserRepository.prototype.associateRole = function (user, role) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    if (!user.getId()) {
+        logger.error('Save user model first');
+        process.exit(1);
+    }
+
+    if (!role.getId()) {
+        logger.error('Save role model first');
+        process.exit(1);
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.associateRole() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('UserRepository.associateRole() - pg query', err);
+                process.exit(1);
+            }
+
+            db.query(
+                "SELECT count(*) AS count "
+              + "  FROM user_roles "
+              + " WHERE user_id = $1 "
+              + "       AND role_id = $2 ",
+                [ user.getId(), role.getId() ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('UserRepository.associateRole() - pg query', err);
+                        process.exit(1);
+                    }
+
+                    if (result.rows[0]['count'] > 0) {
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserRepository.associateRole() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            defer.resolve(0);
+                        });
+                        return;
+                    }
+
+                    db.query(
+                        "   INSERT "
+                      + "     INTO user_roles(user_id, role_id) "
+                      + "   VALUES ($1, $2) ",
+                        [ user.getId(), role.getId() ],
+                        function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserRepository.associateRole() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            var count = result.rowCount;
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('UserRepository.associateRole() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                db.end();
+                                defer.resolve(count);
+                            });
+                        }
+                    );
+                }
+            );
+        });
+    });
+
+    return defer.promise;
+};
+
+UserModel.prototype.deassociateRole = function (user, role) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    if (!user.getId()) {
+        logger.error('Save user model first');
+        process.exit(1);
+    }
+
+    if (!role.getId()) {
+        logger.error('Save role model first');
+        process.exit(1);
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.deassociateRole() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM user_roles "
+          + " WHERE user_id = $1 AND role_id = $2 ",
+            [ user.getId(), role.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.deassociateRole() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+UserRepository.prototype.delete = function (user) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    if (!user.getId()) {
+        defer.resolve(0);
+        return defer.promise;
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('UserRepository.delete() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM users "
+          + " WHERE id = $1 ",
+            [ user.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.delete() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                user.setId(null);
+                user.dirty(false);
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
 
 UserRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');

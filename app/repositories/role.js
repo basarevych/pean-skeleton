@@ -189,6 +189,107 @@ RoleRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+RoleRepository.prototype.save = function (role) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('RoleRepository.save() - pg connect', err);
+            process.exit(1);
+        }
+
+        var query, params = [];
+        if (role.getId()) {
+            query = "UPDATE roles "
+                  + "   SET parent_id = $1, "
+                  + "       handle = $2, "
+                  + "       title = $3 "
+                  + " WHERE id = $4 ";
+            params = [
+                role.getParentId(),
+                role.getHandle(),
+                role.getTitle(),
+                role.getId(),
+            ];
+        } else {
+            query = "   INSERT "
+                  + "     INTO roles(parent_id, handle, title) "
+                  + "   VALUES ($1, $2, $3) "
+                  + "RETURNING id ";
+            params = [
+                role.getParentId(),
+                role.getHandle(),
+                role.getTitle(),
+            ];
+        }
+
+        db.query(query, params, function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('RoleRepository.save() - pg query', err);
+                process.exit(1);
+            }
+
+            db.end();
+            role.dirty(false);
+
+            var id = result.rows.length && result.rows[0]['id'];
+            if (id)
+                role.setId(id);
+            else
+                id = role.getId();
+
+            defer.resolve(id);
+        });
+    });
+
+    return defer.promise;
+};
+
+RoleRepository.prototype.delete = function (role) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    if (!role.getId()) {
+        defer.resolve(0);
+        return defer.promise;
+    }
+
+    var db = role.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('RoleRepository.delete() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM roles "
+          + " WHERE id = $1 ",
+            [ role.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('RoleRepository.delete() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                role.setId(null);
+                role.dirty(false);
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 RoleRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

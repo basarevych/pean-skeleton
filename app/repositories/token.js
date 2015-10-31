@@ -146,6 +146,113 @@ TokenRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+TokenRepository.prototype.save = function (token) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('TokenRepository.save() - pg connect', err);
+            process.exit(1);
+        }
+
+        var query, params = [];
+        if (token.getId()) {
+            query = "UPDATE tokens "
+                  + "   SET user_id = $1, "
+                  + "       payload = $2, "
+                  + "       ip_address = $3, "
+                  + "       created_at = $4, "
+                  + "       updated_at = $5 "
+                  + " WHERE id = $6 ";
+            params = [
+                token.getUserId(),
+                token.getPayload(),
+                token.getIpAddress(),
+                token.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                token.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                token.getId(),
+            ];
+        } else {
+            query = "   INSERT "
+                  + "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) "
+                  + "   VALUES ($1, $2, $3, $4, $5) "
+                  + "RETURNING id ";
+            params = [
+                token.getUserId(),
+                token.getPayload(),
+                token.getIpAddress(),
+                token.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                token.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+            ];
+        }
+
+        db.query(query, params, function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('TokenRepository.save() - pg query', err);
+                process.exit(1);
+            }
+
+            db.end();
+            token.dirty(false);
+
+            var id = result.rows.length && result.rows[0]['id'];
+            if (id)
+                token.setId(id);
+            else
+                id = token.getId();
+
+            defer.resolve(id);
+        });
+    });
+
+    return defer.promise;
+};
+
+TokenRepository.prototype.delete = function (token) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    if (!token.getId()) {
+        defer.resolve(0);
+        return defer.promise;
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('TokenRepository.delete() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM tokens "
+          + " WHERE id = $1 ",
+            [ token.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('TokenRepository.delete() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                token.setId(null);
+                token.dirty(false);
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 TokenRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

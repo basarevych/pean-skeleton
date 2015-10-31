@@ -177,4 +177,175 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
     return defer.promise;
 };
 
+PermissionRepository.prototype.findAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('PermissionRepository.findAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "  SELECT * "
+          + "    FROM permissions ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('PermissionRepository.findAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var permissions = [];
+                result.rows.forEach(function (row) {
+                    var permission = new PermissionModel(row);
+                    permissions.push(permission);
+                });
+
+                defer.resolve(permissions);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+PermissionRepository.prototype.save = function (permission) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('PermissionRepository.save() - pg connect', err);
+            process.exit(1);
+        }
+
+        var query, params = [];
+        if (permission.getId()) {
+            query = "UPDATE permissions "
+                  + "   SET role_id = $1, "
+                  + "       resource = $2, "
+                  + "       action = $3 "
+                  + " WHERE id = $4 ";
+            params = [
+                permission.getRoleId(),
+                permission.getResource(),
+                permission.getAction(),
+                permission.getId(),
+            ];
+        } else {
+            query = "   INSERT "
+                  + "     INTO permissions(role_id, resource, action) "
+                  + "   VALUES ($1, $2, $3) "
+                  + "RETURNING id ";
+            params = [
+                permission.getRoleId(),
+                permission.getResource(),
+                permission.getAction(),
+            ];
+        }
+
+        db.query(query, params, function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('PermissionRepository.save() - pg query', err);
+                process.exit(1);
+            }
+
+            db.end();
+            notification.dirty(false);
+
+            var id = result.rows.length && result.rows[0]['id'];
+            if (id)
+                notification.setId(id);
+            else
+                id = notification.getId();
+
+            defer.resolve(id);
+        });
+    });
+
+    return defer.promise;
+};
+
+PermissionRepository.prototype.delete = function (permission) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    if (!permission.getId()) {
+        defer.resolve(0);
+        return defer.promise;
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('PermissionRepository.delete() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM permissions "
+          + " WHERE id = $1 ",
+            [ permission.getId() ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('PermissionRepository.delete() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                permission.setId(null);
+                permission.dirty(false);
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+PermissionRepository.prototype.deleteAll = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('PermissionRepository.deleteAll() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM permissions ",
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('PermissionRepository.deleteAll() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 module.exports = PermissionRepository;
