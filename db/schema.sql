@@ -47,8 +47,8 @@ CREATE TABLE "tokens" (
     "ip_address" character varying(255) NULL,
     "created_at" timestamp NOT NULL,
     "updated_at" timestamp NOT NULL,
-    CONSTRAINT "sessions_pk" PRIMARY KEY ("id"),
-    CONSTRAINT "sessions_user_fk" FOREIGN KEY("user_id")
+    CONSTRAINT "tokens_pk" PRIMARY KEY ("id"),
+    CONSTRAINT "tokens_user_fk" FOREIGN KEY("user_id")
         REFERENCES "users"("id")
         ON DELETE CASCADE ON UPDATE CASCADE
 );
