@@ -1,2 +1,6 @@
+public/js/app.js
+public/js/vendor.js
+public/css/app.css
+public/css/vendor.css
 node_modules/
 .env
