@@ -12,7 +12,7 @@ var jwt = require('jsonwebtoken');
 var q = require('q');
 var TokenModel = require('../../models/token');
 
-module.exports = function (app) {
+module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
     var logger = locator.get('logger');

@@ -1,4 +1,5 @@
 DROP VIEW IF EXISTS "dt_users";
+DROP VIEW IF EXISTS "dt_permissions";
 DROP VIEW IF EXISTS "dt_roles";
 
 DROP TABLE IF EXISTS "user_roles";
@@ -73,6 +74,13 @@ CREATE VIEW dt_roles AS
       FROM roles r1
  LEFT JOIN roles r2
         ON r2.id = r1.parent_id;
+
+CREATE VIEW dt_permissions AS
+    SELECT p.*,
+           r.handle AS role
+      FROM permissions p
+ LEFT JOIN roles r
+        ON r.id = p.role_id;
 
 CREATE VIEW dt_users AS
     SELECT u.*,

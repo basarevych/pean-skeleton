@@ -13,7 +13,7 @@ var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
 var UserModel = require('../../models/user');
 
-module.exports = function (app) {
+module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
     var logger = locator.get('logger');
