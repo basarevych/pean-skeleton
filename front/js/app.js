@@ -19,6 +19,7 @@ var app = angular.module('app', [
     'state.layout',
     'state.index',
     'state.role-list',
+    'state.permission-list',
     'state.user-list',
     'state.token-list',
     'state.send-notification',
@@ -44,6 +45,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'RoleListCtrl',
                 templateUrl: 'views/role-list.html',
+                roles: [ 'admin' ],
+            })
+            .state('layout.permission-list', {
+                url: '/permission',
+                title: 'APP_TITLE',
+                controller: 'PermissionListCtrl',
+                templateUrl: 'views/permission-list.html',
                 roles: [ 'admin' ],
             })
             .state('layout.user-list', {

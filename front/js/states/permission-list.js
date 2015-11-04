@@ -1,83 +1,64 @@
 'use strict';
 
-var module = angular.module('state.role-list', []);
+var module = angular.module('state.permission-list', []);
 
-module.controller("RoleListCtrl",
-    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'CreateRoleForm', 'EditRoleForm', 'InfoDialog',
-    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, CreateRoleForm, EditRoleForm, InfoDialog) {
+module.controller("PermissionListCtrl",
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'PermissionApi', 'CreatePermissionForm', 'EditPermissionForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, PermissionApi, CreatePermissionForm, EditPermissionForm, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/role/table',
+            url: $window['config']['apiUrl'] + '/permission/table',
             row_id_column: 'id',
             sort_column: 'id',
         });
 
-        $scope.createRole = function () {
+        $scope.createPermission = function () {
             RoleApi.list({ view: 'tree' })
                 .then(function (roles) {
-                    roles.unshift({
-                        id: null,
-                        handle: "null",
-                        title: "ROLE_TOP_LEVEL",
-                        roles: [],
-                        focus: true,
-                    });
-                    CreateRoleForm(roles)
+                    if (roles.length)
+                        roles[0]['focus'] = true;
+                    CreatePermissionForm(roles)
                         .then(function () {
                             $scope.tableCtrl.plugin.refresh();
                         });
                 });
         };
 
-        $scope.editRole = function () {
+        $scope.editPermission = function () {
             var sel = $scope.tableCtrl.plugin.getSelected();
-            $q.all([ RoleApi.read({ id: sel[0] }), RoleApi.list({ view: 'tree' }) ])
+            $q.all([ PermissionApi.read({ id: sel[0] }), RoleApi.list({ view: 'tree' }) ])
                 .then(function (result) {
-                    var role = result[0];
+                    var permission = result[0];
                     var roles = result[1];
-                    roles.unshift({
-                        id: null,
-                        handle: "null",
-                        title: "ROLE_TOP_LEVEL",
-                        roles: [],
-                        focus: true,
-                    });
+                    if (roles.length)
+                        roles[0]['focus'] = true;
 
-                    function disableRoles(arr) {
-                        $.each(arr, function (index, item) {
-                            if (item.id == role.id)
-                                item.disabled = true;
-                            disableRoles(item.roles);
-                        });
-                    }
-                    disableRoles(roles);
-
-                    EditRoleForm(role, roles)
+                    EditPermissionForm(permission, roles)
                         .then(function () {
                             $scope.tableCtrl.plugin.refresh();
                         });
                 });
         };
 
-        $scope.deleteRole = function () {
+        $scope.deletePermission = function () {
             var sel = $scope.tableCtrl.plugin.getSelected();
 
             InfoDialog({
-                title: 'ROLE_CONFIRM_DELETE_TITLE',
-                text: 'ROLE_CONFIRM_DELETE_TEXT',
-                yes: 'ROLE_CONFIRM_DELETE_BUTTON',
+                title: 'PERMISSION_CONFIRM_DELETE_TITLE',
+                text: 'PERMISSION_CONFIRM_DELETE_TEXT',
+                yes: 'PERMISSION_CONFIRM_DELETE_BUTTON',
             }).result
                 .then(function () {
                     var promises = [];
                     if (sel === 'all') {
-                        promises.push(RoleApi.delete());
+                        promises.push(PermissionApi.delete());
                     } else {
                         $.each(sel, function (index, value) {
-                            promises.push(RoleApi.delete({ id: value }));
+                            promises.push(PermissionApi.delete({ id: value }));
                         });
                     }
 

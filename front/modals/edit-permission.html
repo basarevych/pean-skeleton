@@ -1,0 +1,92 @@
+<div class="modal-header">
+    <button class="close" ng-click="$dismiss()">&times;</button>
+    <h4 class="modal-title">{{ 'PERMISSION_EDIT_TITLE' | glMessage }}</h4>
+</div>
+
+<div class="modal-body">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+        <center>
+            {{ message }}
+        </center>
+    </div>
+
+    <form class="form-horizontal" role="form" novalidate>
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.role_id.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'ROLE_LABEL' | glMessage }}:
+               <span ng-show="model.role_id.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <script type="text/ng-template" id="nodes_renderer.html">
+                    <div class="radio">
+                        <label>
+                            <input type="radio" ng-show="node.focus" ng-model="model.role_id.value" ng-value="node.id" focus-on="model.role_id.focus" on-key-enter="model.resource.focus = true" autofocus="autofocus">
+                            <input type="radio" ng-hide="node.focus" ng-model="model.role_id.value" ng-value="node.id" on-key-enter="model.resource.focus = true">
+                            {{ node.title | glMessage }} ({{ node.handle }})
+                        </label>
+                    </div>
+                    <ul ui-tree-nodes="" ng-model="node.roles">
+                        <li ng-repeat="node in node.roles" ui-tree-node ng-include="'nodes_renderer.html'"></li>
+                    </ul>
+                </script>
+                <div ui-tree data-drag-enabled="false">
+                    <ul ui-tree-nodes="" ng-model="model.role_id.tree" id="tree-root">
+                        <li ng-repeat="node in model.role_id.tree" ui-tree-node ng-include="'nodes_renderer.html'"></li>
+                    </ul>
+                </div>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.role_id">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.resource.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'RESOURCE_LABEL' | glMessage }}:
+               <span ng-show="model.resource.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" ng-model="model.resource.value" focus-on="model.resource.focus" on-key-enter="model.action.focus = true"
+                       ng-keydown="resetValidation('resource')" ng-blur="validate('resource')" ng-disabled="processing">
+                <div class="help-block">
+                    <p>{{ 'NULL_RESOURCE_NOTICE' | glMessage }}</p>
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.resource">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.action.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'ACTION_LABEL' | glMessage }}:
+               <span ng-show="model.action.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" ng-model="model.action.value" focus-on="model.action.focus" on-key-enter="submit()"
+                       ng-keydown="resetValidation('action')" ng-blur="validate('action')" ng-disabled="processing">
+                <div class="help-block">
+                    <p>{{ 'NULL_ACTION_NOTICE' | glMessage }}</p>
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.action">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="modal-footer">
+    <img class="pull-left" ng-show="processing" src="img/loader.gif">
+    <button ng-disabled="processing" class="btn btn-default" ng-click="$dismiss()">{{ 'CANCEL_BUTTON' | glMessage }}</button>
+    <button ng-disabled="processing" class="btn btn-primary" ng-click="submit()">{{ 'SAVE_CHANGES_BUTTON' | glMessage }}</button>
+</div>

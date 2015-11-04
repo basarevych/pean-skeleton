@@ -78,7 +78,7 @@ module.controller("TokenListCtrl",
             $scope.tableCtrl.event = null;
 
             if (event == 'http-error') {
-                if ($scope.tableCtrl.statusCode == 401 || $scope.tableCtrl.statusCode == 403)
+                if ($scope.tableCtrl.statusCode == 401)
                     $window.location.reload();
                 return;
             }

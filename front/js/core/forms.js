@@ -263,6 +263,53 @@ forms.factory('EditRoleForm',
     } ]
 );
 
+forms.factory('CreatePermissionForm',
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'PermissionApi',
+    function ($uibModal, $filter, ValidationCtrl, PermissionApi) {
+        return function (roles) {
+            return $uibModal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/create-permission.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            role_id: { tree: roles, value: null, focus: true, required: true },
+                            resource: { value: '', focus: false, required: false },
+                            action: { value: '', focus: false, required: false },
+                        };
+                    },
+                    validator: function () { return PermissionApi.validate; },
+                    submitter: function () { return PermissionApi.create; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('EditPermissionForm',
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'PermissionApi',
+    function ($uibModal, $filter, ValidationCtrl, PermissionApi) {
+        return function (permission, roles) {
+            return $uibModal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/edit-permission.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            id: { value: permission.id, focus: false, required: false },
+                            role_id: { tree: roles, value: permission.role_id, focus: true, required: true },
+                            resource: { value: permission.resource, focus: false, required: false },
+                            action: { value: permission.action, focus: false, required: false },
+                        };
+                    },
+                    validator: function () { return PermissionApi.validate; },
+                    submitter: function () { return PermissionApi.update; },
+                }
+            }).result;
+        }
+    } ]
+);
+
 forms.factory('CreateUserForm',
     [ '$uibModal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
     function ($uibModal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {

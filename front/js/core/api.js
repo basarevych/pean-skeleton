@@ -120,6 +120,41 @@ api.factory('RoleApi',
     } ]
 );
 
+api.factory('PermissionApi',
+    [ '$resource', '$window', 'ResourceWrapper',
+    function ($resource, $window, ResourceWrapper) {
+        var resource = $resource($window['config']['apiUrl'] + '/permission/:id/:action', { }, {
+            list:       { method: 'GET', isArray: true },
+            create:     { method: 'POST', isArray: false },
+            read:       { method: 'GET', params: { id: '@id' }, isArray: false },
+            update:     { method: 'PUT', params: { id: '@id' }, isArray: false },
+            delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
+            validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
+        });
+
+        return {
+            list: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.list(params).$promise, noErrorHandler);
+            },
+            create: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.create(params).$promise, noErrorHandler);
+            },
+            read: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.read(params).$promise, noErrorHandler);
+            },
+            update: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.update(params).$promise, noErrorHandler);
+            },
+            delete: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.delete(params).$promise, noErrorHandler);
+            },
+            validate: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
+            },
+        };
+    } ]
+);
+
 api.factory('UserApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {

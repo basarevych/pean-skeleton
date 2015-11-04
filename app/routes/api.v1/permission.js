@@ -156,7 +156,7 @@ module.exports = function () {
             });
     });
 
-    router.get('/:permissiond', function (req, res) {
+    router.get('/:permissionId', function (req, res) {
         var permissionId = parseInt(req.params.permissionId, 10);
         if (isNaN(permissionId))
             return app.abort(res, 400, "Invalid permission ID");
@@ -325,7 +325,7 @@ module.exports = function () {
 
                         var permissionRepo = locator.get('permission-repository');
                         permissionRepo.find(permissionId)
-                            .then(function (permission) {
+                            .then(function (permissions) {
                                 var permission = permissions.length && permissions[0];
                                 if (!permission)
                                     return app.abort(res, 404, "Permission " + permissionId + " not found");
@@ -379,7 +379,7 @@ module.exports = function () {
                 var permissionRepo = locator.get('permission-repository');
                 permissionRepo.find(permissionId)
                     .then(function (permissions) {
-                        var permission = permission.length && permission[0];
+                        var permission = permissions.length && permissions[0];
                         if (!permission)
                             return app.abort(res, 404, "Permission " + permissionId + " not found");
 
