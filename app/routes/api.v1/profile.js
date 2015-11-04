@@ -133,6 +133,9 @@ module.exports = function () {
     });
 
     router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
         parseForm(req.body.field, req, res)
             .then(function (data) {
                 res.json({ success: data.valid, errors: data.errors });

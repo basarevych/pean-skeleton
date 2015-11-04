@@ -146,9 +146,23 @@ module.exports = function () {
     });
 
     router.post('/validate', function (req, res) {
-        parseForm(req.body._field, req, res)
-            .then(function (data) {
-                res.json({ success: data.valid, errors: data.errors });
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'permission', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                parseForm(req.body._field, req, res)
+                    .then(function (data) {
+                        res.json({ success: data.valid, errors: data.errors });
+                    })
+                    .catch(function (err) {
+                        logger.error('POST /v1/permission/validate failed', err);
+                        app.abort(res, 500, 'POST /v1/permission/validate failed');
+                    });
             })
             .catch(function (err) {
                 logger.error('POST /v1/permission/validate failed', err);
