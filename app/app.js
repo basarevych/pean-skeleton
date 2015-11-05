@@ -4,19 +4,10 @@
 
 'use strict'
 
-require('dotenv').load();
-
-var express = require('express');
-var http = require('http');
-var path = require('path');
-var fs = require('fs');
-var favicon = require('serve-favicon');
-var morgan = require('morgan');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-
 // check .env file presence
 try {
+    var fs = require('fs');
+    var path = require('path');
     var fd = fs.openSync(path.join(__dirname, "..", ".env"), "r");
     fs.closeSync(fd);
 } catch (err) {
@@ -24,7 +15,22 @@ try {
     process.exit(1);
 }
 
+require('dotenv').load();
+
+var express = require('express');
+var http = require('http');
+var path = require('path');
+var favicon = require('serve-favicon');
+var morgan = require('morgan');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+
 var app = module.exports = express();
+
+// load application
+require('./boot/init.js')(app);         // initialize the app
+require('./boot/logger.js')();          // logger
+require('./boot/lang.js')();            // translations
 
 // are we behind proxy?
 var trustProxy = process.env.TRUST_PROXY;
@@ -67,11 +73,7 @@ app.use(cookieParser());
 app.use(favicon(path.join(__dirname, '..', 'public', 'img', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// load application
-require('./boot/init.js')(app);         // initialize the app
-require('./boot/logger.js')();          // logger
-require('./boot/lang.js')();            // translations
-
+// bootstrap the app
 if (!process.env.CONSOLE) {
     require('./boot/session.js')();     // session support
     require('./boot/jwt.js')();         // JSON Web Tokens
