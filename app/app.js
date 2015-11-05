@@ -32,6 +32,9 @@ require('./boot/init.js')(app);         // initialize the app
 require('./boot/logger.js')();          // logger
 require('./boot/lang.js')();            // translations
 
+// Return if this is a console command
+if (process.env.CONSOLE) return;
+
 // are we behind proxy?
 var trustProxy = process.env.TRUST_PROXY;
 if (trustProxy === 'true')
@@ -74,9 +77,7 @@ app.use(favicon(path.join(__dirname, '..', 'public', 'img', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // bootstrap the app
-if (!process.env.CONSOLE) {
-    require('./boot/session.js')();     // session support
-    require('./boot/jwt.js')();         // JSON Web Tokens
-    require('./boot/routes.js')();      // load routes
-    require('./boot/errors.js')();      // error handling
-}
+require('./boot/session.js')();     // session support
+require('./boot/jwt.js')();         // JSON Web Tokens
+require('./boot/routes.js')();      // load routes
+require('./boot/errors.js')();      // error handling
