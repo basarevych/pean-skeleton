@@ -7,7 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
-var PermissionModel = require('../models/permission');
+var PermissionModel = locator.get('permission-model');
 
 function PermissionRepository() {
     BaseRepository.call(this);

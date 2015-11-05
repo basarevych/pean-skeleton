@@ -7,7 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
-var TokenModel = require('../models/token');
+var TokenModel = locator.get('token-model');
 
 function TokenRepository() {
     BaseRepository.call(this);

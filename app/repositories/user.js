@@ -7,7 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
-var UserModel = require('../models/user');
+var UserModel = locator.get('user-model');
 
 function UserRepository() {
     BaseRepository.call(this);

@@ -10,7 +10,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
-var TokenModel = require('../../models/token');
+var TokenModel = locator.get('token-model');
 
 module.exports = function () {
     var router = express.Router();

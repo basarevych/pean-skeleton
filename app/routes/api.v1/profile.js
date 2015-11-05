@@ -8,7 +8,7 @@ var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
 var q = require('q');
-var UserModel = require('../../models/user');
+var UserModel = locator.get('user-model');
 
 module.exports = function () {
     var router = express.Router();

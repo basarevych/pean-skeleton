@@ -7,7 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var BaseRepository = require('./base');
-var NotificationModel = require('../models/notification');
+var NotificationModel = locator.get('notification-model');
 
 function NotificationRepository() {
     BaseRepository.call(this);

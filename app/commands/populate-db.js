@@ -5,9 +5,9 @@
 'use strict'
 
 var locator = require('node-service-locator');
-var RoleModel = require('../models/role');
-var PermissionModel = require('../models/permission');
-var UserModel = require('../models/user');
+var RoleModel = locator.get('role-model');
+var PermissionModel = locator.get('permission-model');
+var UserModel = locator.get('user-model');
 
 module.exports = function (argv, rl) {
     var config = locator.get('config');

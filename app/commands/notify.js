@@ -5,7 +5,7 @@
 'use strict'
 
 var locator = require('node-service-locator');
-var NotificationModel = require('../models/notification');
+var NotificationModel = locator.get('notification-model');
 
 module.exports = function (argv, rl) {
     var config = locator.get('config');

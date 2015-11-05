@@ -10,7 +10,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var jwt = require('jsonwebtoken');
 var q = require('q');
-var TokenModel = require('../../models/token');
+var TokenModel = locator.get('token-model');
 
 module.exports = function () {
     var router = express.Router();

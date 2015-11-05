@@ -11,7 +11,7 @@ var moment = require('moment-timezone');
 var q = require('q');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
-var PermissionModel = require('../../models/permission');
+var PermissionModel = locator.get('permission-model');
 
 module.exports = function () {
     var router = express.Router();
