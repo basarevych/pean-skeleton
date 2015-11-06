@@ -39,5 +39,11 @@ db.connect(function (err) {
         websocketServer.start();
         console.log("=> WebSocket server started");
         locator.register('websocket-server', websocketServer);
+
+        if (process.getuid() === 0 && process.env.USER && process.env.GROUP) {
+            console.log("=> Dropping privileges...");
+            process.setgid(process.env.GROUP);
+            process.setuid(process.env.USER);
+        }
     });
 });
