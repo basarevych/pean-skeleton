@@ -30,7 +30,6 @@ db.connect(function (err) {
 
         redis.quit();
 
-        var forceHttps = false;
         var webServer = locator.get('web-server');
         if (process.env.HTTP_HOST && process.env.HTTP_PORT) {
             webServer.startHttp(
@@ -40,7 +39,6 @@ db.connect(function (err) {
             console.log("=> HTTP server started, " + process.env.HTTP_HOST + ':' + process.env.HTTP_PORT);
         }
         if (process.env.HTTPS_HOST && process.env.HTTPS_PORT) {
-            forceHttps = true;
             webServer.startHttps(
                 process.env.HTTPS_HOST,
                 process.env.HTTPS_PORT,
@@ -52,7 +50,7 @@ db.connect(function (err) {
         locator.register('web-server', webServer);
 
         var websocketServer = locator.get('websocket-server');
-        websocketServer.start(forceHttps);
+        websocketServer.start();
         console.log("=> WebSocket server started");
         locator.register('websocket-server', websocketServer);
 
