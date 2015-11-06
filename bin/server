@@ -30,13 +30,29 @@ db.connect(function (err) {
 
         redis.quit();
 
-        var httpServer = locator.get('http-server');
-        httpServer.start();
-        console.log("=> HTTP server started, " + locator.get('hostname') + ':' + locator.get('port'));
-        locator.register('http-server', httpServer);
+        var forceHttps = false;
+        var webServer = locator.get('web-server');
+        if (process.env.HTTP_HOST && process.env.HTTP_PORT) {
+            webServer.startHttp(
+                process.env.HTTP_HOST,
+                process.env.HTTP_PORT
+            );
+            console.log("=> HTTP server started, " + process.env.HTTP_HOST + ':' + process.env.HTTP_PORT);
+        }
+        if (process.env.HTTPS_HOST && process.env.HTTPS_PORT) {
+            forceHttps = true;
+            webServer.startHttps(
+                process.env.HTTPS_HOST,
+                process.env.HTTPS_PORT,
+                process.env.HTTPS_KEY,
+                process.env.HTTPS_CERT
+            );
+            console.log("=> HTTPS server started, " + process.env.HTTPS_HOST + ':' + process.env.HTTPS_PORT);
+        }
+        locator.register('web-server', webServer);
 
         var websocketServer = locator.get('websocket-server');
-        websocketServer.start();
+        websocketServer.start(forceHttps);
         console.log("=> WebSocket server started");
         locator.register('websocket-server', websocketServer);
 

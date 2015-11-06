@@ -7,8 +7,8 @@
 module.exports = function (app) {
     return {
         services: {
-            "http-server": {
-                path: "app/services/http-server.js",
+            "web-server": {
+                path: "app/services/web-server.js",
                 instantiate: true,
             },
             "websocket-server": {
