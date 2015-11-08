@@ -452,3 +452,53 @@ forms.factory('TokenPayloadForm',
         }
     } ]
 );
+
+forms.factory('CreateJobForm',
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'JobApi',
+    function ($uibModal, $filter, ValidationCtrl, JobApi) {
+        return function (statuses) {
+            return $uibModal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/create-job.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            name: { value: '', focus: true, required: true },
+                            status: { list: statuses, value: statuses[0], focus: false, required: true },
+                            scheduled_for: { value: '', focus: false, required: false },
+                            input_data: { value: '', focus: false, required: false },
+                        };
+                    },
+                    validator: function () { return JobApi.validate; },
+                    submitter: function () { return JobApi.create; },
+                }
+            }).result;
+        }
+    } ]
+);
+
+forms.factory('EditJobForm',
+    [ '$uibModal', '$filter', 'ValidationCtrl', 'JobApi',
+    function ($uibModal, $filter, ValidationCtrl, JobApi) {
+        return function (job, statuses) {
+            return $uibModal.open({
+                controller: ValidationCtrl,
+                templateUrl: 'modals/edit-job.html',
+                resolve: {
+                    model: function () {
+                        return {
+                            id: { value: job.id, focus: false, required: false },
+                            name: { value: job.name, focus: true, required: true },
+                            status: { list: statuses, value: job.status, focus: false, required: true },
+                            scheduled_for: { value: moment.unix(job.scheduled_for).format($filter('glMessage')('DT_DATE_TIME_FORMAT')), focus: false, required: false },
+                            input_data: { value: JSON.stringify(job.input_data, undefined, 4), focus: false, required: false },
+                            output_data: { value: JSON.stringify(job.output_data, undefined, 4), focus: false, required: false },
+                        };
+                    },
+                    validator: function () { return JobApi.validate; },
+                    submitter: function () { return JobApi.update; },
+                }
+            }).result;
+        }
+    } ]
+);

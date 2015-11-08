@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "permissions";
 DROP TABLE IF EXISTS "roles";
 
-DROP TYPE IF EXITS "job_status";
+DROP TYPE IF EXISTS "job_status";
 
 
 CREATE TABLE "roles" (
@@ -81,7 +81,7 @@ CREATE TABLE "jobs" (
     "scheduled_for" timestamp NOT NULL,
     "input_data" json NOT NULL,
     "output_data" json NOT NULL,
-    CONSTRAINT "jobs_pk" PRIMARY KEY("id"),
+    CONSTRAINT "jobs_pk" PRIMARY KEY("id")
 );
 
 

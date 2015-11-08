@@ -22,6 +22,7 @@ var app = angular.module('app', [
     'state.permission-list',
     'state.user-list',
     'state.token-list',
+    'state.job-list',
     'state.send-notification',
 ]);
 
@@ -66,6 +67,13 @@ app.config(
                 title: 'APP_TITLE',
                 controller: 'TokenListCtrl',
                 templateUrl: 'views/token-list.html',
+                roles: [ 'admin' ],
+            })
+            .state('layout.job-list', {
+                url: '/job',
+                title: 'APP_TITLE',
+                controller: 'JobListCtrl',
+                templateUrl: 'views/job-list.html',
                 roles: [ 'admin' ],
             })
             .state('layout.send-notification', {

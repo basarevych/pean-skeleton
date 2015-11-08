@@ -10,7 +10,7 @@
         </div>
         <div class="collapse navbar-collapse" id="layout-navbar-collapse">
             <ul class="nav navbar-nav">
-                <li class="dropdown" uib-dropdown acl-sref="layout.role-list layout.permission-list layout.user-list layout.send-notification">
+                <li class="dropdown" uib-dropdown acl-sref="layout.role-list layout.permission-list layout.user-list layout.job-list layout.send-notification">
                     <a href="javascript:void(0)" class="uib-dropdown-toggle" role="button" aria-expanded="false" uib-dropdown-toggle>
                         {{ 'ADMINISTRATION_MENU' | glMessage }} <span class="caret"></span>
                     </a>
@@ -28,6 +28,11 @@
                         <li>
                             <a ui-sref="layout.user-list" acl-sref="layout.user-list">
                                 {{ 'USER_LIST_MENU' | glMessage }}
+                            </a>
+                        </li>
+                        <li>
+                            <a ui-sref="layout.job-list" acl-sref="layout.job-list">
+                                {{ 'JOB_LIST_MENU' | glMessage }}
                             </a>
                         </li>
                         <li>

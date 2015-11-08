@@ -1,0 +1,100 @@
+<div class="modal-header">
+    <button class="close" ng-click="$dismiss()">&times;</button>
+    <h4 class="modal-title">{{ 'JOB_CREATE_TITLE' | glMessage }}</h4>
+</div>
+
+<div class="modal-body">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+        <center>
+            {{ message }}
+        </center>
+    </div>
+
+    <form class="form-horizontal" role="form" novalidate>
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.name.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'NAME_LABEL' | glMessage }}:
+               <span ng-show="model.name.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" ng-model="model.name.value" focus-on="model.name.focus" on-key-enter="model.status.focus = true"
+                       ng-keydown="resetValidation('name')" ng-blur="validate('name')" ng-disabled="processing" autofocus="autofocus">
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.name">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.status.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'STATUS_LABEL' | glMessage }}:
+               <span ng-show="model.status.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <select class="form-control" ng-model="model.status.value" focus-on="model.status.focus" on-key-enter="model.scheduled_for.focus = true"
+                        ng-change="resetValidation('status')" ng-blur="validate('status')" ng-disabled="processing">
+                    <option ng-repeat="item in model.status.list" ng-value="item">{{ item }}</option>
+                </select>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.status">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.scheduled_for.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'SCHEDULED_FOR_LABEL' | glMessage }}:
+               <span ng-show="model.scheduled_for.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <div class="input-group date">
+                    <input type="text" class="form-control" ng-model="model.scheduled_for.value" focus-on="model.scheduled_for.focus" on-key-enter="model.input_data.focus = true"
+                           ng-keydown="resetValidation('scheduled_for')" ng-blur="resetValidation('scheduled_for')" ng-disabled="processing" datetime-picker>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.scheduled_for">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.input_data.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'INPUT_DATA_LABEL' | glMessage }}:
+               <span ng-show="model.input_data.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <textarea rows="4" class="form-control" ng-model="model.input_data.value" focus-on="model.input_data.focus"
+                          ng-keydown="resetValidation('input_data')" ng-blur="validate('input_data')" ng-disabled="processing"></textarea>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.input_data">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="modal-footer">
+    <img class="pull-left" ng-show="processing" src="img/loader.gif">
+    <button ng-disabled="processing" class="btn btn-default" ng-click="$dismiss()">{{ 'CANCEL_BUTTON' | glMessage }}</button>
+    <button ng-disabled="processing" class="btn btn-primary" ng-click="submit()">{{ 'CREATE_BUTTON' | glMessage }}</button>
+</div>

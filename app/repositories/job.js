@@ -100,7 +100,7 @@ JobRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
-JobRepository.prototype.save = function (role) {
+JobRepository.prototype.save = function (job) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -113,13 +113,13 @@ JobRepository.prototype.save = function (role) {
         }
 
         var query, params = [];
-        if (role.getId()) {
+        if (job.getId()) {
             query = "UPDATE jobs "
                   + "   SET name = $1, "
                   + "       status = $2, "
                   + "       created_at = $3, "
                   + "       scheduled_for = $4, "
-                  + "       input_data = $5, ",
+                  + "       input_data = $5, "
                   + "       output_data = $6 "
                   + " WHERE id = $7 ";
             params = [

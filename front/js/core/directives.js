@@ -109,3 +109,37 @@ directives.directive('sidebar',
         };
     } ]
 );
+
+directives.directive('datetimePicker',
+    [ '$filter', '$rootScope',
+    function ($filter, $rootScope) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            link: function (scope, element, attrs, ctrl) {
+                element.parent().datetimepicker({
+                    format: $filter('glMessage')('DT_DATE_TIME_FORMAT'),
+                    locale: $rootScope.appControl.getProfile().locale['current'],
+                    keyBinds: {
+                        enter: function () {
+                            scope.$apply(function () {
+                                scope.$eval(attrs.onKeyEnter);
+                            });
+                        }
+                    },
+                });
+
+                element.parent().on('dp.change', function (event) {
+                    scope.$apply(function() {
+                        ctrl.$setViewValue(element.val());
+                    });
+                });
+                element.parent().on('dp.error', function (event) {
+                    scope.$apply(function() {
+                        ctrl.$setViewValue('');
+                    });
+                });
+            }
+        };
+    } ]
+);

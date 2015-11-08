@@ -108,7 +108,7 @@ module.exports = function () {
                         sortable: true,
                         visible: true,
                     },
-                    created_at: {
+                    scheduled_for: {
                         title: res.locals.glMessage('JOB_SCHEDULED_FOR_COLUMN'),
                         sql_id: 'scheduled_for',
                         type: Table.TYPE_DATETIME,
@@ -203,6 +203,25 @@ module.exports = function () {
             .catch(function (err) {
                 logger.error('POST /v1/job/validate failed', err);
                 app.abort(res, 500, 'POST /v1/job/validate failed');
+            });
+    });
+
+    router.get('/statuses', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'job', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var config = locator.get('config');
+                res.json(config['job']['statuses']);
+            })
+            .catch(function (err) {
+                logger.error('GET /v1/job/statuses failed', err);
+                app.abort(res, 500, 'POST /v1/job/statuses failed');
             });
     });
 
