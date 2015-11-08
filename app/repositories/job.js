@@ -119,28 +119,31 @@ JobRepository.prototype.save = function (job) {
                   + "       status = $2, "
                   + "       created_at = $3, "
                   + "       scheduled_for = $4, "
-                  + "       input_data = $5, "
-                  + "       output_data = $6 "
-                  + " WHERE id = $7 ";
+                  + "       valid_until = $5, "
+                  + "       input_data = $6, "
+                  + "       output_data = $7 "
+                  + " WHERE id = $8 ";
             params = [
                 job.getName(),
                 job.getStatus(),
                 job.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 job.getScheduledFor().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                job.getValidUntil().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 JSON.stringify(job.getInputData()),
                 JSON.stringify(job.getOutputData()),
                 job.getId(),
             ];
         } else {
             query = "   INSERT "
-                  + "     INTO jobs(name, status, created_at, scheduled_for, input_data, output_data) "
-                  + "   VALUES ($1, $2, $3, $4, $5, $6) "
+                  + "     INTO jobs(name, status, created_at, scheduled_for, valid_until, input_data, output_data) "
+                  + "   VALUES ($1, $2, $3, $4, $5, $6, $7) "
                   + "RETURNING id ";
             params = [
                 job.getName(),
                 job.getStatus(),
                 job.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 job.getScheduledFor().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                job.getValidUntil().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 JSON.stringify(job.getInputData()),
                 JSON.stringify(job.getOutputData()),
             ];

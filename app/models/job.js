@@ -10,23 +10,27 @@ var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
 function JobModel(dbRow) {
+    var now = moment();
     this.id = null;
     this.name = null;
     this.status = null;
-    this.created_at = moment();
-    this.scheduled_for = moment();
+    this.created_at = now;
+    this.scheduled_for = now;
+    this.valid_until = now;
     this.input_data = {};
     this.output_data = {};
 
     if (dbRow) {
         var utcCreated = moment(dbRow.created_at); // db field is in UTC
         var utcScheduled = moment(dbRow.scheduled_for); // db field is in UTC
+        var utcValid = moment(dbRow.valid_until); // db field is in UTC
 
         this.id = dbRow.id;
         this.name = dbRow.name;
         this.status = dbRow.status;
         this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
         this.scheduled_for = moment.tz(utcScheduled.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
+        this.valid_until = moment.tz(utcValid.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
         this.input_data = dbRow.input_data;
         this.output_data = dbRow.output_data;
     }
@@ -78,6 +82,15 @@ JobModel.prototype.setScheduledFor = function (scheduledFor) {
 
 JobModel.prototype.getScheduledFor = function () {
     return this.field('scheduled_for');
+};
+
+JobModel.prototype.setValidUntil = function (validUntil) {
+    this.field('valid_until', validUntil);
+    return this;
+};
+
+JobModel.prototype.getValidUntil = function () {
+    return this.field('valid_until');
 };
 
 JobModel.prototype.setInputData = function (data) {

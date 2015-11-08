@@ -58,7 +58,7 @@
             </label>
             <div class="col-sm-8">
                 <div class="input-group date">
-                    <input type="text" class="form-control" ng-model="model.scheduled_for.value" focus-on="model.scheduled_for.focus" on-key-enter="model.input_data.focus = true"
+                    <input type="text" class="form-control" ng-model="model.scheduled_for.value" focus-on="model.scheduled_for.focus" on-key-enter="model.valid_until.focus = true"
                            ng-keydown="resetValidation('scheduled_for')" ng-blur="resetValidation('scheduled_for')" ng-disabled="processing" datetime-picker>
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -67,6 +67,29 @@
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.scheduled_for">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.valid_until.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'VALID_UNTIL_LABEL' | glMessage }}:
+               <span ng-show="model.valid_until.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <div class="input-group date">
+                    <input type="text" class="form-control" ng-model="model.valid_until.value" focus-on="model.valid_until.focus" on-key-enter="model.input_data.focus = true"
+                           ng-keydown="resetValidation('valid_until')" ng-blur="resetValidation('valid_until')" ng-disabled="processing" datetime-picker>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.valid_until">{{ message }}</li>
                     </ul>
                 </div>
             </div>

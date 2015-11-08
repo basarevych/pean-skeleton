@@ -71,7 +71,7 @@ CREATE TABLE "user_roles" (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TYPE job_status AS ENUM ('created', 'started', 'success', 'failure');
+CREATE TYPE job_status AS ENUM ('created', 'started', 'success', 'failure', 'expired');
 
 CREATE TABLE "jobs" (
     "id" serial NOT NULL,
@@ -79,6 +79,7 @@ CREATE TABLE "jobs" (
     "status" job_status NOT NULL,
     "created_at" timestamp NOT NULL,
     "scheduled_for" timestamp NOT NULL,
+    "valid_until" timestamp NOT NULL,
     "input_data" json NOT NULL,
     "output_data" json NOT NULL,
     CONSTRAINT "jobs_pk" PRIMARY KEY("id")

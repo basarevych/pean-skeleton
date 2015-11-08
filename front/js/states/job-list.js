@@ -25,6 +25,11 @@ module.controller("JobListCtrl",
                     row['scheduled_for'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
+                if (row['valid_until'] != null) {
+                    var m = moment.unix(row['valid_until']).local();
+                    row['valid_until'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
+                }
+
                 return row;
             },
         });

@@ -12,6 +12,7 @@ module.exports = function (app) {
                 'started',
                 'success',
                 'failure',
+                'expired',
             ],
         },
     };

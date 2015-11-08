@@ -9,6 +9,7 @@ var express = require('express');
 var validator = require('validator');
 var moment = require('moment-timezone');
 var q = require('q');
+var clone = require('clone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
 var JobModel = locator.get('job-model');
@@ -27,6 +28,7 @@ module.exports = function () {
             name: validator.trim(req.body.name),
             status: validator.trim(req.body.status),
             scheduled_for: validator.trim(req.body.scheduled_for),
+            valid_until: validator.trim(req.body.valid_until),
             input_data: validator.trim(req.body.input_data),
         };
 
@@ -42,6 +44,10 @@ module.exports = function () {
                 break;
             case 'scheduled_for':
                 if (form.scheduled_for.length && !moment(form.scheduled_for).isValid())
+                    errors.push(glMessage('VALIDATOR_NOT_A_DATE'));
+                break;
+            case 'valid_until':
+                if (form.valid_until.length && !moment(form.valid_unitl).isValid())
                     errors.push(glMessage('VALIDATOR_NOT_A_DATE'));
                 break;
             case 'input_data':
@@ -116,6 +122,14 @@ module.exports = function () {
                         sortable: true,
                         visible: true,
                     },
+                    valid_until: {
+                        title: res.locals.glMessage('JOB_VALID_UNTIL_COLUMN'),
+                        sql_id: 'valid_until',
+                        type: Table.TYPE_DATETIME,
+                        filters: [ Table.FILTER_BETWEEN ],
+                        sortable: true,
+                        visible: true,
+                    },
                 });
                 table.setMapper(function (row) {
                     var result = row;
@@ -133,6 +147,12 @@ module.exports = function () {
                         var utc = moment(row['scheduled_for']); // db field is in UTC
                         var m = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC');
                         result['scheduled_for'] = m.unix();
+                    }
+
+                    if (row['valid_until']) {
+                        var utc = moment(row['valid_until']); // db field is in UTC
+                        var m = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC');
+                        result['valid_until'] = m.unix();
                     }
 
                     return result;
@@ -252,6 +272,7 @@ module.exports = function () {
                                 status: job.getStatus(),
                                 created_at: job.getCreatedAt().unix(),
                                 scheduled_for: job.getScheduledFor().unix(),
+                                valid_until: job.getValidUntil().unix(),
                                 input_data: job.getInputData(),
                                 output_data: job.getOutputData(),
                             });
@@ -288,6 +309,7 @@ module.exports = function () {
                                 status: job.getStatus(),
                                 created_at: job.getCreatedAt().unix(),
                                 scheduled_for: job.getScheduledFor().unix(),
+                                valid_until: job.getValidUntil().unix(),
                                 input_data: job.getInputData(),
                                 output_data: job.getOutputData(),
                             });
@@ -318,14 +340,16 @@ module.exports = function () {
                 var name = parseForm('name', req, res);
                 var status = parseForm('status', req, res);
                 var scheduledFor = parseForm('scheduled_for', req, res);
+                var validUntil = parseForm('valid_until', req, res);
                 var inputData = parseForm('input_data', req, res);
-                q.all([ name, status, scheduledFor, inputData ])
+                q.all([ name, status, scheduledFor, validUntil, inputData ])
                     .then(function (result) {
                         name = result[0];
                         status = result[1];
                         scheduledFor = result[2];
-                        inputData = result[3];
-                        if (!name.valid || !status.valid || !scheduledFor.valid || !inputData.valid) {
+                        validUntil = result[3];
+                        inputData = result[4];
+                        if (!name.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
@@ -333,16 +357,19 @@ module.exports = function () {
                                     name: name.errors,
                                     status: status.errors,
                                     scheduled_for: scheduledFor.errors,
+                                    valid_until: validUntil.errors,
                                     input_data: inputData.errors,
                                 }
                             });
                         }
 
+                        var now = moment();
                         var job = new JobModel();
                         job.setName(name.value);
                         job.setStatus(status.value);
-                        job.setCreatedAt(moment());
-                        job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : moment());
+                        job.setCreatedAt(now);
+                        job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : now);
+                        job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : clone(now).add(1, 'minutes'));
                         job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
                         job.setOutputData({});
 
@@ -387,14 +414,16 @@ module.exports = function () {
                 var name = parseForm('name', req, res);
                 var status = parseForm('status', req, res);
                 var scheduledFor = parseForm('scheduled_for', req, res);
+                var validUntil = parseForm('valid_until', req, res);
                 var inputData = parseForm('input_data', req, res);
-                q.all([ name, status, scheduledFor, inputData ])
+                q.all([ name, status, scheduledFor, validUntil, inputData ])
                     .then(function (result) {
                         name = result[0];
                         status = result[1];
                         scheduledFor = result[2];
-                        inputData = result[3];
-                        if (!name.valid || !status.valid || !scheduledFor.valid || !inputData.valid) {
+                        validUntil = result[3];
+                        inputData = result[4];
+                        if (!name.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
@@ -402,6 +431,7 @@ module.exports = function () {
                                     name: name.errors,
                                     status: status.errors,
                                     scheduled_for: scheduledFor.errors,
+                                    valid_until: validUntil.errors,
                                     input_data: inputData.errors,
                                 }
                             });
@@ -414,9 +444,11 @@ module.exports = function () {
                                 if (!job)
                                     return app.abort(res, 404, "Job " + jobId + " not found");
 
+                                var now = moment();
                                 job.setName(name.value);
                                 job.setStatus(status.value);
-                                job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : moment());
+                                job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : now());
+                                job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : clone(now).add(1, 'minutes'));
                                 job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
 
                                 var jobRepo = locator.get('job-repository');
