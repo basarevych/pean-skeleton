@@ -306,7 +306,7 @@ module.exports = function () {
                         status = result[1];
                         scheduledFor = result[2];
                         inputData = result[3];
-                        if (!name.valid || !status.valid || !scheduledFor.valid || !inputData.valid)
+                        if (!name.valid || !status.valid || !scheduledFor.valid || !inputData.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
@@ -375,7 +375,7 @@ module.exports = function () {
                         status = result[1];
                         scheduledFor = result[2];
                         inputData = result[3];
-                        if (!name.valid || !status.valid || !scheduledFor.valid || !inputData.valid)
+                        if (!name.valid || !status.valid || !scheduledFor.valid || !inputData.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
