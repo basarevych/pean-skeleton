@@ -437,7 +437,7 @@ module.exports = function () {
                                 var promises = [];
                                 allRoles.forEach(function (role) {
                                     if (roleIds.indexOf(role.getId()) != -1)
-                                        promises.push(userRepo.associateRole(user, role));
+                                        promises.push(userRepo.addRole(user, role));
                                 });
 
                                 q.all(promises)
@@ -531,9 +531,9 @@ module.exports = function () {
                                         var promises = [];
                                         allRoles.forEach(function (role) {
                                             if (roleIds.indexOf(role.getId()) == -1)
-                                                promises.push(userRepo.deassociateRole(user, role));
+                                                promises.push(userRepo.removeRole(user, role));
                                             else
-                                                promises.push(userRepo.associateRole(user, role));
+                                                promises.push(userRepo.addRole(user, role));
                                         });
 
                                         q.all(promises)

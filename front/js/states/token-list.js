@@ -41,7 +41,7 @@ module.controller("TokenListCtrl",
             var sel = $scope.tableCtrl.plugin.getSelected();
             TokenApi.read({ id: sel[0] })
                 .then(function (data) {
-                    TokenPayloadForm(data.payload);
+                    TokenPayloadForm(JSON.stringify(data.payload, undefined, 4));
                 });
         };
 

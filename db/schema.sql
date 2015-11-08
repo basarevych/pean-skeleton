@@ -2,11 +2,15 @@ DROP VIEW IF EXISTS "dt_users";
 DROP VIEW IF EXISTS "dt_permissions";
 DROP VIEW IF EXISTS "dt_roles";
 
+DROP TABLE IF EXISTS "jobs";
 DROP TABLE IF EXISTS "user_roles";
 DROP TABLE IF EXISTS "tokens";
 DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "permissions";
 DROP TABLE IF EXISTS "roles";
+
+DROP TYPE IF EXITS "job_status";
+
 
 CREATE TABLE "roles" (
     "id" serial NOT NULL,
@@ -65,6 +69,19 @@ CREATE TABLE "user_roles" (
     CONSTRAINT "user_roles_role_fk" FOREIGN KEY("role_id")
         REFERENCES "roles"("id")
         ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TYPE job_status AS ENUM ('created', 'started', 'success', 'failure');
+
+CREATE TABLE "jobs" (
+    "id" serial NOT NULL,
+    "name" character varying(255) NOT NULL,
+    "status" job_status NOT NULL,
+    "created_at" timestamp NOT NULL,
+    "scheduled_for" timestamp NOT NULL,
+    "input_data" json NOT NULL,
+    "output_data" json NOT NULL,
+    CONSTRAINT "jobs_pk" PRIMARY KEY("id"),
 );
 
 

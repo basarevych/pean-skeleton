@@ -379,7 +379,7 @@ UserRepository.prototype.save = function (user) {
     return defer.promise;
 };
 
-UserRepository.prototype.associateRole = function (user, role) {
+UserRepository.prototype.addRole = function (user, role) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -397,14 +397,14 @@ UserRepository.prototype.associateRole = function (user, role) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('UserRepository.associateRole() - pg connect', err);
+            logger.error('UserRepository.addRole() - pg connect', err);
             process.exit(1);
         }
 
         db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
                 defer.reject();
-                logger.error('UserRepository.associateRole() - pg query', err);
+                logger.error('UserRepository.addRole() - pg query', err);
                 process.exit(1);
             }
 
@@ -417,7 +417,7 @@ UserRepository.prototype.associateRole = function (user, role) {
                 function (err, result) {
                     if (err) {
                         defer.reject();
-                        logger.error('UserRepository.associateRole() - pg query', err);
+                        logger.error('UserRepository.addRole() - pg query', err);
                         process.exit(1);
                     }
 
@@ -425,7 +425,7 @@ UserRepository.prototype.associateRole = function (user, role) {
                         db.query("ROLLBACK TRANSACTION", [], function (err, result) {
                             if (err) {
                                 defer.reject();
-                                logger.error('UserRepository.associateRole() - pg query', err);
+                                logger.error('UserRepository.addRole() - pg query', err);
                                 process.exit(1);
                             }
 
@@ -443,7 +443,7 @@ UserRepository.prototype.associateRole = function (user, role) {
                         function (err, result) {
                             if (err) {
                                 defer.reject();
-                                logger.error('UserRepository.associateRole() - pg query', err);
+                                logger.error('UserRepository.addRole() - pg query', err);
                                 process.exit(1);
                             }
 
@@ -451,7 +451,7 @@ UserRepository.prototype.associateRole = function (user, role) {
                             db.query("COMMIT TRANSACTION", [], function (err, result) {
                                 if (err) {
                                     defer.reject();
-                                    logger.error('UserRepository.associateRole() - pg query', err);
+                                    logger.error('UserRepository.addRole() - pg query', err);
                                     process.exit(1);
                                 }
 
@@ -468,7 +468,7 @@ UserRepository.prototype.associateRole = function (user, role) {
     return defer.promise;
 };
 
-UserRepository.prototype.deassociateRole = function (user, role) {
+UserRepository.prototype.removeRole = function (user, role) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
@@ -486,7 +486,7 @@ UserRepository.prototype.deassociateRole = function (user, role) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('UserRepository.deassociateRole() - pg connect', err);
+            logger.error('UserRepository.removeRole() - pg connect', err);
             process.exit(1);
         }
 
@@ -498,7 +498,7 @@ UserRepository.prototype.deassociateRole = function (user, role) {
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('UserRepository.deassociateRole() - pg query', err);
+                    logger.error('UserRepository.removeRole() - pg query', err);
                     process.exit(1);
                 }
 

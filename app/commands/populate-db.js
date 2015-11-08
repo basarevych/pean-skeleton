@@ -93,7 +93,7 @@ module.exports = function (argv, rl) {
                                 user.setPassword(UserModel.encryptPassword(password));
                                 userRepo.save(user)
                                     .then(function () {
-                                        userRepo.associateRole(user, adminRole);
+                                        userRepo.addRole(user, adminRole);
                                         rl.write("==> Done\n");
                                         done();
                                     })

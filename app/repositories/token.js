@@ -169,7 +169,7 @@ TokenRepository.prototype.save = function (token) {
                   + " WHERE id = $6 ";
             params = [
                 token.getUserId(),
-                token.getPayload(),
+                JSON.stringify(token.getPayload()),
                 token.getIpAddress(),
                 token.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 token.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
@@ -182,7 +182,7 @@ TokenRepository.prototype.save = function (token) {
                   + "RETURNING id ";
             params = [
                 token.getUserId(),
-                token.getPayload(),
+                JSON.stringify(token.getPayload()),
                 token.getIpAddress(),
                 token.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
                 token.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC

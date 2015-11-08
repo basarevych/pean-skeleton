@@ -12,7 +12,7 @@ var BaseModel = require('./base');
 function TokenModel(dbRow) {
     this.id = null;
     this.user_id = null;
-    this.payload = null;
+    this.payload = {};
     this.ip_address = null;
     this.created_at = moment();
     this.updated_at = moment();

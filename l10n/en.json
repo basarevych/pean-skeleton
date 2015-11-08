@@ -42,6 +42,9 @@
         "VALIDATOR_MIN_LENGTH": "The input must be at least {min} character(s)",
         "VALIDATOR_EMAIL": "The input must be an email address",
         "VALIDATOR_RECORD_EXISTS": "Value is already present in the database",
+        "VALIDATOR_NOT_IN_SET": "Value is not in allowed set",
+        "VALIDATOR_NOT_A_DATE": "Value is not a date",
+        "VALIDATOR_NOT_A_JSON": "Value is not a JSON object",
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",

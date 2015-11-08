@@ -94,7 +94,7 @@ module.exports = function () {
 
                         token = new TokenModel();
                         token.setUserId(user.getId());
-                        token.setPayload('{ "user_id": ' + user.getId() + ' }');
+                        token.setPayload({ user_id: user.getId() });
                         token.setIpAddress(req.connection.remoteAddress);
                         token.setCreatedAt(moment());
                         token.setUpdatedAt(moment());
@@ -105,13 +105,13 @@ module.exports = function () {
                             return;
 
                         var payload = {
-                            token_id: token.getId(),
                             user_id: user.getId(),
+                            token_id: token.getId(),
                         };
 
                         encryptedData = jwt.sign(payload, config['jwt']['secret']);
 
-                        token.setPayload(JSON.stringify(payload));
+                        token.setPayload(payload);
                         return tokenRepo.save(token);
                     })
                     .then(function () {

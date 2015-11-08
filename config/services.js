@@ -47,6 +47,14 @@ module.exports = function (app) {
                 path: "app/repositories/token.js",
                 instantiate: true,
             },
+            "job-model": {
+                path: "app/models/job.js",
+                instantiate: false,
+            },
+            "job-repository": {
+                path: "app/repositories/job.js",
+                instantiate: true,
+            },
             "notification-model": {
                 path: "app/models/notification.js",
                 instantiate: false,

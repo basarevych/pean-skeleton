@@ -156,7 +156,7 @@ module.exports = function () {
                             ip_address: token.getIpAddress(),
                             created_at: token.getCreatedAt().unix(),
                             updated_at: token.getUpdatedAt().unix(),
-                            payload: JSON.stringify(token.getPayload(), undefined, 4),
+                            payload: token.getPayload(),
                         });
                     })
                     .catch(function (err) {
@@ -190,7 +190,7 @@ module.exports = function () {
                                 ip_address: token.getIpAddress(),
                                 created_at: token.getCreatedAt().unix(),
                                 updated_at: token.getUpdatedAt().unix(),
-                                payload: JSON.stringify(token.getPayload(), undefined, 4),
+                                payload: token.getPayload(),
                             });
                         });
                         res.json(result);
