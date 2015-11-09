@@ -7,8 +7,10 @@
 var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
+var moment = require('moment-timezone');
 var q = require('q');
 var NotificationModel = locator.get('notification-model');
+var JobModel = locator.get('job-model');
 
 module.exports = function () {
     var router = express.Router();
@@ -47,10 +49,27 @@ module.exports = function () {
                 if (roleId.length)
                     notification.setRoleId(roleId);
 
-                var notificationRepo = locator.get('notification-repository');
-                notificationRepo.save(notification)
-                    .then(function (userId) {
-                        res.json({ success: true });
+                var promise;
+                if (req.body.scheduled_for === null) {
+                    var notificationRepo = locator.get('notification-repository');
+                    promise = notificationRepo.save(notification);
+                } else {
+                    var job = new JobModel();
+                    job.setName('notify');
+                    job.setStatus('created');
+                    job.setCreatedAt(moment());
+                    job.setScheduledFor(moment.unix(req.body.scheduled_for));
+                    job.setValidUntil(moment.unix(req.body.scheduled_for).add(1, 'minutes'));
+                    job.setInputData(notification.data())
+                    job.setOutputData({});
+
+                    var jobRepo = locator.get('job-repository');
+                    promise = jobRepo.save(job)
+                }
+
+                promise
+                    .then(function (id) {
+                        res.json({ success: id !== null });
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/notification failed', err);
