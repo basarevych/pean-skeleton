@@ -201,48 +201,91 @@ RoleRepository.prototype.save = function (role) {
             process.exit(1);
         }
 
-        var query, params = [];
-        if (role.getId()) {
-            query = "UPDATE roles "
-                  + "   SET parent_id = $1, "
-                  + "       handle = $2, "
-                  + "       title = $3 "
-                  + " WHERE id = $4 ";
-            params = [
-                role.getParentId(),
-                role.getHandle(),
-                role.getTitle(),
-                role.getId(),
-            ];
-        } else {
-            query = "   INSERT "
-                  + "     INTO roles(parent_id, handle, title) "
-                  + "   VALUES ($1, $2, $3) "
-                  + "RETURNING id ";
-            params = [
-                role.getParentId(),
-                role.getHandle(),
-                role.getTitle(),
-            ];
-        }
-
-        db.query(query, params, function (err, result) {
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
                 defer.reject();
                 logger.error('RoleRepository.save() - pg query', err);
                 process.exit(1);
             }
 
-            db.end();
-            role.dirty(false);
+            db.query(
+                "SELECT handle "
+              + "  FROM roles "
+              + " WHERE id <> $1 AND handle = $2 ",
+                [ role.getId(), role.getHandle() ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('RoleRepository.save() - pg query', err);
+                        process.exit(1);
+                    }
 
-            var id = result.rows.length && result.rows[0]['id'];
-            if (id)
-                role.setId(id);
-            else
-                id = role.getId();
+                    if (result.rows.length) {
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('RoleRepository.save() - pg query', err);
+                                process.exit(1);
+                            }
 
-            defer.resolve(id);
+                            db.end();
+                            defer.resolve(null);
+                        });
+                        return;
+                    }
+
+                    var query, params = [];
+                    if (role.getId()) {
+                        query = "UPDATE roles "
+                              + "   SET parent_id = $1, "
+                              + "       handle = $2, "
+                              + "       title = $3 "
+                              + " WHERE id = $4 ";
+                        params = [
+                            role.getParentId(),
+                            role.getHandle(),
+                            role.getTitle(),
+                            role.getId(),
+                        ];
+                    } else {
+                        query = "   INSERT "
+                              + "     INTO roles(parent_id, handle, title) "
+                              + "   VALUES ($1, $2, $3) "
+                              + "RETURNING id ";
+                        params = [
+                            role.getParentId(),
+                            role.getHandle(),
+                            role.getTitle(),
+                        ];
+                    }
+
+                    db.query(query, params, function (err, result) {
+                        if (err) {
+                            defer.reject();
+                            logger.error('RoleRepository.save() - pg query', err);
+                            process.exit(1);
+                        }
+
+                        var id = result.rows.length && result.rows[0]['id'];
+                        if (id)
+                            role.setId(id);
+                        else
+                            id = role.getId();
+
+                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('UserRepository.save() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            role.dirty(false);
+                            defer.resolve(id);
+                        });
+                    });
+                }
+            );
         });
     });
 
