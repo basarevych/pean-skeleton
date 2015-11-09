@@ -100,6 +100,23 @@ JobRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+JobRepository.prototype.processNewJobs = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+    var me = this;
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('JobRepository.processNewJobs() - pg connect', err);
+            process.exit(1);
+        }
+    });
+
+    return defer.promise;
+};
+
 JobRepository.prototype.save = function (job) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -165,6 +182,11 @@ JobRepository.prototype.save = function (job) {
                 job.setId(id);
             else
                 id = job.getId();
+
+            if (job.getStatus() != 'created') {
+                defer.resolve(id);
+                return;
+            }
 
             var redis = me.getRedis();
             redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {

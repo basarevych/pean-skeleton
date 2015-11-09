@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+/**
+ * Start job server
+ */
+
+'use strict'
+
+var app = require('../app/app');
+var locator = require('node-service-locator');
+
+// check requirements
+console.log("==> Checking Postgres...");
+var db = locator.get('user-repository').getPostgres();
+db.connect(function (err) {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+
+    db.end();
+
+    console.log("==> Checking Redis...");
+    var redis = locator.get('user-repository').getRedis();
+    redis.get('foobar', function (err, reply) {
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
+
+        redis.quit();
+
+        var workerServer = locator.get('worker-server');
+        workerServer.start();
+        console.log("=> Worker server started");
+        locator.register('worker-server', workerServer);
+
+        if (process.getuid() === 0 && process.env.USER && process.env.GROUP) {
+            console.log("=> Dropping privileges...");
+            process.setgid(process.env.GROUP);
+            process.setuid(process.env.USER);
+        }
+    });
+});

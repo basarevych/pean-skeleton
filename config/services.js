@@ -15,6 +15,10 @@ module.exports = function (app) {
                 path: "app/services/websocket-server.js",
                 instantiate: true,
             },
+            "worker-server": {
+                path: "app/services/worker-server.js",
+                instantiate: true,
+            },
             "role-model": {
                 path: "app/models/role.js",
                 instantiate: false,
