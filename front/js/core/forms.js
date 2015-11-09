@@ -470,8 +470,24 @@ forms.factory('CreateJobForm',
                             input_data: { value: '', focus: false, required: false },
                         };
                     },
-                    validator: function () { return JobApi.validate; },
-                    submitter: function () { return JobApi.create; },
+                    validator: function () {
+                        return function (params) {
+                            if (params['scheduled_for'].trim().length)
+                                params['scheduled_for'] = moment(params['scheduled_for']).unix();
+                            if (params['valid_until'].trim().length)
+                                params['valid_until'] = moment(params['valid_until']).unix();
+                            return JobApi.validate(params);
+                        };
+                    },
+                    submitter: function () {
+                        return function (params) {
+                            if (params['scheduled_for'].trim().length)
+                                params['scheduled_for'] = moment(params['scheduled_for'].trim()).unix();
+                            if (params['valid_until'].trim().length)
+                                params['valid_until'] = moment(params['valid_until'].trim()).unix();
+                            return JobApi.create(params);
+                        };
+                    },
                 }
             }).result;
         }
@@ -497,8 +513,24 @@ forms.factory('EditJobForm',
                             output_data: { value: JSON.stringify(job.output_data, undefined, 4), focus: false, required: false },
                         };
                     },
-                    validator: function () { return JobApi.validate; },
-                    submitter: function () { return JobApi.update; },
+                    validator: function () {
+                        return function (params) {
+                            if (params['scheduled_for'].trim().length)
+                                params['scheduled_for'] = moment(params['scheduled_for']).unix();
+                            if (params['valid_until'].trim().length)
+                                params['valid_until'] = moment(params['valid_until']).unix();
+                            return JobApi.validate(params);
+                        };
+                    },
+                    submitter: function () {
+                        return function (params) {
+                            if (params['scheduled_for'].trim().length)
+                                params['scheduled_for'] = moment(params['scheduled_for'].trim()).unix();
+                            if (params['valid_until'].trim().length)
+                                params['valid_until'] = moment(params['valid_until'].trim()).unix();
+                            return JobApi.update(params);
+                        };
+                    },
                 }
             }).result;
         }

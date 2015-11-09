@@ -43,11 +43,11 @@ module.exports = function () {
                     errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
                 break;
             case 'scheduled_for':
-                if (form.scheduled_for.length && !moment(form.scheduled_for).isValid())
+                if (form.scheduled_for.length && !moment.unix(form.scheduled_for).isValid())
                     errors.push(glMessage('VALIDATOR_NOT_A_DATE'));
                 break;
             case 'valid_until':
-                if (form.valid_until.length && !moment(form.valid_unitl).isValid())
+                if (form.valid_until.length && !moment.unix(form.valid_until).isValid())
                     errors.push(glMessage('VALIDATOR_NOT_A_DATE'));
                 break;
             case 'input_data':
@@ -367,8 +367,8 @@ module.exports = function () {
                         job.setName(name.value);
                         job.setStatus(status.value);
                         job.setCreatedAt(moment());
-                        job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : moment());
-                        job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : moment().add(1, 'minutes'));
+                        job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
+                        job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(1, 'minutes'));
                         job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
                         job.setOutputData({});
 
@@ -445,8 +445,8 @@ module.exports = function () {
 
                                 job.setName(name.value);
                                 job.setStatus(status.value);
-                                job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : moment());
-                                job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : moment().add(1, 'minutes'));
+                                job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
+                                job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(1, 'minutes'));
                                 job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
 
                                 var jobRepo = locator.get('job-repository');
