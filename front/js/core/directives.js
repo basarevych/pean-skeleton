@@ -120,6 +120,7 @@ directives.directive('datetimePicker',
                 element.parent().datetimepicker({
                     format: $filter('glMessage')('DT_DATE_TIME_FORMAT'),
                     locale: $rootScope.appControl.getProfile().locale['current'],
+                    allowInputToggle: true,
                     timeZone: null,
                     keyBinds: {
                         enter: function () {

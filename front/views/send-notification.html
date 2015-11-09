@@ -66,34 +66,61 @@
                     <h3 class="panel-title">{{ 'NOTIFICATION_PANEL_TITLE' | glMessage }}</h3>
                 </div>
                 <div class="panel-body">
-                    <form role="form" novalidate ng-show="premadeSelection == 'custom'">
+                    <form role="form" novalidate>
                         <div class="form-group">
                             <label class="control-label">
-                                {{ 'TITLE_LABEL' | glMessage }}:
+                                {{ 'SCHEDULE_LABEL' | glMessage }}
                             </label>
-                            <input type="text" class="form-control" ng-model="modelCustom.title" focus-on="focusCustom.title" on-key-enter="focusCustom.icon = true" ng-change="updatePreview()" autofocus="autofocus">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" ng-model="scheduledFor" value="now">
+                                    {{ 'IMMEDIATELY_LABEL' | glMessage }}
+                                </label>
+                            </div>
                         </div>
+                        <div class="form-group">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" ng-model="scheduledFor" value="time">
+                                    {{ 'SPECIFIC_TIME_LABEL' | glMessage }}
+                                    <div class="input-group date" ng-show="scheduledFor == 'time'">
+                                        <input type="text" class="form-control" ng-model="scheduledTime" datetime-picker>
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div ng-show="premadeSelection == 'custom'">
+                            <div class="form-group">
+                                <label class="control-label">
+                                    {{ 'TITLE_LABEL' | glMessage }}:
+                                </label>
+                                <input type="text" class="form-control" ng-model="modelCustom.title" focus-on="focusCustom.title" on-key-enter="focusCustom.icon = true" ng-change="updatePreview()" autofocus="autofocus">
+                            </div>
 
-                        <div class="form-group">
-                            <label class="control-label">
-                                {{ 'ICON_LABEL' | glMessage }}:
-                            </label>
-                            <input type="text" class="form-control" ng-model="modelCustom.icon" focus-on="focusCustom.icon" on-key-enter="focusCustom.text = true" ng-change="updatePreview()">
-                        </div>
+                            <div class="form-group">
+                                <label class="control-label">
+                                    {{ 'ICON_LABEL' | glMessage }}:
+                                </label>
+                                <input type="text" class="form-control" ng-model="modelCustom.icon" focus-on="focusCustom.icon" on-key-enter="focusCustom.text = true" ng-change="updatePreview()">
+                            </div>
 
-                        <div class="form-group">
-                            <label class="control-label required">
-                                {{ 'TEXT_LABEL' | glMessage }}:
-                            </label>
-                            <textarea class="form-control" ng-model="modelCustom.text" focus-on="focusCustom.text" ng-change="updatePreview()"></textarea>
+                            <div class="form-group">
+                                <label class="control-label required">
+                                    {{ 'TEXT_LABEL' | glMessage }}:
+                                </label>
+                                <textarea class="form-control" ng-model="modelCustom.text" focus-on="focusCustom.text" ng-change="updatePreview()"></textarea>
+                            </div>
                         </div>
-                    </form>
-                    <form role="form" novalidate ng-show="premadeSelection == 'shutdown'">
-                        <div class="form-group">
-                            <label class="control-label">
-                                {{ 'MINUTES_LABEL' | glMessage }}:
-                            </label>
-                            <input type="text" class="form-control" ng-model="modelShutdown.minutes" focus-on="focusShutdown.minutes" ng-change="updatePreview()" autofocus="autofocus">
+                        <div ng-show="premadeSelection == 'shutdown'">
+                            <div class="form-group">
+                                <label class="control-label">
+                                    {{ 'MINUTES_LABEL' | glMessage }}:
+                                </label>
+                                <input type="text" class="form-control" ng-model="modelShutdown.minutes" focus-on="focusShutdown.minutes" ng-change="updatePreview()" autofocus="autofocus">
+                            </div>
                         </div>
                     </form>
                 </div>

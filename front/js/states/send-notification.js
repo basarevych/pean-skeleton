@@ -3,8 +3,8 @@
 var module = angular.module('state.send-notification', []);
 
 module.controller("SendNotificationCtrl",
-    [ '$scope', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'RoleApi', 'InfoDialog',
-    function ($scope, globalizeWrapper, NotificationApi, UserApi, RoleApi, InfoDialog) {
+    [ '$scope', '$filter', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'RoleApi', 'InfoDialog',
+    function ($scope, $filter, globalizeWrapper, NotificationApi, UserApi, RoleApi, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -19,6 +19,9 @@ module.controller("SendNotificationCtrl",
                 if (roles.length > 0)
                     $scope.recipientRole = { id: roles[0].id };
             });
+
+        $scope.scheduledFor = 'now';
+        $scope.scheduledTime = moment().format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
 
         $scope.availableLocales = $scope.appControl.getProfile().locale.available;
         $scope.selectedLocale = $scope.availableLocales[0];
@@ -99,6 +102,15 @@ module.controller("SendNotificationCtrl",
             $scope.sendButtonActive = false;
 
             var params = {};
+            switch ($scope.scheduledFor) {
+                case 'now':
+                    params['scheduled_for'] = null;
+                    break;
+                case 'time':
+                    params['scheduled_for'] = moment($scope.scheduledTime).unix();
+                    break;
+            }
+
             switch ($scope.premadeSelection) {
                 case 'custom':
                     params['text'] = $scope.modelCustom.text;
