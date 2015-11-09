@@ -363,13 +363,12 @@ module.exports = function () {
                             });
                         }
 
-                        var now = moment();
                         var job = new JobModel();
                         job.setName(name.value);
                         job.setStatus(status.value);
-                        job.setCreatedAt(now);
-                        job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : now);
-                        job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : clone(now).add(1, 'minutes'));
+                        job.setCreatedAt(moment());
+                        job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : moment());
+                        job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : moment().add(1, 'minutes'));
                         job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
                         job.setOutputData({});
 
@@ -444,11 +443,10 @@ module.exports = function () {
                                 if (!job)
                                     return app.abort(res, 404, "Job " + jobId + " not found");
 
-                                var now = moment();
                                 job.setName(name.value);
                                 job.setStatus(status.value);
-                                job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : now());
-                                job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : clone(now).add(1, 'minutes'));
+                                job.setScheduledFor(scheduledFor.value.length ? moment(scheduledFor.value) : moment());
+                                job.setValidUntil(validUntil.value.length ? moment(validUntil.value) : moment().add(1, 'minutes'));
                                 job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
 
                                 var jobRepo = locator.get('job-repository');

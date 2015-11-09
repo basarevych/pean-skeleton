@@ -10,13 +10,12 @@ var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
 function JobModel(dbRow) {
-    var now = moment();
     this.id = null;
     this.name = null;
     this.status = null;
-    this.created_at = now;
-    this.scheduled_for = now;
-    this.valid_until = now;
+    this.created_at = moment();
+    this.scheduled_for = moment();
+    this.valid_until = moment();
     this.input_data = {};
     this.output_data = {};
 
