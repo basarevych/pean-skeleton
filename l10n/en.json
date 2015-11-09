@@ -157,7 +157,7 @@
         "INPUT_DATA_LABEL": "Input data",
         "OUTPUT_DATA_LABEL": "Output data",
         "SCHEDULED_FOR_NOTICE": "Leave blank to schedule immediately",
-        "VALID_UNTIL_NOTICE": "Leave blank for 'schedule' +1 minute",
+        "VALID_UNTIL_NOTICE": "Leave blank for 'schedule' +5 minutes",
         "JOB_CONFIRM_DELETE_TITLE": "Delete job",
         "JOB_CONFIRM_DELETE_TEXT": "Delete selected jobs?",
         "JOB_CONFIRM_DELETE_BUTTON": "Delete",

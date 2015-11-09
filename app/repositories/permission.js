@@ -6,7 +6,9 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
-var BaseRepository = require('./base');
+var moment = require('moment-timezone');
+var BaseRepository = locator.get('base-repository');
+var BaseModel = locator.get('base-model');
 var PermissionModel = locator.get('permission-model');
 
 function PermissionRepository() {

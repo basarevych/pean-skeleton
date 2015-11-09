@@ -6,7 +6,9 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
+var moment = require('moment-timezone');
 var BaseModel = require('./base');
+var BaseModel = locator.get('base-model');
 
 function RoleModel(model) {
     this.id = null;

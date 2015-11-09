@@ -6,7 +6,9 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
-var BaseRepository = require('./base');
+var moment = require('moment-timezone');
+var BaseRepository = locator.get('base-repository');
+var BaseModel = locator.get('base-model');
 var TokenModel = locator.get('token-model');
 
 function TokenRepository() {
@@ -171,8 +173,8 @@ TokenRepository.prototype.save = function (token) {
                 token.getUserId(),
                 JSON.stringify(token.getPayload()),
                 token.getIpAddress(),
-                token.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-                token.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                 token.getId(),
             ];
         } else {
@@ -184,8 +186,8 @@ TokenRepository.prototype.save = function (token) {
                 token.getUserId(),
                 JSON.stringify(token.getPayload()),
                 token.getIpAddress(),
-                token.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-                token.getUpdatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
             ];
         }
 

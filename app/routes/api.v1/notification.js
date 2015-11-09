@@ -59,7 +59,7 @@ module.exports = function () {
                     job.setStatus('created');
                     job.setCreatedAt(moment());
                     job.setScheduledFor(moment.unix(req.body.scheduled_for));
-                    job.setValidUntil(moment.unix(req.body.scheduled_for).add(1, 'minutes'));
+                    job.setValidUntil(moment.unix(req.body.scheduled_for).add(5, 'minutes'));
                     job.setInputData(notification.data())
                     job.setOutputData({});
 

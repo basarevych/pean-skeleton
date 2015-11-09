@@ -7,7 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var moment = require('moment-timezone');
-var BaseModel = require('./base');
+var BaseModel = locator.get('base-model');
 
 function JobModel(model) {
     this.id = null;

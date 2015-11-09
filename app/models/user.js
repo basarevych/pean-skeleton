@@ -9,6 +9,7 @@ var bcrypt = require('bcrypt');
 var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = require('./base');
+var BaseModel = locator.get('base-model');
 
 function UserModel(model) {
     this.id = null;
@@ -44,7 +45,7 @@ UserModel.prototype.data = function (model) {
         this.name = model.name;
         this.email = model.email;
         this.password = model.password;
-        this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
+        this.created_at = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
     }
 
     return model;

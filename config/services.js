@@ -19,6 +19,14 @@ module.exports = function (app) {
                 path: "app/services/worker-server.js",
                 instantiate: true,
             },
+            "base-model": {
+                path: "app/models/base.js",
+                instantiate: false,
+            },
+            "base-repository": {
+                path: "app/repositories/base.js",
+                instantiate: false,
+            },
             "role-model": {
                 path: "app/models/role.js",
                 instantiate: false,

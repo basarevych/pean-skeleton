@@ -368,7 +368,7 @@ module.exports = function () {
                         job.setStatus(status.value);
                         job.setCreatedAt(moment());
                         job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
-                        job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(1, 'minutes'));
+                        job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(5, 'minutes'));
                         job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
                         job.setOutputData({});
 
@@ -446,7 +446,7 @@ module.exports = function () {
                                 job.setName(name.value);
                                 job.setStatus(status.value);
                                 job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
-                                job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(1, 'minutes'));
+                                job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(5, 'minutes'));
                                 job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
 
                                 var jobRepo = locator.get('job-repository');

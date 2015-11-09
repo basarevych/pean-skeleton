@@ -6,7 +6,9 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
-var BaseRepository = require('./base');
+var moment = require('moment-timezone');
+var BaseRepository = locator.get('base-repository');
+var BaseModel = locator.get('base-model');
 var JobModel = locator.get('job-model');
 
 function JobRepository() {
@@ -112,6 +114,77 @@ JobRepository.prototype.processNewJobs = function () {
             logger.error('JobRepository.processNewJobs() - pg connect', err);
             process.exit(1);
         }
+
+        var now = moment();
+        var returnValue = { expired: [], started: [] };
+
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('JobRepository.processNewJobs() - pg query', err);
+                process.exit(1);
+            }
+
+            db.query(
+                "SELECT * "
+              + "  FROM jobs "
+              + " WHERE status = $1 AND scheduled_for <= $2 ",
+                [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('JobRepository.processNewJobs() - pg query', err);
+                        process.exit(1);
+                    }
+
+                    if (result.rows.length == 0) {
+                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                            if (err) {
+                                defer.reject();
+                                logger.error('JobRepository.processNewJobs() - pg query', err);
+                                process.exit(1);
+                            }
+
+                            db.end();
+                            defer.resolve(returnValue);
+                        });
+                        return;
+                    }
+
+                    var promises = [];
+                    result.rows.forEach(function (row) {
+                        var job = new JobModel(row);
+                        if (now.isAfter(job.getValidUntil())) {
+                            job.setStatus('expired');
+                            returnValue.expired.push(job);
+                        } else {
+                            job.setStatus('started');
+                            returnValue.started.push(job);
+                        }
+                        promises.push(me.save(job));
+                    });
+
+                    q.all(promises)
+                        .then(function (result) {
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('JobRepository.processNewJobs() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                db.end();
+                                defer.resolve(returnValue);
+                            });
+                        })
+                        .catch(function (err) {
+                            defer.reject();
+                            logger.error('JobRepository.processNewJobs() - q all', err);
+                            process.exit(1);
+                        });
+                }
+            );
+        });
     });
 
     return defer.promise;
@@ -144,9 +217,9 @@ JobRepository.prototype.save = function (job) {
             params = [
                 job.getName(),
                 job.getStatus(),
-                job.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-                job.getScheduledFor().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-                job.getValidUntil().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                 JSON.stringify(job.getInputData()),
                 JSON.stringify(job.getOutputData()),
                 job.getId(),
@@ -159,9 +232,9 @@ JobRepository.prototype.save = function (job) {
             params = [
                 job.getName(),
                 job.getStatus(),
-                job.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-                job.getScheduledFor().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
-                job.getValidUntil().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                 JSON.stringify(job.getInputData()),
                 JSON.stringify(job.getOutputData()),
             ];

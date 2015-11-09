@@ -8,6 +8,7 @@ var locator = require('node-service-locator');
 var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = require('./base');
+var BaseModel = locator.get('base-model');
 
 function TokenModel(model) {
     this.id = null;
@@ -41,8 +42,8 @@ TokenModel.prototype.data = function (model) {
         this.user_id = model.user_id;
         this.payload = model.payload;
         this.ip_address = model.ip_address;
-        this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-        this.updated_at = moment.tz(utcUpdated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
+        this.created_at = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
+        this.updated_at = moment.tz(utcUpdated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
     }
 
     return model;

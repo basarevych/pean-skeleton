@@ -6,7 +6,9 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
-var BaseRepository = require('./base');
+var moment = require('moment-timezone');
+var BaseRepository = locator.get('base-repository');
+var BaseModel = locator.get('base-model');
 var UserModel = locator.get('user-model');
 
 function UserRepository() {
@@ -330,7 +332,7 @@ UserRepository.prototype.save = function (user) {
                             user.getName(),
                             user.getEmail(),
                             user.getPassword(),
-                            user.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                            user.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                             user.getId(),
                         ];
                     } else {
@@ -342,7 +344,7 @@ UserRepository.prototype.save = function (user) {
                             user.getName(),
                             user.getEmail(),
                             user.getPassword(),
-                            user.getCreatedAt().tz('UTC').format('YYYY-MM-DD HH:mm:ss'), // save in UTC
+                            user.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                         ];
                     }
 
