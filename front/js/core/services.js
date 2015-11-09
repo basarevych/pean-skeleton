@@ -207,11 +207,10 @@ services.factory('SocketServer',
         }
 
         function onNotification(message) {
-            var variables = JSON.parse(message.variables);
             new PNotify({
-                icon: message.icon && $filter('glMessage')(message.icon, variables),
-                title: message.title && $filter('glMessage')(message.title, variables),
-                text: $filter('glMessage')(message.text, variables),
+                icon: message.icon && $filter('glMessage')(message.icon, message.variables),
+                title: message.title && $filter('glMessage')(message.title, message.variables),
+                text: $filter('glMessage')(message.text, message.variables),
                 mouse_reset: false,
             });
         }

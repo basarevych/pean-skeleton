@@ -10,23 +10,15 @@ var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
-function UserModel(dbRow) {
+function UserModel(model) {
     this.id = null;
     this.name = null;
     this.email = null;
     this.password = null;
     this.created_at = moment();
 
-    if (dbRow) {
-        var utc = moment(dbRow.created_at); // db field is in UTC
-
-        this.id = dbRow.id;
-        this.name = dbRow.name;
-        this.email = dbRow.email;
-        this.password = dbRow.password;
-        this.created_at = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-    }
-};
+    BaseModel.call(this, model);
+}
 
 UserModel.prototype = new BaseModel();
 UserModel.prototype.constructor = UserModel;
@@ -34,6 +26,28 @@ UserModel.prototype.constructor = UserModel;
 UserModel.encryptPassword = function (password) {
     var salt = bcrypt.genSaltSync(10);
     return bcrypt.hashSync(password, salt);
+};
+
+UserModel.prototype.data = function (model) {
+    if (typeof model == 'undefined') {
+        model = {
+            id: this.id,
+            name: this.name,
+            email: this.email,
+            password: this.password,
+            created_at: this.created_at.tz('UTC').format(BaseModel.DATETIME_FORMAT), // return in UTC
+        };
+    } else {
+        var utcCreated = moment(model.created_at); // db field is in UTC
+
+        this.id = model.id;
+        this.name = model.name;
+        this.email = model.email;
+        this.password = model.password;
+        this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
+    }
+
+    return model;
 };
 
 UserModel.prototype.setId = function (id) {

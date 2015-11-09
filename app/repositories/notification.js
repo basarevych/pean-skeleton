@@ -37,7 +37,7 @@ NotificationRepository.prototype.find = function (id) {
             notification.setTitle(reply['title']);
         if (reply['icon'])
             notification.setIcon(reply['icon']);
-        notification.setVariables(reply['variables']);
+        notification.setVariables(JSON.parse(reply['variables']));
         if (reply['user_id'])
             notification.setUserId(reply['user_id']);
         if (reply['role_id'])
@@ -55,7 +55,7 @@ NotificationRepository.prototype.save = function (notification) {
     var defer = q.defer();
 
     var name = process.env.PROJECT + ":notification:" + notification.getId();
-    var value = { text: notification.getText(), variables: notification.getVariables() };
+    var value = { text: notification.getText(), variables: JSON.stringify(notification.getVariables()) };
     if (notification.getTitle())
         value['title'] = notification.getTitle();
     if (notification.getIcon())

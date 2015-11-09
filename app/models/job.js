@@ -9,7 +9,7 @@ var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
-function JobModel(dbRow) {
+function JobModel(model) {
     this.id = null;
     this.name = null;
     this.status = null;
@@ -19,24 +19,41 @@ function JobModel(dbRow) {
     this.input_data = {};
     this.output_data = {};
 
-    if (dbRow) {
-        var utcCreated = moment(dbRow.created_at); // db field is in UTC
-        var utcScheduled = moment(dbRow.scheduled_for); // db field is in UTC
-        var utcValid = moment(dbRow.valid_until); // db field is in UTC
-
-        this.id = dbRow.id;
-        this.name = dbRow.name;
-        this.status = dbRow.status;
-        this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-        this.scheduled_for = moment.tz(utcScheduled.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-        this.valid_until = moment.tz(utcValid.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-        this.input_data = dbRow.input_data;
-        this.output_data = dbRow.output_data;
-    }
+    BaseModel.call(this, model);
 };
 
 JobModel.prototype = new BaseModel();
 JobModel.prototype.constructor = JobModel;
+
+JobModel.prototype.data = function (model) {
+    if (typeof model == 'undefined') {
+        model = {
+            id: this.id,
+            name: this.name,
+            status: this.status,
+            created_at: this.created_at.tz('UTC').format(BaseModel.DATETIME_FORMAT), // return in UTC
+            scheduled_for: this.scheduled_for.tz('UTC').format(BaseModel.DATETIME_FORMAT),
+            valid_until: this.valid_until.tz('UTC').format(BaseModel.DATETIME_FORMAT),
+            input_data: this.input_data,
+            output_data: this.output_data,
+        };
+    } else {
+        var utcCreated = moment(model.created_at); // db field is in UTC
+        var utcScheduled = moment(model.scheduled_for);
+        var utcValid = moment(model.valid_until);
+
+        this.id = model.id;
+        this.name = model.name;
+        this.status = model.status;
+        this.created_at = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
+        this.scheduled_for = moment.tz(utcScheduled.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
+        this.valid_until = moment.tz(utcValid.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
+        this.input_data = model.input_data;
+        this.output_data = model.output_data;
+    }
+
+    return model;
+};
 
 JobModel.prototype.setId = function (id) {
     this.field('id', id);

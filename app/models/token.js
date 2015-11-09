@@ -9,7 +9,7 @@ var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = require('./base');
 
-function TokenModel(dbRow) {
+function TokenModel(model) {
     this.id = null;
     this.user_id = null;
     this.payload = {};
@@ -17,21 +17,36 @@ function TokenModel(dbRow) {
     this.created_at = moment();
     this.updated_at = moment();
 
-    if (dbRow) {
-        var utcCreated = moment(dbRow.created_at); // db field is in UTC
-        var utcUpdated = moment(dbRow.updated_at); // db field is in UTC
-
-        this.id = dbRow.id;
-        this.user_id = dbRow.user_id;
-        this.payload = dbRow.payload;
-        this.ip_address = dbRow.ip_address;
-        this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-        this.updated_at = moment.tz(utcUpdated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
-    }
-};
+    BaseModel.call(this, model);
+}
 
 TokenModel.prototype = new BaseModel();
 TokenModel.prototype.constructor = TokenModel;
+
+TokenModel.prototype.data = function (model) {
+    if (typeof model == 'undefined') {
+        model = {
+            id: this.id,
+            user_id: this.user_id,
+            payload: this.payload,
+            ip_address: this.ip_address,
+            created_at: this.created_at.tz('UTC').format(BaseModel.DATETIME_FORMAT), // return in UTC
+            updated_at: this.updated_at.tz('UTC').format(BaseModel.DATETIME_FORMAT),
+        };
+    } else {
+        var utcCreated = moment(model.created_at); // db field is in UTC
+        var utcUpdated = moment(model.updated_at);
+
+        this.id = model.id;
+        this.user_id = model.user_id;
+        this.payload = model.payload;
+        this.ip_address = model.ip_address;
+        this.created_at = moment.tz(utcCreated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
+        this.updated_at = moment.tz(utcUpdated.format('YYYY-MM-DD HH:mm:ss'), 'UTC').local();
+    }
+
+    return model;
+};
 
 TokenModel.prototype.setId = function (id) {
     this.field('id', id);

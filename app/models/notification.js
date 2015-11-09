@@ -9,18 +9,44 @@ var q = require('q');
 var uuid = require('uuid');
 var BaseModel = require('./base');
 
-function NotificationModel() {
+function NotificationModel(model) {
     this.id = uuid.v1();
     this.text = "";
     this.title = null;
     this.icon = null;
-    this.variables = "{}";
+    this.variables = {};
     this.user_id = null;
     this.role_id = null;
+
+    BaseModel.call(this, model);
 };
 
 NotificationModel.prototype = new BaseModel();
 NotificationModel.prototype.constructor = NotificationModel;
+
+NotificationModel.prototype.data = function (model) {
+    if (typeof model == 'undefined') {
+        model = {
+            id: this.id,
+            text: this.text,
+            title: this.title,
+            icon: this.icon,
+            variables: this.variables,
+            user_id: this.user_id,
+            role_id: this.role_id,
+        };
+    } else {
+        this.id = model.id;
+        this.text = model.text;
+        this.title = model.title;
+        this.icon = model.icon;
+        this.variables = model.variables;
+        this.user_id = model.user_id;
+        this.role_id = model.role_id;
+    }
+
+    return model;
+};
 
 NotificationModel.prototype.setId = function (id) {
     this.field('id', id);

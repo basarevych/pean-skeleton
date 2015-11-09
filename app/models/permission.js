@@ -8,22 +8,36 @@ var locator = require('node-service-locator');
 var q = require('q');
 var BaseModel = require('./base');
 
-function PermissionModel(dbRow) {
+function PermissionModel(model) {
     this.id = null;
     this.role_id = null;
     this.resource = null;
     this.action = null;
 
-    if (dbRow) {
-        this.id = dbRow.id;
-        this.role_id = dbRow.role_id;
-        this.resource = dbRow.resource;
-        this.action = dbRow.action;
-    }
-};
+    BaseModel.call(this, model);
+}
 
 PermissionModel.prototype = new BaseModel();
 PermissionModel.prototype.constructor = PermissionModel;
+
+PermissionModel.prototype.data = function (model) {
+    if (typeof model == 'undefined') {
+        model = {
+            id: this.id,
+            role_id: this.role_id,
+            resource: this.resource,
+            action: this.action,
+        };
+    } else {
+        this.id = model.id;
+        this.role_id = model.role_id;
+        this.resource = model.resource;
+        this.action = model.action;
+    }
+
+    return model;
+};
+
 
 PermissionModel.prototype.setId = function (id) {
     this.field('id', id);

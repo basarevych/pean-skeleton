@@ -41,7 +41,7 @@ module.exports = function () {
                     notification.setTitle(title);
                 if (icon.length)
                     notification.setIcon(icon);
-                notification.setVariables(JSON.stringify(variables));
+                notification.setVariables(variables);
                 if (userId.length)
                     notification.setUserId(userId);
                 if (roleId.length)
