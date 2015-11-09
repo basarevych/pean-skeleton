@@ -10,7 +10,7 @@
     "cookie-parser": "~1.4.0",
     "debug": "~2.2.0",
     "dotenv": "~1.2.0",
-    "dynamic-table": "~0.2.3",
+    "dynamic-table": "~0.2.5",
     "express": "~4.13.3",
     "express-session": "~1.12.1",
     "globalize": "~1.1.0-rc.5",
