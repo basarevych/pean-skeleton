@@ -246,7 +246,11 @@ module.exports = function () {
             });
     });
 
-    router.post('/lookup-email', function (req, res) {
+    router.post('/search', function (req, res) {
+        var criteria = req.body.criteria;
+        if (!criteria || ['email'].indexOf(criteria) == -1)
+            return app.abort(res, 400, "Invalid criteria");
+
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
@@ -256,23 +260,53 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                var promise;
                 var userRepo = locator.get('user-repository');
-                userRepo.searchByEmail(req.body.search)
+                var roleRepo = locator.get('role-repository');
+                switch (criteria) {
+                    case 'email':
+                        promise = userRepo.searchByEmail(req.body.search);
+                        break;
+                }
+
+                promise
                     .then(function (users) {
                         var result = [];
+                        var promises = [];
                         users.forEach(function (user) {
-                            result.push({ id: user.getId(), email: user.getEmail() });
+                            result.push({
+                                id: user.getId(),
+                                name: user.getName(),
+                                email: user.getEmail(),
+                                created_at: user.getCreatedAt().unix(),
+                            });
+                            promises.push(roleRepo.findByUserId(user.getId()));
                         });
-                        res.json(result);
+
+                        q.all(promises)
+                            .then(function (userRoles) {
+                                for (var i = 0; i < userRoles.length; i++) {
+                                    var roleIds = [];
+                                    userRoles[i].forEach(function (role) {
+                                        roleIds.push(role.getId());
+                                    });
+                                    result[i]['roles'] = roleIds;
+                                }
+                                res.json(result);
+                            })
+                            .catch(function (err) {
+                                logger.error('POST /v1/user/search failed', err);
+                                app.abort(res, 500, 'POST /v1/user/search failed');
+                            });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/user/lookup-email failed', err);
-                        app.abort(res, 500, 'POST /v1/user/lookup-email failed');
+                        logger.error('POST /v1/user/search failed', err);
+                        app.abort(res, 500, 'POST /v1/user/search failed');
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/user/lookup-email failed', err);
-                app.abort(res, 500, 'POST /v1/user/lookup-email failed');
+                logger.error('POST /v1/user/search failed', err);
+                app.abort(res, 500, 'POST /v1/user/search failed');
             });
     });
 

@@ -165,7 +165,7 @@ api.factory('UserApi',
             update:      { method: 'PUT', params: { id: '@id' }, isArray: false },
             delete:      { method: 'DELETE', params: { id: '@id' }, isArray: false },
             validate:    { method: 'POST', params: { action: 'validate' }, isArray: false },
-            lookupEmail: { method: 'POST', params: { action: 'lookup-email' }, isArray: true },
+            search:      { method: 'POST', params: { action: 'search' }, isArray: true },
         });
 
         return {
@@ -187,8 +187,8 @@ api.factory('UserApi',
             validate: function (params, noErrorHandler) {
                 return ResourceWrapper(resource.validate(params).$promise, noErrorHandler);
             },
-            lookupEmail: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.lookupEmail(params).$promise, noErrorHandler);
+            search: function (params, noErrorHandler) {
+                return ResourceWrapper(resource.search(params).$promise, noErrorHandler);
             },
         };
     } ]

@@ -148,7 +148,7 @@ module.controller("SendNotificationCtrl",
         };
 
         $scope.getEmail = function (search) {
-            return UserApi.lookupEmail({ search: search })
+            return UserApi.search({ criteria: 'email', search: search })
                 .then(function (data) {
                     return data;
                 });
