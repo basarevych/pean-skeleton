@@ -277,7 +277,7 @@ RoleRepository.prototype.save = function (role) {
                         db.query("COMMIT TRANSACTION", [], function (err, result) {
                             if (err) {
                                 defer.reject();
-                                logger.error('UserRepository.save() - pg query', err);
+                                logger.error('RoleRepository.save() - pg query', err);
                                 process.exit(1);
                             }
 
