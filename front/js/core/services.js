@@ -14,7 +14,7 @@ services.factory('AppControl',
     function ($window, $rootScope, $state, $stateParams, $timeout, $http, $cookies, globalizeWrapper, ProfileApi) {
         var error = null;
         var token = null;
-        var tokenStorageKey = 'Token-' + $window['config']['apiUrl'];
+        var tokenStorageKey = 'Token-' + $window['config']['project'];
         var profile = {
             locale: {
                 current: null,

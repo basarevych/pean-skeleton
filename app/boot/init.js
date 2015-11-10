@@ -27,6 +27,7 @@ module.exports = function (app) {
     // expose the "env" local variable when views are rendered
     app.use(function (req, res, next) {
         res.locals.env = app.get('env');
+        res.locals.project = process.env.PROJECT;
         next();
     });
 };
