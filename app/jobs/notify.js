@@ -23,7 +23,7 @@ module.exports = function (job) {
                 job.setStatus('success');
                 job.setOutputData({});
             }
-            return jobRepository.save(job);
+            return jobRepo.save(job);
         })
         .catch(function (err) {
             logger.err('notify.run() failed', err);
