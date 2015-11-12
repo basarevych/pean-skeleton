@@ -69,7 +69,6 @@ module.exports = function () {
                 table.setMapper(function (row) {
                     var result = row;
 
-                    result['payload'] = validator.escape(row['payload']);
                     result['ip_address'] = validator.escape(row['ip_address']);
 
                     if (row['created_at']) {

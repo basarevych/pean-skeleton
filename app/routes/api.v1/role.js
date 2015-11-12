@@ -42,6 +42,9 @@ module.exports = function () {
                         errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                 }
 
+                if (form.handle.length == 0)
+                    break;
+
                 roleRepo.findByHandle(form.handle)
                     .then(function (roles) {
                         if (roles.length)

@@ -44,6 +44,9 @@ module.exports = function () {
                         errors.push(glMessage('VALIDATOR_EMAIL'));
                 }
 
+                if (form.email.length == 0)
+                    break;
+
                 userRepo.findByEmail(form.email)
                     .then(function (users) {
                         if (users.length)
@@ -167,7 +170,9 @@ module.exports = function () {
                 table.setMapper(function (row) {
                     var result = row;
 
+                    result['name'] = validator.escape(row['name']);
                     result['email'] = validator.escape(row['email']);
+                    result['roles'] = validator.escape(row['roles']);
 
                     if (row['created_at']) {
                         var utc = moment(row['created_at']); // db field is in UTC
