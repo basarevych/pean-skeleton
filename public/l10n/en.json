@@ -53,6 +53,7 @@
         "CLOSE_BUTTON": "Close",
         "SAVE_CHANGES_BUTTON": "Save changes",
         "CREATE_BUTTON": "Create",
+        "CHANGE_BUTTON": "Change",
 
         "SIGN_IN_TITLE": "Sign in",
         "USERNAME_LABEL": "Email",
@@ -78,7 +79,6 @@
         "ROLE_EDIT_TITLE": "Edit role",
         "HANDLE_LABEL": "Handle",
         "PARENT_LABEL": "Parent",
-        "ROLE_CHANGE_HANDLE_BUTTON": "Change",
         "ROLE_CONFIRM_DELETE_TITLE": "Delete role",
         "ROLE_CONFIRM_DELETE_TEXT": "Delete selected roles?",
         "ROLE_CONFIRM_DELETE_BUTTON": "Delete",
@@ -118,7 +118,6 @@
         "USER_EDIT_TITLE": "Edit user",
         "EMAIL_LABEL": "Email",
         "ROLES_LABEL": "Roles",
-        "USER_CHANGE_EMAIL_BUTTON": "Change",
         "USER_REGENERATE_PASSWORD_BUTTON": "Regenerate",
         "USER_SPECIFY_PASSWORD_BUTTON": "Specify password",
         "USER_GENERATE_PASSWORD_BUTTON": "Generate password",
