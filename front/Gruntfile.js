@@ -23,7 +23,7 @@ module.exports = function(grunt) {
                     { // Copy CLDR main data
                         expand: true,
                         cwd: 'bower_components/cldr-data/',
-                        src: 'main/**',
+                        src: 'main/en/**',
                         dest: '../public/cldr',     
                     },
                     { // Copy CLDR supplemental data
