@@ -44,8 +44,9 @@
         "VALIDATOR_EMAIL": "The input must be an email address",
         "VALIDATOR_RECORD_EXISTS": "Value is already present in the database",
         "VALIDATOR_NOT_IN_SET": "Value is not in allowed set",
-        "VALIDATOR_NOT_A_DATE": "Value is not a date",
-        "VALIDATOR_NOT_A_JSON": "Value is not a JSON object",
+        "VALIDATOR_NOT_DATE": "Value is not a date",
+        "VALIDATOR_NOT_JSON": "Value is not a JSON object",
+        "VALIDATOR_NOT_INT": "Value is not an integer",
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",

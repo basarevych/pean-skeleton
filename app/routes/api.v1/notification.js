@@ -34,8 +34,12 @@ module.exports = function () {
                 var userId = validator.trim(req.body.user_id);
                 var roleId = validator.trim(req.body.role_id);
 
-                if (!text.length || typeof variables != "object")
+                if (!text.length
+                        || typeof variables != "object"
+                        || (userId.length && !validator.isInt(userId))
+                        || (roleId.length && !validator.isInt(roleId))) {
                     return res.json({ success: false });
+                }
 
                 var notification = new NotificationModel();
                 notification.setText(text);

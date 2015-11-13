@@ -44,18 +44,18 @@ module.exports = function () {
                 break;
             case 'scheduled_for':
                 if (form.scheduled_for.length && !moment.unix(form.scheduled_for).isValid())
-                    errors.push(glMessage('VALIDATOR_NOT_A_DATE'));
+                    errors.push(glMessage('VALIDATOR_NOT_DATE'));
                 break;
             case 'valid_until':
                 if (form.valid_until.length && !moment.unix(form.valid_until).isValid())
-                    errors.push(glMessage('VALIDATOR_NOT_A_DATE'));
+                    errors.push(glMessage('VALIDATOR_NOT_DATE'));
                 break;
             case 'input_data':
                 try {
                     if (form.input_data.length)
                         JSON.parse(form.input_data);
                 } catch (e) {
-                    errors.push(glMessage('VALIDATOR_NOT_A_JSON'));
+                    errors.push(glMessage('VALIDATOR_NOT_JSON'));
                 }
         }
 

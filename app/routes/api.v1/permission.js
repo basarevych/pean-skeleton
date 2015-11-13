@@ -33,6 +33,8 @@ module.exports = function () {
             case 'role_id':
                 if (!validator.isLength(form.role_id, 1))
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                else if (!validator.isInt(form.role_id))
+                    errors.push(glMessage('VALIDATOR_NOT_INT'));
                 break;
         }
 

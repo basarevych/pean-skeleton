@@ -35,6 +35,8 @@ module.exports = function () {
             case 'parent_id':
                 if (form.parent_id !== null && !validator.isLength(form.parent_id, 1))
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                else if (form.parent_id !== null && !validator.isInt(form.parent_id))
+                    errors.push(glMessage('VALIDATOR_NOT_INT'));
                 break;
             case 'handle':
                 if (form.form_type == 'create') {
