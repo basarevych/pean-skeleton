@@ -21,17 +21,15 @@ module.exports = function () {
     function loadModels(req, token, next) {
         req.token = token;
 
-        if (!token.getUserId()) {
-            next();
-            return;
-        }
-        
         userRepo.find(token.getUserId())
             .then(function (users) {
                 var user = users.length && users[0];
                 if (user)
                     req.user = user;
 
+                next();
+            })
+            .catch(function () {
                 next();
             });
     }

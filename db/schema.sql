@@ -47,7 +47,7 @@ CREATE TABLE "users" (
 
 CREATE TABLE "tokens" (
     "id" serial NOT NULL,
-    "user_id" int NULL,
+    "user_id" int NOT NULL,
     "payload" json NOT NULL,
     "ip_address" character varying(255) NULL,
     "created_at" timestamp NOT NULL,
