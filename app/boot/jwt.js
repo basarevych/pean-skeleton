@@ -36,8 +36,9 @@ module.exports = function () {
 
     app.use(function (req, res, next) {
         if (app.get('env') == 'test') { // override token when testing
-            var token = locator.get('token');
-            loadModels(req, token, next);
+            req.token = null;
+            req.user = locator.get('user');
+            next();
             return;
         }
 
