@@ -556,7 +556,7 @@ module.exports = function () {
                                 if (password.value.length)
                                     user.setPassword(UserModel.encryptPassword(password.value));
 
-                                var roleIds = req.body.roles || (req.body.form && req.body.form.roles);
+                                var roleIds = req.body.roles;
                                 if (typeof roleIds != 'object' || typeof roleIds.forEach != 'function')
                                     return app.abort(res, 400, "User roles are not in array");
 
