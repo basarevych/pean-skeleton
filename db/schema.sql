@@ -102,16 +102,13 @@ CREATE VIEW dt_permissions AS
 
 CREATE VIEW dt_users AS
     SELECT u.*,
-           string_agg(
-               (SELECT DISTINCT r.handle
-                  FROM roles r
-                 WHERE r.id = ur.role_id),
-              ', '
-           ) AS roles,
+           string_agg(r.handle, ', ' order by r.handle) AS roles,
            (SELECT count(t.*)
               FROM tokens t
              WHERE t.user_id = u.id) AS tokens
       FROM users u
  LEFT JOIN user_roles ur
         ON ur.user_id = u.id
+ LEFT JOIN roles r
+        ON r.id = ur.role_id
   GROUP BY u.id;
