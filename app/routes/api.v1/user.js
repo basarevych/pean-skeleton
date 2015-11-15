@@ -26,6 +26,7 @@ module.exports = function () {
             form_type: validator.trim(req.body._form_type),
             name: validator.trim(req.body.name),
             email: validator.trim(req.body.email),
+            encrypted_password: validator.trim(req.body.encrypted_password),
             password: validator.trim(req.body.password),
             retyped_password: validator.trim(req.body.retyped_password),
             roles: req.body.roles,
@@ -68,29 +69,37 @@ module.exports = function () {
                 return defer.promise;
             case 'password':
                 if (form.form_type == 'create') {
-                    if (!validator.isLength(form.password, 1))
-                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                    if (!validator.isLength(form.password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                    if (!form.encrypted_password) {
+                        if (!form.password.length)
+                            errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                        else if (!validator.isLength(form.password, 6))
+                            errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                    }
                 } else {
-                    if (form.password.length && !validator.isLength(form.password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                    if (!form.encrypted_password) {
+                        if (form.password.length && !validator.isLength(form.password, 6))
+                            errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                    }
                 }
                 break;
             case 'retyped_password':
                 if (form.form_type == 'create') {
-                    if (!validator.isLength(form.retyped_password, 1))
-                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                    if (!validator.isLength(form.retyped_password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                    if (form.retyped_password != form.password)
-                        errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                    if (!form.encrypted_password) {
+                        if (!form.retyped_password.length)
+                            errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                        else if (!validator.isLength(form.retyped_password, 6))
+                            errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                        if (form.retyped_password != form.password)
+                            errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                    }
                 } else {
-                    if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                    if ((form.password.length || form.retyped_password.length)
-                            && form.retyped_password != form.password) {
-                        errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                    if (!form.encrypted_password) {
+                        if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
+                            errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                        if ((form.password.length || form.retyped_password.length)
+                                && form.retyped_password != form.password) {
+                            errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                        }
                     }
                 }
                 break;
@@ -438,23 +447,26 @@ module.exports = function () {
                 req.body._form_type = 'create';
                 var name = parseForm('name', req, res);
                 var email = parseForm('email', req, res);
+                var encryptedPassword = parseForm('encrypted_password', req, res);
                 var password = parseForm('password', req, res);
                 var retypedPassword = parseForm('retyped_password', req, res);
                 var roles = parseForm('roles', req, res);
-                q.all([ name, email, password, retypedPassword, roles ])
+                q.all([ name, email, encryptedPassword, password, retypedPassword, roles ])
                     .then(function (result) {
                         name = result[0];
                         email = result[1];
-                        password = result[2];
-                        retypedPassword = result[3];
-                        roles = result[4];
-                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
+                        encryptedPassword = result[2];
+                        password = result[3];
+                        retypedPassword = result[4];
+                        roles = result[5];
+                        if (!name.valid || !email.valid || !encryptedPassword || !password.valid || !retypedPassword.valid || !roles.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
                                     email: email.errors,
+                                    encrypted_password: encryptedPassword.errors,
                                     password: password.errors,
                                     retyped_password: retypedPassword.errors,
                                     roles: roles.errors,
@@ -465,7 +477,10 @@ module.exports = function () {
                         var user = new UserModel();
                         user.setName(name.value.length ? name.value : null);
                         user.setEmail(email.value);
-                        user.setPassword(UserModel.encryptPassword(password.value));
+                        if (encryptedPassword.value.length)
+                            user.setPassword(encryptedPassword.value);
+                        else
+                            user.setPassword(UserModel.encryptPassword(password.value));
                         user.setCreatedAt(moment());
 
                         var userRepo = locator.get('user-repository');
@@ -525,23 +540,26 @@ module.exports = function () {
                 req.body._form_type = 'edit';
                 var name = parseForm('name', req, res);
                 var email = parseForm('email', req, res);
+                var encryptedPassword = parseForm('encrypted_password', req, res);
                 var password = parseForm('password', req, res);
                 var retypedPassword = parseForm('retyped_password', req, res);
                 var roles = parseForm('roles', req, res);
-                q.all([ name, email, password, retypedPassword, roles ])
+                q.all([ name, email, encryptedPassword, password, retypedPassword, roles ])
                     .then(function (result) {
                         name = result[0];
                         email = result[1];
-                        password = result[2];
-                        retypedPassword = result[3];
-                        roles = result[4];
-                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
+                        encryptedPassword = result[2];
+                        password = result[3];
+                        retypedPassword = result[4];
+                        roles = result[5];
+                        if (!name.valid || !email.valid || !encryptedPassword || !password.valid || !retypedPassword.valid || !roles.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
                                     email: email.errors,
+                                    encrypted_password: encryptedPassword.errors,
                                     password: password.errors,
                                     retyped_password: retypedPassword.errors,
                                     roles: roles.errors,
@@ -560,7 +578,9 @@ module.exports = function () {
                                 user.setName(name.value.length ? name.value : null);
                                 if (email.value.length)
                                     user.setEmail(email.value);
-                                if (password.value.length)
+                                if (encryptedPassword.value.length)
+                                    user.setPassword(encryptedPassword.value);
+                                else if (password.value.length)
                                     user.setPassword(UserModel.encryptPassword(password.value));
 
                                 q.all([ userRepo.save(user), roleRepo.findAll() ])
