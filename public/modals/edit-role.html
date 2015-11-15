@@ -75,7 +75,7 @@
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.roles.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.parent_id.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'ROLES_LABEL' | glMessage }}:
                <span ng-show="model.roles.required" class="required-marker text-danger">
@@ -86,8 +86,12 @@
                 <script type="text/ng-template" id="nodes_renderer.html">
                     <div class="radio">
                         <label ng-class="{ 'text-primary': node.disabled }">
-                            <input type="radio" ng-show="node.focus" ng-model="model.parent_id.value" ng-value="node.id" focus-on="model.parent_id.focus" on-key-enter="submit()" ng-disabled="node.disabled">
-                            <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id" on-key-enter="submit()" ng-disabled="node.disabled">
+                            <input type="radio" ng-show="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
+                                   ng-change="resetValidation('parent_id'); validate('parent_id')"
+                                   focus-on="model.parent_id.focus" on-key-enter="submit()" ng-disabled="node.disabled">
+                            <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
+                                   ng-change="resetValidation('parent_id'); validate('parent_id')"
+                                   on-key-enter="submit()" ng-disabled="node.disabled">
                             {{ node.title | glMessage }} ({{ node.handle }})
                         </label>
                     </div>

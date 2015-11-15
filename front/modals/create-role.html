@@ -58,8 +58,10 @@
                 <script type="text/ng-template" id="nodes_renderer.html">
                     <div class="radio">
                         <label>
-                            <input type="radio" ng-show="node.focus" ng-model="model.parent_id.value" ng-value="node.id" focus-on="model.parent_id.focus" on-key-enter="submit()">
-                            <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id" on-key-enter="submit()">
+                            <input type="radio" ng-show="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
+                                   ng-change="resetValidation('parent_id'); validate('parent_id')" focus-on="model.parent_id.focus" on-key-enter="submit()">
+                            <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
+                                   ng-change="resetValidation('parent_id'); valdiate('parent_id')" on-key-enter="submit()">
                             {{ node.title | glMessage }} ({{ node.handle }})
                         </label>
                     </div>
