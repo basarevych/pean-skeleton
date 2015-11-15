@@ -69,14 +69,14 @@ module.exports = function () {
                 return defer.promise;
             case 'password':
                 if (form.form_type == 'create') {
-                    if (!form.encrypted_password) {
+                    if (!form.encrypted_password.length) {
                         if (!form.password.length)
                             errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                         else if (!validator.isLength(form.password, 6))
                             errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                     }
                 } else {
-                    if (!form.encrypted_password) {
+                    if (!form.encrypted_password.length) {
                         if (form.password.length && !validator.isLength(form.password, 6))
                             errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                     }
@@ -84,7 +84,7 @@ module.exports = function () {
                 break;
             case 'retyped_password':
                 if (form.form_type == 'create') {
-                    if (!form.encrypted_password) {
+                    if (!form.encrypted_password.length) {
                         if (!form.retyped_password.length)
                             errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                         else if (!validator.isLength(form.retyped_password, 6))
@@ -93,7 +93,7 @@ module.exports = function () {
                             errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                     }
                 } else {
-                    if (!form.encrypted_password) {
+                    if (!form.encrypted_password.length) {
                         if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
                             errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                         if ((form.password.length || form.retyped_password.length)
@@ -459,7 +459,7 @@ module.exports = function () {
                         password = result[3];
                         retypedPassword = result[4];
                         roles = result[5];
-                        if (!name.valid || !email.valid || !encryptedPassword || !password.valid || !retypedPassword.valid || !roles.valid) {
+                        if (!name.valid || !email.valid || !encryptedPassword.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
@@ -552,7 +552,7 @@ module.exports = function () {
                         password = result[3];
                         retypedPassword = result[4];
                         roles = result[5];
-                        if (!name.valid || !email.valid || !encryptedPassword || !password.valid || !retypedPassword.valid || !roles.valid) {
+                        if (!name.valid || !email.valid || !encryptedPassword.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
