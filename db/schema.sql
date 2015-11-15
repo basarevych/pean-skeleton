@@ -102,7 +102,7 @@ CREATE VIEW dt_permissions AS
 
 CREATE VIEW dt_users AS
     SELECT u.*,
-           string_agg(r.handle, ', ' order by r.handle) AS roles,
+           string_agg(DISTINCT r.handle, ', ' order by r.handle) AS roles,
            (SELECT count(t.*)
               FROM tokens t
              WHERE t.user_id = u.id) AS tokens
