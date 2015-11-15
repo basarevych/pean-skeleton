@@ -143,8 +143,10 @@
                 <script type="text/ng-template" id="nodes_renderer.html">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" ng-show="node.focus" ng-model="node.checked" ng-change="model.updateRoles()" focus-on="model.roles.focus" on-key-enter="submit()">
-                            <input type="checkbox" ng-hide="node.focus" ng-model="node.checked" ng-change="model.updateRoles()" on-key-enter="submit()">
+                            <input type="checkbox" ng-show="node.focus" ng-model="node.checked" ng-change="model.updateRoles(); resetValidation('roles'); validate('roles')"
+                                   focus-on="model.roles.focus" on-key-enter="submit()">
+                            <input type="checkbox" ng-hide="node.focus" ng-model="node.checked" ng-change="model.updateRoles(); resetValidation('roles'); validate('roles')"
+                                   on-key-enter="submit()">
                             {{ node.title | glMessage }} ({{ node.handle }})
                         </label>
                     </div>
@@ -155,6 +157,11 @@
                 <div ui-tree data-drag-enabled="false">
                     <ul ui-tree-nodes="" ng-model="model.roles.tree" id="tree-root">
                         <li ng-repeat="node in model.roles.tree" ui-tree-node ng-include="'nodes_renderer.html'"></li>
+                    </ul>
+                </div>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.roles">{{ message }}</li>
                     </ul>
                 </div>
             </div>

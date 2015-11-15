@@ -47,6 +47,7 @@
         "VALIDATOR_NOT_DATE": "Value is not a date",
         "VALIDATOR_NOT_JSON": "Value is not a JSON object",
         "VALIDATOR_NOT_INT": "Value is not an integer",
+        "VALIDATOR_NOT_ARRAY": "Value is not an array",
 
         "OK_BUTTON": "OK",
         "CANCEL_BUTTON": "Cancel",

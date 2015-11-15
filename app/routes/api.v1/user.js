@@ -28,6 +28,7 @@ module.exports = function () {
             email: validator.trim(req.body.email),
             password: validator.trim(req.body.password),
             retyped_password: validator.trim(req.body.retyped_password),
+            roles: req.body.roles,
         };
 
         var userRepo = locator.get('user-repository');
@@ -92,6 +93,10 @@ module.exports = function () {
                         errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
                     }
                 }
+                break;
+            case 'roles':
+                if (typeof form.roles != 'object' || typeof form.roles.forEach != 'function')
+                    errors.push(glMessage('VALIDATOR_NOT_ARRAY'));
                 break;
         }
 
@@ -435,13 +440,15 @@ module.exports = function () {
                 var email = parseForm('email', req, res);
                 var password = parseForm('password', req, res);
                 var retypedPassword = parseForm('retyped_password', req, res);
-                q.all([ name, email, password, retypedPassword ])
+                var roles = parseForm('roles', req, res);
+                q.all([ name, email, password, retypedPassword, roles ])
                     .then(function (result) {
                         name = result[0];
                         email = result[1];
                         password = result[2];
                         retypedPassword = result[3];
-                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid) {
+                        roles = result[4];
+                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
@@ -450,6 +457,7 @@ module.exports = function () {
                                     email: email.errors,
                                     password: password.errors,
                                     retyped_password: retypedPassword.errors,
+                                    roles: roles.errors,
                                 }
                             });
                         }
@@ -459,10 +467,6 @@ module.exports = function () {
                         user.setEmail(email.value);
                         user.setPassword(UserModel.encryptPassword(password.value));
                         user.setCreatedAt(moment());
-
-                        var roleIds = req.body.roles;
-                        if (typeof roleIds != 'object' || typeof roleIds.forEach != 'function')
-                            return app.abort(res, 400, "User roles are not in array");
 
                         var userRepo = locator.get('user-repository');
                         var roleRepo = locator.get('role-repository');
@@ -475,7 +479,7 @@ module.exports = function () {
 
                                 var promises = [];
                                 allRoles.forEach(function (role) {
-                                    if (roleIds.indexOf(role.getId()) != -1)
+                                    if (roles.value.indexOf(role.getId()) != -1)
                                         promises.push(userRepo.addRole(user, role));
                                 });
 
@@ -523,13 +527,15 @@ module.exports = function () {
                 var email = parseForm('email', req, res);
                 var password = parseForm('password', req, res);
                 var retypedPassword = parseForm('retyped_password', req, res);
-                q.all([ name, email, password, retypedPassword ])
+                var roles = parseForm('roles', req, res);
+                q.all([ name, email, password, retypedPassword, roles ])
                     .then(function (result) {
                         name = result[0];
                         email = result[1];
                         password = result[2];
                         retypedPassword = result[3];
-                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid) {
+                        roles = result[4];
+                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
@@ -538,6 +544,7 @@ module.exports = function () {
                                     email: email.errors,
                                     password: password.errors,
                                     retyped_password: retypedPassword.errors,
+                                    roles: roles.errors,
                                 }
                             });
                         }
@@ -556,10 +563,6 @@ module.exports = function () {
                                 if (password.value.length)
                                     user.setPassword(UserModel.encryptPassword(password.value));
 
-                                var roleIds = req.body.roles;
-                                if (typeof roleIds != 'object' || typeof roleIds.forEach != 'function')
-                                    return app.abort(res, 400, "User roles are not in array");
-
                                 q.all([ userRepo.save(user), roleRepo.findAll() ])
                                     .then(function (result) {
                                         var userId = result[0];
@@ -569,7 +572,7 @@ module.exports = function () {
 
                                         var promises = [];
                                         allRoles.forEach(function (role) {
-                                            if (roleIds.indexOf(role.getId()) == -1)
+                                            if (roles.value.indexOf(role.getId()) == -1)
                                                 promises.push(userRepo.removeRole(user, role));
                                             else
                                                 promises.push(userRepo.addRole(user, role));
