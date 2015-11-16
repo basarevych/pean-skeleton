@@ -153,6 +153,40 @@ TokenRepository.prototype.save = function (token) {
     var defer = q.defer();
 
     var db = this.getPostgres();
+
+    function updateToken() {
+        var updateDefer = q.defer();
+        token.setUpdatedAt(moment());
+
+        db.query(
+            "UPDATE tokens "
+          + "   SET user_id = $1, "
+          + "       payload = $2, "
+          + "       ip_address = $3, "
+          + "       updated_at = $4 "
+          + " WHERE id = $5 ",
+            [
+                token.getUserId(),
+                JSON.stringify(token.getPayload()),
+                token.getIpAddress(),
+                token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                token.getId(),
+            ],
+            function (err, result) {
+                if (err) {
+                    updateDefer.reject();
+                    logger.error('TokenRepository.save() - pg query', err);
+                    process.exit(1);
+                }
+
+                token.dirty(false);
+                updateDefer.resolve(token.getId());
+            }
+        );
+
+        return updateDefer.promise;
+    }
+
     db.connect(function (err) {
         if (err) {
             defer.reject();
@@ -162,53 +196,63 @@ TokenRepository.prototype.save = function (token) {
 
         var query, params = [];
         if (token.getId()) {
-            query = "UPDATE tokens "
-                  + "   SET user_id = $1, "
-                  + "       payload = $2, "
-                  + "       ip_address = $3, "
-                  + "       created_at = $4, "
-                  + "       updated_at = $5 "
-                  + " WHERE id = $6 ";
-            params = [
-                token.getUserId(),
-                JSON.stringify(token.getPayload()),
-                token.getIpAddress(),
-                token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                token.getId(),
-            ];
+            updateToken()
+                .then(function (tokenId) {
+                    db.end();
+                    token.dirty(false);
+                    defer.resolve(tokenId);
+                })
         } else {
-            query = "   INSERT "
+            db.query("BEGIN TRANSACTION", [], function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('UserRepository.save() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.query(
+                    "   INSERT "
                   + "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) "
                   + "   VALUES ($1, $2, $3, $4, $5) "
-                  + "RETURNING id ";
-            params = [
-                token.getUserId(),
-                JSON.stringify(token.getPayload()),
-                token.getIpAddress(),
-                token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-            ];
+                  + "RETURNING id ",
+                    [
+                        token.getUserId(),
+                        JSON.stringify(token.getPayload()),
+                        token.getIpAddress(),
+                        token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                        token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                    ],
+                    function (err, result) {
+                        if (err) {
+                            defer.reject();
+                            logger.error('TokenRepository.save() - pg query', err);
+                            process.exit(1);
+                        }
+
+                        token.setId(result.rows[0]['id']);
+
+                        var payload = token.getPayload();
+                        payload['token_id'] = token.getId();
+                        token.setPayload(payload);
+
+                        updateToken()
+                            .then(function (tokenId) {
+                                db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                    if (err) {
+                                        defer.reject();
+                                        logger.error('UserRepository.save() - pg query', err);
+                                        process.exit(1);
+                                    }
+
+                                    db.end();
+                                    token.dirty(false);
+                                    defer.resolve(tokenId);
+                                });
+                            });
+                    }
+                );
+            });
         }
-
-        db.query(query, params, function (err, result) {
-            if (err) {
-                defer.reject();
-                logger.error('TokenRepository.save() - pg query', err);
-                process.exit(1);
-            }
-
-            db.end();
-            token.dirty(false);
-
-            var id = result.rows.length && result.rows[0]['id'];
-            if (id)
-                token.setId(id);
-            else
-                id = token.getId();
-
-            defer.resolve(id);
-        });
     });
 
     return defer.promise;

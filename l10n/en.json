@@ -27,6 +27,7 @@
 
         "en": "English",
 
+        "ERROR_INVALID_CREDENTIALS": "Invalid email or passsword",
         "ERROR_OPERATION_FAILED": "Operation failed",
         "ERROR_STATE_DENIED_TITLE": "Access denied",
         "ERROR_STATE_DENIED_TEXT": "Requested page requires specific access level",
@@ -37,7 +38,6 @@
         "INDEX_PAGE_LINK_TEXT": "Go to index page",
 
         "REQUIRED_FIELD": "REQUIRED FIELD",
-        "INVALID_CREDENTIALS": "Invalid email or passsword",
         "VALIDATOR_REQUIRED_FIELD": "Value is required",
         "VALIDATOR_INPUT_MISMATCH": "The two values do not match",
         "VALIDATOR_MIN_LENGTH": "The input must be at least {min} character(s)",

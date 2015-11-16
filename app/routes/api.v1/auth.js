@@ -86,7 +86,7 @@ module.exports = function () {
                         if (!user || !user.checkPassword(password.value)) {
                             res.json({
                                 success: false,
-                                errors: [ glMessage('INVALID_CREDENTIALS') ],
+                                errors: [ glMessage('ERROR_INVALID_CREDENTIALS') ],
                                 fields: {},
                             });
                             return;
@@ -98,30 +98,27 @@ module.exports = function () {
                         token.setIpAddress(req.connection.remoteAddress);
                         token.setCreatedAt(moment());
                         token.setUpdatedAt(moment());
-                        return tokenRepo.save(token);
-                    })
-                    .then(function () {
-                        if (!user || !token)
-                            return;
+                        tokenRepo.save(token)
+                            .then(function (tokenId) {
+                                if (!tokenId) {
+                                    res.json({
+                                        success: false,
+                                        errors: [ glMessage('ERROR_OPERATION_FAILED') ],
+                                        fields: {},
+                                    });
+                                    return;
+                                }
 
-                        var payload = {
-                            user_id: user.getId(),
-                            token_id: token.getId(),
-                        };
-
-                        encryptedData = jwt.sign(payload, config['jwt']['secret']);
-
-                        token.setPayload(payload);
-                        return tokenRepo.save(token);
-                    })
-                    .then(function () {
-                        if (!encryptedData)
-                            return;
-
-                        res.json({
-                            success: true,
-                            token: encryptedData,
-                        });
+                                encryptedData = jwt.sign(token.getPayload(), config['jwt']['secret']);
+                                res.json({
+                                    success: true,
+                                    token: encryptedData,
+                                });
+                            })
+                            .catch(function (err) {
+                                logger.error('POST /v1/auth/token failed', err);
+                                app.abort(res, 500, 'POST /v1/auth/token failed');
+                            });
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/auth/token failed', err);
