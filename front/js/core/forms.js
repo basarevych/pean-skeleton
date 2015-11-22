@@ -39,113 +39,115 @@ forms.factory('InfoDialog',
 forms.factory('ValidationCtrl',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
-        return function ($scope, $uibModalInstance, model, validator, submitter) {
-            $scope.model = model;
-            $scope.validation = { errors: [], fields: {} }; 
-            $scope.processing = false;
+        return [ '$scope', '$uibModalInstance', 'model', 'validator', 'submitter',
+            function ($scope, $uibModalInstance, model, validator, submitter) {
+                $scope.model = model;
+                $scope.validation = { errors: [], fields: {} }; 
+                $scope.processing = false;
 
-            var resetFocus = function () {
-                var errorFound = false;
-                $.each($scope.model, function (key, value) {
-                    var messages = $scope.validation.fields[key];
-                    if (angular.isDefined(messages) && messages.length) {
-                        $scope.model[key].focus = true;
-                        errorFound = true;
-                        return false;
-                    }
-                });
-
-                if (!errorFound) {
+                var resetFocus = function () {
+                    var errorFound = false;
                     $.each($scope.model, function (key, value) {
-                        if (angular.isObject($scope.model[key]) && angular.isDefined($scope.model[key]['focus'])) {
+                        var messages = $scope.validation.fields[key];
+                        if (angular.isDefined(messages) && messages.length) {
                             $scope.model[key].focus = true;
+                            errorFound = true;
                             return false;
                         }
                     });
-                }
-            };
 
-            $scope.resetValidation = function (name) {
-                if (angular.isDefined(name)) {
-                    $scope.validation.fields[name] = undefined;
-                } else {
-                    $scope.validation.errors = [];
-                    $scope.validation.fields = {};
-                }
-            };
+                    if (!errorFound) {
+                        $.each($scope.model, function (key, value) {
+                            if (angular.isObject($scope.model[key]) && angular.isDefined($scope.model[key]['focus'])) {
+                                $scope.model[key].focus = true;
+                                return false;
+                            }
+                        });
+                    }
+                };
 
-            $scope.setValidationError = function (name, error) {
-                if (angular.isUndefined($scope.validation.fields[name]))
-                    $scope.validation.fields[name] = [];
-                if ($.inArray(error, $scope.validation.fields[name]) == -1)
-                    $scope.validation.fields[name].push(error);
-            };
+                $scope.resetValidation = function (name) {
+                    if (angular.isDefined(name)) {
+                        $scope.validation.fields[name] = undefined;
+                    } else {
+                        $scope.validation.errors = [];
+                        $scope.validation.fields = {};
+                    }
+                };
 
-            $scope.validate = function (name) {
-                $timeout(function () {
-                    if ($scope.processing)
+                $scope.setValidationError = function (name, error) {
+                    if (angular.isUndefined($scope.validation.fields[name]))
+                        $scope.validation.fields[name] = [];
+                    if ($.inArray(error, $scope.validation.fields[name]) == -1)
+                        $scope.validation.fields[name].push(error);
+                };
+
+                $scope.validate = function (name) {
+                    $timeout(function () {
+                        if ($scope.processing)
+                            return;
+                        if (!$('.modal').is(':visible'))
+                            return;
+                        if (angular.isUndefined(validator))
+                            return;
+
+                        var params = {};
+                        $.each($scope.model, function (key, item) {
+                            if (angular.isObject(item) && angular.isDefined(item['value']))
+                                params[key] = item.value;
+                        });
+                        params['_field'] = name;
+
+                        validator(params)
+                            .then(function (data) {
+                                if (data.success)
+                                    return;
+
+                                if (angular.isDefined(data.errors)) {
+                                    $.each(data.errors, function (index, value) {
+                                        $scope.setValidationError(name, value);
+                                    });
+                                }
+                            });
+                    }, 250);
+                };
+
+                $scope.submit = function () {
+                    $scope.processing = true;
+
+                    $scope.resetValidation();
+                    if (angular.isUndefined(submitter)) {
+                        $scope.processing = false;
                         return;
-                    if (!$('.modal').is(':visible'))
-                        return;
-                    if (angular.isUndefined(validator))
-                        return;
+                    }
 
                     var params = {};
                     $.each($scope.model, function (key, item) {
                         if (angular.isObject(item) && angular.isDefined(item['value']))
                             params[key] = item.value;
                     });
-                    params['_field'] = name;
 
-                    validator(params)
+                    submitter(params)
                         .then(function (data) {
-                            if (data.success)
+                            if (data.success) {
+                                if (typeof $scope['$close'] == 'function')
+                                    $scope.$close(data);
                                 return;
-
-                            if (angular.isDefined(data.errors)) {
-                                $.each(data.errors, function (index, value) {
-                                    $scope.setValidationError(name, value);
-                                });
                             }
+
+                            if (angular.isDefined(data.errors))
+                                $scope.validation.errors = data.errors;
+                            if (angular.isDefined(data.fields))
+                                $scope.validation.fields = data.fields;
+
+                            resetFocus();
+                        })
+                        .finally(function () {
+                            $scope.processing = false;
                         });
-                }, 250);
-            };
-
-            $scope.submit = function () {
-                $scope.processing = true;
-
-                $scope.resetValidation();
-                if (angular.isUndefined(submitter)) {
-                    $scope.processing = false;
-                    return;
-                }
-
-                var params = {};
-                $.each($scope.model, function (key, item) {
-                    if (angular.isObject(item) && angular.isDefined(item['value']))
-                        params[key] = item.value;
-                });
-
-                submitter(params)
-                    .then(function (data) {
-                        if (data.success) {
-                            if (typeof $scope['$close'] == 'function')
-                                $scope.$close(data);
-                            return;
-                        }
-
-                        if (angular.isDefined(data.errors))
-                            $scope.validation.errors = data.errors;
-                        if (angular.isDefined(data.fields))
-                            $scope.validation.fields = data.fields;
-
-                        resetFocus();
-                    })
-                    .finally(function () {
-                        $scope.processing = false;
-                    });
-            };
-        };
+                };
+            }
+        ];
     } ]
 );
 
