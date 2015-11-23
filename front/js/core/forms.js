@@ -7,13 +7,15 @@ forms.factory('InfoDialog',
     function ($uibModal, globalizeWrapper) {
         var isOpened = false;
 
-        var ModalCtrl = function ($scope, $uibModalInstance, title, text, yes, variables) {
-            $scope.title = title;
-            $scope.text = text;
-            $scope.yes = yes;
-            $scope.variables = variables;
-            $scope.globalizeReady = (globalizeWrapper.getLocale() != null);
-        };
+        var ModalCtrl = [ '$scope', '$uibModalInstance', 'title', 'text', 'yes', 'variables',
+            function ($scope, $uibModalInstance, title, text, yes, variables) {
+                $scope.title = title;
+                $scope.text = text;
+                $scope.yes = yes;
+                $scope.variables = variables;
+                $scope.globalizeReady = (globalizeWrapper.getLocale() != null);
+            }
+        ];
 
         return function (params) {
             if (isOpened)
