@@ -7,6 +7,10 @@
 module.exports = function (app) {
     return {
         services: {
+            "acl": {
+                path: "app/services/acl.js",
+                instantiate: true,
+            },
             "web-server": {
                 path: "app/services/web-server.js",
                 instantiate: true,
@@ -73,10 +77,6 @@ module.exports = function (app) {
             },
             "notification-repository": {
                 path: "app/repositories/notification.js",
-                instantiate: true,
-            },
-            "acl": {
-                path: "app/services/acl.js",
                 instantiate: true,
             },
         },
