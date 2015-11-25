@@ -9,10 +9,6 @@
         "HTTP_405": "Requested method is not implemented",
         "HTTP_500": "Please try again later",
 
-        "ROLE_TOP_LEVEL": "Top level",
-        "ROLE_MEMBER": "Member",
-        "ROLE_ADMIN": "Administrator",
-
         "ADMINISTRATION_MENU": "Administration",
         "ROLE_LIST_MENU": "Roles",
         "PERMISSION_LIST_MENU": "Permissions",
@@ -80,6 +76,7 @@
         "ROLE_EDIT_TITLE": "Edit role",
         "HANDLE_LABEL": "Handle",
         "PARENT_LABEL": "Parent",
+        "TOP_ROLE_LABEL": "Top level",
         "ROLE_CONFIRM_DELETE_TITLE": "Delete role",
         "ROLE_CONFIRM_DELETE_TEXT": "Delete selected roles?",
         "ROLE_CONFIRM_DELETE_BUTTON": "Delete",

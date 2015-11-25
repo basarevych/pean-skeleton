@@ -8,7 +8,6 @@ var locator = require('node-service-locator');
 var bcrypt = require('bcrypt');
 var q = require('q');
 var moment = require('moment-timezone');
-var BaseModel = require('./base');
 var BaseModel = locator.get('base-model');
 
 function UserModel(model) {

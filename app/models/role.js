@@ -7,14 +7,12 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var moment = require('moment-timezone');
-var BaseModel = require('./base');
 var BaseModel = locator.get('base-model');
 
 function RoleModel(model) {
     this.id = null;
     this.parent_id = null;
     this.handle = null;
-    this.title = null;
 
     BaseModel.call(this, model);
 };
@@ -28,13 +26,11 @@ RoleModel.prototype.data = function (model) {
             id: this.id,
             parent_id: this.parent_id,
             handle: this.handle,
-            title: this.title,
         };
     } else {
         this.id = model.id;
         this.parent_id = model.parent_id;
         this.handle = model.handle;
-        this.title = model.title;
     }
 
     return model;
@@ -65,15 +61,6 @@ RoleModel.prototype.setHandle = function (handle) {
 
 RoleModel.prototype.getHandle = function () {
     return this.field('handle');
-};
-
-RoleModel.prototype.setTitle = function (title) {
-    this.field('title', title);
-    return this;
-};
-
-RoleModel.prototype.getTitle = function () {
-    return this.field('title');
 };
 
 module.exports = RoleModel;

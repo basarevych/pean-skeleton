@@ -39,6 +39,14 @@ module.exports = function (app) {
                 path: "app/repositories/role.js",
                 instantiate: true,
             },
+            "role-translation-model": {
+                path: "app/models/role-translation.js",
+                instantiate: false,
+            },
+            "role-translation-repository": {
+                path: "app/repositories/role-translation.js",
+                instantiate: true,
+            },
             "permission-model": {
                 path: "app/models/permission.js",
                 instantiate: false,

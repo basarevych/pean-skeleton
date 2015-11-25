@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS "user_roles";
 DROP TABLE IF EXISTS "tokens";
 DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "permissions";
+DROP TABLE IF EXISTS "role_translations";
 DROP TABLE IF EXISTS "roles";
 
 DROP TYPE IF EXISTS "job_status";
@@ -16,10 +17,21 @@ CREATE TABLE "roles" (
     "id" serial NOT NULL,
     "parent_id" int NULL,
     "handle" character varying(255) NOT NULL,
-    "title" character varying(255) NOT NULL,
     CONSTRAINT "roles_pk" PRIMARY KEY("id"),
     CONSTRAINT "roles_unique_handle" UNIQUE ("handle"),
     CONSTRAINT "roles_parent_fk" FOREIGN KEY("parent_id")
+        REFERENCES "roles"("id")
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "role_translations" (
+    "id" serial NOT NULL,
+    "role_id" int NOT NULL,
+    "locale" character varying(255) NOT NULL,
+    "title" character varying(255) NOT NULL,
+    CONSTRAINT "role_translations_pk" PRIMARY KEY("id"),
+    CONSTRAINT "role_translations_unique_translation" UNIQUE ("role_id", "locale"),
+    CONSTRAINT "role_translations_role_fk" FOREIGN KEY("role_id")
         REFERENCES "roles"("id")
         ON DELETE CASCADE ON UPDATE CASCADE
 );
