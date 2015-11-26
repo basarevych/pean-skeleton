@@ -82,11 +82,13 @@
         "INPUT_DATA_LABEL": "Input data",
         "OUTPUT_DATA_LABEL": "Output data",
 
+        "NEW_PASSWORD_NOTICE": "Leave blank if you do not want to change it",
+        "LANGUAGE_FILL_NOTICE": "Please select a language and fill the fields bellow",
+
         "SIGN_IN_TITLE": "Sign in",
         "SIGN_IN_BUTTON": "Sign in",
 
         "PROFILE_TITLE": "Profile: {email}",
-        "PROFILE_NEW_PASSWORD_NOTICE": "Leave blank if you do not want to change it",
 
         "ROLE_TITLE": "Roles",
         "ROLE_ID_COLUMN": "ID",

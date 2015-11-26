@@ -59,7 +59,7 @@ module.exports = function () {
         var result = {
             locale: {
                 current:    locator.get('locale'),
-                fallback:   config['lang']['default'],
+                default:    config['lang']['default'],
                 available:  config['lang']['locales'],
             },
             user_id: null,

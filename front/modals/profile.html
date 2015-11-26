@@ -40,7 +40,7 @@
                 <input type="password" class="form-control" ng-model="model.new_password.value" focus-on="model.new_password.focus" on-key-enter="model.retyped_password.focus = true"
                        ng-keydown="resetValidation('new_password')" ng-blur="validate('new_password')" ng-disabled="processing">
                 <div class="help-block">
-                    <p>{{ 'PROFILE_NEW_PASSWORD_NOTICE' | glMessage }}</p>
+                    <p>{{ 'NEW_PASSWORD_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.new_password">{{ message }}</li>
                     </ul>

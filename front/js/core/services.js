@@ -18,7 +18,7 @@ services.factory('AppControl',
         var profile = {
             locale: {
                 current: null,
-                fallback: null,
+                default: null,
                 available: [],
             },
             user_id: null,

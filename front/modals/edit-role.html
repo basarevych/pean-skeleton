@@ -59,7 +59,7 @@
 
         <div class="form-group" ng-class="{ 'has-error': validation.fields.parent_id.length }">
             <label class="col-sm-4 control-label required">
-                {{ 'ROLES_LABEL' | glMessage }}:
+                {{ 'PARENT_LABEL' | glMessage }}:
                <span ng-show="model.roles.required" class="required-marker text-danger">
                     {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
@@ -74,7 +74,9 @@
                             <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
                                    ng-change="resetValidation('parent_id'); validate('parent_id')"
                                    on-key-enter="model.translations.focus = true" ng-disabled="node.disabled">
-                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
+                            {{ node.translations[model.locale.current]['title']
+                                ? node.translations[model.locale.current]['title']
+                                : node.translations[model.locale.default]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">
@@ -107,6 +109,7 @@
                         ng-options="item as (item | glMessage) + ' (' + item + ')' for item in model.locale.available">
                 </select>
                 <div class="help-block">
+                    <p>{{ 'LANGUAGE_FILL_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.translations">{{ message }}</li>
                     </ul>

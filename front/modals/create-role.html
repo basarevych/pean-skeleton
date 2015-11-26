@@ -46,7 +46,9 @@
                             <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
                                    ng-change="resetValidation('parent_id'); valdiate('parent_id')"
                                    on-key-enter="model.translations.focus = true">
-                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
+                            {{ node.translations[model.locale.current]['title']
+                                ? node.translations[model.locale.current]['title']
+                                : node.translations[model.locale.default]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">
@@ -79,6 +81,7 @@
                         ng-options="item as (item | glMessage) + ' (' + item + ')' for item in model.locale.available">
                 </select>
                 <div class="help-block">
+                    <p>{{ 'LANGUAGE_FILL_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.translations">{{ message }}</li>
                     </ul>
