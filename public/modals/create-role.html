@@ -15,11 +15,11 @@
             <label class="col-sm-4 control-label required">
                 {{ 'HANDLE_LABEL' | glMessage }}:
                <span ng-show="model.handle.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
-                <input type="text" class="form-control" ng-model="model.handle.value" focus-on="model.handle.focus" on-key-enter="model.title.focus = true"
+                <input type="text" class="form-control" ng-model="model.handle.value" focus-on="model.handle.focus" on-key-enter="model.parent_id.focus = true"
                        ng-keydown="resetValidation('handle')" ng-blur="validate('handle')" ng-disabled="processing" autofocus="autofocus">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
@@ -29,29 +29,11 @@
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.title.length }">
-            <label class="col-sm-4 control-label required">
-                {{ 'TITLE_LABEL' | glMessage }}:
-               <span ng-show="model.title.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
-                </span>
-            </label>
-            <div class="col-sm-8">
-                <input type="text" class="form-control" ng-model="model.title.value" focus-on="model.title.focus" on-key-enter="model.parent_id.focus = true"
-                       ng-keydown="resetValidation('title')" ng-blur="validate('title')" ng-disabled="processing">
-                <div class="help-block">
-                    <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.title">{{ message }}</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
         <div class="form-group" ng-class="{ 'has-error': validation.fields.parent_id.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'PARENT_LABEL' | glMessage }}:
                <span ng-show="model.parent_id.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -59,10 +41,12 @@
                     <div class="radio">
                         <label>
                             <input type="radio" ng-show="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
-                                   ng-change="resetValidation('parent_id'); validate('parent_id')" focus-on="model.parent_id.focus" on-key-enter="submit()">
+                                   ng-change="resetValidation('parent_id'); validate('parent_id')" focus-on="model.parent_id.focus"
+                                   on-key-enter="model.translations.focus = true">
                             <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
-                                   ng-change="resetValidation('parent_id'); valdiate('parent_id')" on-key-enter="submit()">
-                            {{ node.title | glMessage }} ({{ node.handle }})
+                                   ng-change="resetValidation('parent_id'); valdiate('parent_id')"
+                                   on-key-enter="model.translations.focus = true">
+                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">
@@ -78,6 +62,38 @@
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.parent_id">{{ message }}</li>
                     </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{ 'has-error': validation.fields.translations.length }">
+            <label class="col-sm-4 control-label required">
+                {{ 'TRANSLATION_LABEL' | glMessage }}:
+               <span ng-show="model.translations.required" class="required-marker text-danger">
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
+                </span>
+            </label>
+            <div class="col-sm-8">
+                <select class="form-control" ng-model="model.translations.selected" focus-on="model.translations.focus" on-key-enter="model.title_focus = true"
+                        ng-change="resetValidation('translations')" ng-disabled="processing"
+                        ng-options="item as (item | glMessage) + ' (' + item + ')' for item in model.locale.available">
+                </select>
+                <div class="help-block">
+                    <ul class="list-unstyled icon-list error-list">
+                        <li ng-repeat="message in validation.fields.translations">{{ message }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div ng-repeat="item in model.locale.available">
+            <div class="form-group" ng-show="item == model.translations.selected">
+                <label class="col-sm-4 control-label required">
+                    {{ 'TITLE_LABEL' | glMessage }}:
+                </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="model.translations.value[item].title" focus-on="model.title_focus"
+                           on-key-enter="submit()" ng-keydown="resetValidation('translations')" ng-disabled="processing">
                 </div>
             </div>
         </div>

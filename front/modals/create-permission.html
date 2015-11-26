@@ -15,7 +15,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'ROLE_LABEL' | glMessage }}:
                <span ng-show="model.role_id.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -24,7 +24,7 @@
                         <label>
                             <input type="radio" ng-show="node.focus" ng-model="model.role_id.value" ng-value="node.id" focus-on="model.role_id.focus" on-key-enter="model.resource.focus = true" autofocus="autofocus">
                             <input type="radio" ng-hide="node.focus" ng-model="model.role_id.value" ng-value="node.id" on-key-enter="model.resource.focus = true">
-                            {{ node.title | glMessage }} ({{ node.handle }})
+                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">
@@ -48,14 +48,14 @@
             <label class="col-sm-4 control-label required">
                 {{ 'RESOURCE_LABEL' | glMessage }}:
                <span ng-show="model.resource.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
                 <input type="text" class="form-control" ng-model="model.resource.value" focus-on="model.resource.focus" on-key-enter="model.action.focus = true"
                        ng-keydown="resetValidation('resource')" ng-blur="validate('resource')" ng-disabled="processing">
                 <div class="help-block">
-                    <p>{{ 'NULL_RESOURCE_NOTICE' | glMessage }}</p>
+                    <p>{{ 'PERMISSION_NULL_RESOURCE_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.resource">{{ message }}</li>
                     </ul>
@@ -67,14 +67,14 @@
             <label class="col-sm-4 control-label required">
                 {{ 'ACTION_LABEL' | glMessage }}:
                <span ng-show="model.action.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
                 <input type="text" class="form-control" ng-model="model.action.value" focus-on="model.action.focus" on-key-enter="submit()"
                        ng-keydown="resetValidation('action')" ng-blur="validate('action')" ng-disabled="processing">
                 <div class="help-block">
-                    <p>{{ 'NULL_ACTION_NOTICE' | glMessage }}</p>
+                    <p>{{ 'PERMISSION_NULL_ACTION_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.action">{{ message }}</li>
                     </ul>

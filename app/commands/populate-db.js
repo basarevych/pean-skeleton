@@ -6,6 +6,7 @@
 
 var locator = require('node-service-locator');
 var RoleModel = locator.get('role-model');
+var RoleTranslationModel = locator.get('role-translation-model');
 var PermissionModel = locator.get('permission-model');
 var UserModel = locator.get('user-model');
 
@@ -26,49 +27,76 @@ module.exports = function (argv, rl) {
     function run(done) {
         var logger = locator.get('logger');
         var roleRepo = locator.get('role-repository');
+        var roleTranslationRepo = locator.get('role-translation-repository');
         var permissionRepo = locator.get('permission-repository');
         var userRepo = locator.get('user-repository');
 
-        var adminRole;
+        var memberRole, adminRole;
         rl.write("===> Creating roles\n");
         roleRepo.findByHandle("member")
             .then(function (roles) {
                 rl.write("-> Member\n");
-                var role = roles.length && roles[0];
-                if (!role) {
-                    role = new RoleModel();
-                    role.setParentId(null);
-                    role.setHandle("member");
-                    role.setTitle("ROLE_MEMBER");
-                    return roleRepo.save(role);
-                }
+                memberRole = roles.length && roles[0];
+                if (memberRole)
+                    return;
+
+                memberRole = new RoleModel();
+                memberRole.setParentId(null);
+                memberRole.setHandle("member");
+                return roleRepo.save(memberRole);
+            })
+            .then(function () {
+                return roleTranslationRepo.findByRoleIdAndLocale(memberRole.getId(), 'en');
+            })
+            .then(function (translations) {
+                var translation = translations.length && translations[0];
+                if (translation)
+                    return;
+
+                translation = new RoleTranslationModel();
+                translation.setRoleId(memberRole.getId());
+                translation.setLocale('en');
+                translation.setTitle('Member');
+                return roleTranslationRepo.save(translation);
             })
             .then(function () {
                 return roleRepo.findByHandle("admin");
             })
             .then(function (roles) {
                 rl.write("-> Administrator\n");
-                var role = roles.length && roles[0];
-                if (!role) {
-                    role = new RoleModel();
-                    role.setParentId(null);
-                    role.setHandle("admin");
-                    role.setTitle("ROLE_ADMIN");
-                    adminRole = role;
-                    return roleRepo.save(role);
-                }
-                adminRole = role;
+                adminRole = roles.length && roles[0];
+                if (adminRole)
+                    return;
+
+                adminRole = new RoleModel();
+                adminRole.setParentId(null);
+                adminRole.setHandle("admin");
+                return roleRepo.save(adminRole);
+            })
+            .then(function () {
+                return roleTranslationRepo.findByRoleIdAndLocale(adminRole.getId(), 'en');
+            })
+            .then(function (translations) {
+                var translation = translations.length && translations[0];
+                if (translation)
+                    return;
+
+                translation = new RoleTranslationModel();
+                translation.setRoleId(adminRole.getId());
+                translation.setLocale('en');
+                translation.setTitle('Administrator');
+                return roleTranslationRepo.save(translation);
             })
             .then(function () {
                 rl.write("===> Creating permissions\n");
-                return permissionRepo.findByParams(adminRole.id, null, null);
+                return permissionRepo.findByParams(adminRole.getId(), null, null);
             })
             .then(function (permissions) {
                 rl.write("-> Administrator allowed all\n");
                 var permission = permissions.length && permissions[0];
                 if (!permission) {
                     permission = new PermissionModel();
-                    permission.setRoleId(adminRole.id);
+                    permission.setRoleId(adminRole.getId());
                     permission.setResource(null);
                     permission.setAction(null);
                     return permissionRepo.save(permission);

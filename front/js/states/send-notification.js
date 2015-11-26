@@ -23,6 +23,7 @@ module.controller("SendNotificationCtrl",
         $scope.scheduledFor = 'now';
         $scope.scheduledTime = moment().format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
 
+        $scope.currentLocale = $scope.appControl.getProfile().locale.current;
         $scope.availableLocales = $scope.appControl.getProfile().locale.available;
         $scope.selectedLocale = $scope.availableLocales[0];
 

@@ -64,6 +64,98 @@ RoleTranslationRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    roleId = parseInt(roleId, 10);
+    if (isNaN(roleId)) {
+        defer.reject('RoleTranslationRepository.findByRoleIdAndLocale() - invalid parameters');
+        return defer.promise;
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM role_translations "
+          + " WHERE role_id = $1 ",
+            [ roleId ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var translations = [];
+                result.rows.forEach(function (row) {
+                    var translation = new RoleTranslationModel(row);
+                    translations.push(translation);
+                });
+
+                defer.resolve(translations);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+RoleTranslationRepository.prototype.findByRoleIdAndLocale = function (roleId, locale) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    roleId = parseInt(roleId, 10);
+    if (isNaN(roleId)) {
+        defer.reject('RoleTranslationRepository.findByRoleIdAndLocale() - invalid parameters');
+        return defer.promise;
+    }
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "SELECT * "
+          + "  FROM role_translations "
+          + " WHERE role_id = $1 AND locale = $2 ",
+            [ roleId, locale ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                var translations = [];
+                result.rows.forEach(function (row) {
+                    var translation = new RoleTranslationModel(row);
+                    translations.push(translation);
+                });
+
+                defer.resolve(translations);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 RoleTranslationRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -161,10 +253,10 @@ RoleTranslationRepository.prototype.save = function (translation) {
                               + "       title = $3 "
                               + " WHERE id = $4 ";
                         params = [
-                            role.getRoleId(),
-                            role.getLocale(),
-                            role.getTitle(),
-                            role.getId(),
+                            translation.getRoleId(),
+                            translation.getLocale(),
+                            translation.getTitle(),
+                            translation.getId(),
                         ];
                     } else {
                         query = "   INSERT "
@@ -172,9 +264,9 @@ RoleTranslationRepository.prototype.save = function (translation) {
                               + "   VALUES ($1, $2, $3) "
                               + "RETURNING id ";
                         params = [
-                            role.getRoleId(),
-                            role.getLocale(),
-                            role.getTitle(),
+                            translation.getRoleId(),
+                            translation.getLocale(),
+                            translation.getTitle(),
                         ];
                     }
 

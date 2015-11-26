@@ -15,7 +15,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'NAME_LABEL' | glMessage }}:
                <span ng-show="model.name.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -33,13 +33,13 @@
             <label class="col-sm-4 control-label required">
                 {{ 'STATUS_LABEL' | glMessage }}:
                <span ng-show="model.status.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
                 <select class="form-control" ng-model="model.status.value" focus-on="model.status.focus" on-key-enter="model.scheduled_for.focus = true"
-                        ng-change="resetValidation('status')" ng-blur="validate('status')" ng-disabled="processing">
-                    <option ng-repeat="item in model.status.list" ng-value="item">{{ item }}</option>
+                        ng-change="resetValidation('status')" ng-blur="validate('status')" ng-disabled="processing"
+                        ng-options="item as item for item in model.status.list">
                 </select>
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
@@ -53,7 +53,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'SCHEDULED_FOR_LABEL' | glMessage }}:
                <span ng-show="model.scheduled_for.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -65,6 +65,7 @@
                     </span>
                 </div>
                 <div class="help-block">
+                    <p>{{ 'JOB_SCHEDULED_FOR_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.scheduled_for">{{ message }}</li>
                     </ul>
@@ -76,7 +77,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'VALID_UNTIL_LABEL' | glMessage }}:
                <span ng-show="model.valid_until.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -88,6 +89,7 @@
                     </span>
                 </div>
                 <div class="help-block">
+                    <p>{{ 'JOB_VALID_UNTIL_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
                         <li ng-repeat="message in validation.fields.valid_until">{{ message }}</li>
                     </ul>
@@ -99,7 +101,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'INPUT_DATA_LABEL' | glMessage }}:
                <span ng-show="model.input_data.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">

@@ -23,7 +23,7 @@
                                 <div class="radio">
                                     <label>
                                         <input type="radio" ng-model="recipientRole.id" ng-value="node.id">
-                                        {{ node.title | glMessage }}
+                                        {{ node.translations[currentLocale]['title'] }} ({{ node.handle }})
                                     </label>
                                 </div>
                                 <ul ui-tree-nodes="" ng-model="node.roles">

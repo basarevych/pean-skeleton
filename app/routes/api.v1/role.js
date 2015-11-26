@@ -12,11 +12,13 @@ var q = require('q');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
 var RoleModel = locator.get('role-model');
+var RoleTranslationModel = locator.get('role-translation-model');
 
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
     var logger = locator.get('logger');
+    var config = locator.get('config');
 
     function parseForm(field, req, res) {
         var defer = q.defer();
@@ -26,8 +28,17 @@ module.exports = function () {
             form_type: validator.trim(req.body._form_type),
             parent_id: req.body.parent_id,
             handle: validator.trim(req.body.handle),
-            title: validator.trim(req.body.title),
+            translations: null,
         };
+
+        if (typeof req.body.translations == 'object' && !Array.isArray(req.body.translations)) {
+            form['translations'] = {};
+            config['lang']['locales'].forEach(function (locale) {
+                form['translations'][locale] = {
+                    title: validator.trim(req.body.translations[locale] && req.body.translations[locale]['title']),
+                };
+            });
+        }
 
         var roleRepo = locator.get('role-repository');
         var errors = [];
@@ -65,9 +76,17 @@ module.exports = function () {
                     });
 
                 return defer.promise;
-            case 'title':
-                if (!validator.isLength(form.title, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+            case 'translations':
+                if (typeof form.translations != 'object') {
+                    errors.push(glMessage('VALIDATOR_INVALID_FORMAT'));
+                } else {
+                    for (var key in form.translations) {
+                        if (!validator.isLength(form.translations[key]['title'], 1)) {
+                            errors.push(glMessage('VALIDATOR_FILL_ALL'));
+                            break;
+                        }
+                    }
+                }
                 break;
         }
 
@@ -82,17 +101,27 @@ module.exports = function () {
         return defer.promise;
     }
 
-    function loadRoles(roles, parentId) {
+    function loadRoles(roles, translations, parentId) {
         var foundRoles = [];
         roles.forEach(function (role) {
             if (role.getParentId() != parentId)
                 return;
 
+            var roleTranslations = {};
+            translations.forEach(function (translation) {
+                if (translation.getRoleId() != role.getId())
+                    return;
+
+                roleTranslations[translation.getLocale()] = {
+                    title: translation.getTitle(),
+                };
+            });
+
             foundRoles.push({
                 id: role.getId(),
                 handle: role.getHandle(),
-                title: role.getTitle(),
-                roles: loadRoles(roles, role.getId()),
+                translations: roleTranslations,
+                roles: loadRoles(roles, translations, role.getId()),
             });
         });
         return foundRoles;
@@ -148,7 +177,7 @@ module.exports = function () {
 
                     result['parent'] = validator.escape(row['parent']);
                     result['handle'] = validator.escape(row['handle']);
-                    result['title'] = validator.escape(row['title']);
+                    result['title'] = validator.escape(row['title']).replace("\\n", '<br>');
 
                     return result;
                 });
@@ -236,17 +265,28 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var roleRepo = locator.get('role-repository');
-                roleRepo.find(roleId)
-                    .then(function (roles) {
+                var roleTranslationRepo = locator.get('role-translation-repository');
+                q.all([ roleRepo.find(roleId), roleTranslationRepo.findByRoleId(roleId) ])
+                    .then(function (result) {
+                        var roles = result[0];
+                        var translations = result[1];
+
                         var role = roles.length && roles[0];
                         if (!role)
                             return app.abort(res, 404, "Role " + roleId + " not found");
+
+                        var roleTranslations = {};
+                        translations.forEach(function (translation) {
+                            roleTranslations[translation.getLocale()] = {
+                                title: translation.getTitle(),
+                            };
+                        });
 
                         res.json({
                             id: role.getId(),
                             parent_id: role.getParentId(),
                             handle: role.getHandle(),
-                            title: role.getTitle(),
+                            translations: roleTranslations,
                         });
                     })
                     .catch(function (err) {
@@ -271,18 +311,31 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var roleRepo = locator.get('role-repository');
-                roleRepo.findAll()
-                    .then(function (roles) {
+                var roleTranslationRepo = locator.get('role-translation-repository');
+                q.all([ roleRepo.findAll(), roleTranslationRepo.findAll() ])
+                    .then(function (result) {
+                        var roles = result[0];
+                        var translations = result[1];
+
                         var result = [];
                         if (req.query.view === 'tree') {
-                            result = loadRoles(roles, null);
+                            result = loadRoles(roles, translations, null);
                         } else {
                             roles.forEach(function (role) {
+                                var roleTranslations = {};
+                                translations.forEach(function (translation) {
+                                    if (translation.getRoleId() == role.getId()) {
+                                        roleTranslations[translation.getLocale()] = {
+                                            title: translation.getTitle(),
+                                        };
+                                    }
+                                });
+
                                 result.push({
                                     id: role.getId(),
                                     parent_id: role.getParentId(),
                                     handle: role.getHandle(),
-                                    title: role.getTitle(),
+                                    translations: roleTranslations,
                                 });
                             });
                         }
@@ -312,20 +365,20 @@ module.exports = function () {
                 req.body._form_type = 'create';
                 var parentId = parseForm('parent_id', req, res);
                 var handle = parseForm('handle', req, res);
-                var title = parseForm('title', req, res);
-                q.all([ parentId, handle, title ])
+                var translations = parseForm('translations', req, res);
+                q.all([ parentId, handle, translations ])
                     .then(function (result) {
                         parentId = result[0];
                         handle = result[1];
-                        title = result[2];
-                        if (!parentId.valid || !handle.valid || !title.valid) {
+                        translations = result[2];
+                        if (!parentId.valid || !handle.valid || !translations.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
                                 fields: {
                                     parent_id: parentId.errors,
                                     handle: handle.errors,
-                                    title: title.errors,
+                                    translations: translations.errors,
                                 }
                             });
                         }
@@ -333,15 +386,36 @@ module.exports = function () {
                         var role = new RoleModel();
                         role.setParentId(parentId.value);
                         role.setHandle(handle.value);
-                        role.setTitle(title.value);
 
                         var roleRepo = locator.get('role-repository');
+                        var roleTranslationRepo = locator.get('role-translation-repository');
                         roleRepo.save(role)
                             .then(function (roleId) {
                                 if (roleId === null)
-                                    res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
-                                else
-                                    res.json({ success: true, id: roleId });
+                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    
+                                var promises = [];
+                                config['lang']['locales'].forEach(function (locale) {
+                                    var translation = new RoleTranslationModel();
+                                    translation.setRoleId(roleId);
+                                    translation.setLocale(locale);
+                                    translation.setTitle(translations.value[locale]['title']);
+                                    promises.push(roleTranslationRepo.save(translation));
+                                });
+
+                                q.all(promises)
+                                    .then(function (result) {
+                                        var success = false;
+                                        result.every(function (translationId) {
+                                            success = (translationId !== null);
+                                            return success;
+                                        });
+                                        res.json({ success: success, id: roleId });
+                                    })
+                                    .catch(function (err) {
+                                        logger.error('POST /v1/role failed', err);
+                                        app.abort(res, 500, 'POST /v1/role failed');
+                                    });
                             })
                             .catch(function (err) {
                                 logger.error('POST /v1/role failed', err);
@@ -376,20 +450,20 @@ module.exports = function () {
                 req.body._form_type = 'edit';
                 var parentId = parseForm('parent_id', req, res);
                 var handle = parseForm('handle', req, res);
-                var title = parseForm('title', req, res);
-                q.all([ parentId, handle, title ])
+                var translations = parseForm('translations', req, res);
+                q.all([ parentId, handle, translations ])
                     .then(function (result) {
                         parentId = result[0];
                         handle = result[1];
-                        title = result[2];
-                        if (!parentId.valid || !handle.valid || !title.valid) {
+                        translations = result[2];
+                        if (!parentId.valid || !handle.valid || !translations.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
                                 fields: {
                                     parent_id: parentId.errors,
                                     handle: handle.errors,
-                                    title: title.errors,
+                                    translations: translations.errors,
                                 }
                             });
                         }
@@ -398,8 +472,12 @@ module.exports = function () {
                             return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         var roleRepo = locator.get('role-repository');
-                        roleRepo.find(roleId)
-                            .then(function (roles) {
+                        var roleTranslationRepo = locator.get('role-translation-repository');
+                        q.all([ roleRepo.find(roleId), roleTranslationRepo.findByRoleId(roleId) ])
+                            .then(function (result) {
+                                var roles = result[0];
+                                var existingTranslations = result[1];
+
                                 var role = roles.length && roles[0];
                                 if (!role)
                                     return app.abort(res, 404, "Role " + roleId + " not found");
@@ -407,14 +485,46 @@ module.exports = function () {
                                 role.setParentId(parentId.value);
                                 if (handle.value.length)
                                     role.setHandle(handle.value);
-                                role.setTitle(title.value);
 
                                 roleRepo.save(role)
                                     .then(function (roleId) {
                                         if (roleId === null)
-                                            res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
-                                        else
-                                            res.json({ success: true });
+                                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                                        var promises = [];
+                                        config['lang']['locales'].forEach(function (locale) {
+                                            var foundTranslation = null;
+                                            existingTranslations.some(function (translation) {
+                                                if (translation.getLocale() == locale) {
+                                                    foundTranslation = translation;
+                                                    return true;
+                                                }
+                                                return false;
+                                            });
+
+                                            if (!foundTranslation) {
+                                                foundTranslation = new RoleTranslationModel();
+                                                foundTranslation.setRoleId(roleId);
+                                                foundTranslation.setLocale(locale);
+                                            }
+
+                                            foundTranslation.setTitle(translations.value[locale]['title']);
+                                            promises.push(roleTranslationRepo.save(foundTranslation));
+                                        });
+
+                                        q.all(promises)
+                                            .then(function (result) {
+                                                var success = false;
+                                                result.every(function (translationId) {
+                                                    success = (translationId !== null);
+                                                    return success;
+                                                });
+                                                res.json({ success: success });
+                                            })
+                                            .catch(function (err) {
+                                                logger.error('POST /v1/role failed', err);
+                                                app.abort(res, 500, 'POST /v1/role failed');
+                                            });
                                     })
                                     .catch(function (err) {
                                         logger.error('PUT /v1/role/' + roleId + ' failed', err);

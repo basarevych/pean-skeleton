@@ -200,18 +200,28 @@ forms.factory('ProfileForm',
 );
 
 forms.factory('CreateRoleForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'RoleApi',
-    function ($uibModal, $filter, ValidationCtrl, RoleApi) {
+    [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'RoleApi',
+    function ($uibModal, $filter, AppControl, ValidationCtrl, RoleApi) {
         return function (roles) {
+            var locale = AppControl.getProfile().locale;
+            var translations = {};
+            locale.available.forEach(function (locale) {
+                translations[locale] = {
+                    title: "",
+                };
+            });
+
             return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/create-role.html',
                 resolve: {
                     model: function () {
                         return {
-                            handle: { value: '', focus: true, required: true },
-                            title: { value: '', focus: false, required: true },
                             parent_id: { tree: roles, value: null, focus: false, required: true },
+                            handle: { value: '', focus: true, required: true },
+                            translations: { selected: locale.current, value: translations, focus: false, required: false },
+                            locale: locale,
+                            title_focus: false,
                         };
                     },
                     validator: function () {
@@ -228,9 +238,11 @@ forms.factory('CreateRoleForm',
 );
 
 forms.factory('EditRoleForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'RoleApi',
-    function ($uibModal, $filter, ValidationCtrl, RoleApi) {
+    [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'RoleApi',
+    function ($uibModal, $filter, AppControl, ValidationCtrl, RoleApi) {
         return function (role, roles) {
+            var locale = AppControl.getProfile().locale;
+
             return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/edit-role.html',
@@ -238,9 +250,11 @@ forms.factory('EditRoleForm',
                     model: function () {
                         return {
                             id: { value: role.id, focus: false, required: false },
-                            handle: { value: '', focus: false, required: true },
-                            title: { value: role.title, focus: true, required: true },
                             parent_id: { tree: roles, value: role.parent_id, focus: false, required: true },
+                            handle: { value: '', focus: true, required: true },
+                            translations: { selected: locale.current, value: role.translations, focus: false, required: false },
+                            locale: locale,
+                            title_focus: false,
                             handle_changed: false,
                             original_handle: role.handle,
                             changeHandle: function () {
@@ -268,8 +282,8 @@ forms.factory('EditRoleForm',
 );
 
 forms.factory('CreatePermissionForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'PermissionApi',
-    function ($uibModal, $filter, ValidationCtrl, PermissionApi) {
+    [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'PermissionApi',
+    function ($uibModal, $filter, AppControl, ValidationCtrl, PermissionApi) {
         return function (roles) {
             return $uibModal.open({
                 controller: ValidationCtrl,
@@ -280,6 +294,7 @@ forms.factory('CreatePermissionForm',
                             role_id: { tree: roles, value: null, focus: true, required: true },
                             resource: { value: '', focus: false, required: false },
                             action: { value: '', focus: false, required: false },
+                            locale: AppControl.getProfile().locale,
                         };
                     },
                     validator: function () { return PermissionApi.validate; },
@@ -291,8 +306,8 @@ forms.factory('CreatePermissionForm',
 );
 
 forms.factory('EditPermissionForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'PermissionApi',
-    function ($uibModal, $filter, ValidationCtrl, PermissionApi) {
+    [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'PermissionApi',
+    function ($uibModal, $filter, AppControl, ValidationCtrl, PermissionApi) {
         return function (permission, roles) {
             return $uibModal.open({
                 controller: ValidationCtrl,
@@ -304,6 +319,7 @@ forms.factory('EditPermissionForm',
                             role_id: { tree: roles, value: permission.role_id, focus: true, required: true },
                             resource: { value: permission.resource, focus: false, required: false },
                             action: { value: permission.action, focus: false, required: false },
+                            locale: AppControl.getProfile().locale,
                         };
                     },
                     validator: function () { return PermissionApi.validate; },
@@ -315,8 +331,8 @@ forms.factory('EditPermissionForm',
 );
 
 forms.factory('CreateUserForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
-    function ($uibModal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
+    [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($uibModal, $filter, AppControl, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (preselectedRoles, allRoles) {
             return $uibModal.open({
                 controller: ValidationCtrl,
@@ -329,6 +345,7 @@ forms.factory('CreateUserForm',
                             password: { value: '', focus: false, required: true },
                             retyped_password: { value: '', focus: false, required: true },
                             roles: { tree: allRoles, value: preselectedRoles, focus: false, required: false },
+                            locale: AppControl.getProfile().locale,
                             updateRoles: function () {
                                 var model = this.roles;
 
@@ -370,8 +387,8 @@ forms.factory('CreateUserForm',
 );
 
 forms.factory('EditUserForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
-    function ($uibModal, $filter, ValidationCtrl, UserApi, PasswordGenerator) {
+    [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
+    function ($uibModal, $filter, AppControl, ValidationCtrl, UserApi, PasswordGenerator) {
         return function (user, roles) {
             return $uibModal.open({
                 controller: ValidationCtrl,
@@ -385,6 +402,7 @@ forms.factory('EditUserForm',
                             password: { value: '', focus: false, required: false },
                             retyped_password: { value: '', focus: false, required: false },
                             roles: { tree: roles, value: user.roles, focus: false, required: false },
+                            locale: AppControl.getProfile().locale,
                             updateRoles: function () {
                                 var model = this.roles;
 

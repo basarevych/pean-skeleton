@@ -15,7 +15,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'NAME_LABEL' | glMessage }}:
                <span ng-show="model.name.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -33,7 +33,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'EMAIL_LABEL' | glMessage }}:
                <span ng-show="model.email.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -70,7 +70,7 @@
                 <label class="col-sm-4 control-label required">
                     {{ 'PASSWORD_LABEL' | glMessage }}:
                    <span ng-show="model.password.required" class="required-marker text-danger">
-                        {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                        {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                     </span>
                 </label>
                 <div class="col-sm-8">
@@ -88,7 +88,7 @@
                 <label class="col-sm-4 control-label required">
                     {{ 'RETYPED_PASSWORD_LABEL' | glMessage }}:
                    <span ng-show="model.retyped_password.required" class="required-marker text-danger">
-                        {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                        {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                     </span>
                 </label>
                 <div class="col-sm-8">
@@ -107,7 +107,7 @@
             <label class="col-sm-4 control-label required">
                 {{ 'ROLES_LABEL' | glMessage }}:
                <span ng-show="model.roles.required" class="required-marker text-danger">
-                    {{ 'REQUIRED_FIELD' | glMessage | uppercase }}
+                    {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>
             <div class="col-sm-8">
@@ -118,7 +118,7 @@
                                    focus-on="model.roles.focus" on-key-enter="submit()">
                             <input type="checkbox" ng-hide="node.focus" ng-model="node.checked" ng-change="model.updateRoles(); resetValidation('roles'); validate('roles')"
                                    on-key-enter="submit()">
-                            {{ node.title | glMessage }} ({{ node.handle }})
+                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">

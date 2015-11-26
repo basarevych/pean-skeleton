@@ -33,9 +33,6 @@ services.factory('AppControl',
         var globalizeLoaded = false;
 
         function sendInitBroadcast() {
-            if (initialized)
-                return;
-
             if (!profileLoaded || !globalizeLoaded)
                 return;
 
@@ -157,8 +154,11 @@ services.factory('AppControl',
                 ProfileApi.read()
                     .then(function (data) {
                         if (!angular.equals(profile, data)) {
+                            if (!angular.equals(profile.locale, data.locale)) {
+                                globalizeLoaded = false;
+                                globalizeWrapper.setLocale(data.locale.current.substr(0, 2));
+                            }
                             profile = data;
-                            globalizeWrapper.setLocale(profile.locale.current.substr(0, 2));
                         }
 
                         if (!profile.user_id && me.hasToken())

@@ -240,24 +240,21 @@ RoleRepository.prototype.save = function (role) {
                     if (role.getId()) {
                         query = "UPDATE roles "
                               + "   SET parent_id = $1, "
-                              + "       handle = $2, "
-                              + "       title = $3 "
-                              + " WHERE id = $4 ";
+                              + "       handle = $2 "
+                              + " WHERE id = $3 ";
                         params = [
                             role.getParentId(),
                             role.getHandle(),
-                            role.getTitle(),
                             role.getId(),
                         ];
                     } else {
                         query = "   INSERT "
-                              + "     INTO roles(parent_id, handle, title) "
-                              + "   VALUES ($1, $2, $3) "
+                              + "     INTO roles(parent_id, handle) "
+                              + "   VALUES ($1, $2) "
                               + "RETURNING id ";
                         params = [
                             role.getParentId(),
                             role.getHandle(),
-                            role.getTitle(),
                         ];
                     }
 

@@ -3,8 +3,8 @@
 var module = angular.module('state.role-list', []);
 
 module.controller("RoleListCtrl",
-    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'RoleApi', 'CreateRoleForm', 'EditRoleForm', 'InfoDialog',
-    function ($scope, $window, $filter, $q, dynamicTable, RoleApi, CreateRoleForm, EditRoleForm, InfoDialog) {
+    [ '$scope', '$window', '$filter', '$q', 'globalizeWrapper', 'dynamicTable', 'RoleApi', 'CreateRoleForm', 'EditRoleForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, globalizeWrapper, dynamicTable, RoleApi, CreateRoleForm, EditRoleForm, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -19,11 +19,15 @@ module.controller("RoleListCtrl",
         $scope.createRole = function () {
             RoleApi.list({ view: 'tree' })
                 .then(function (roles) {
+                    var translations = {};
+                    translations[$scope.appControl.getProfile().locale.current] = {
+                        title: $filter('glMessage')('TOP_ROLE_LABEL'),
+                    };
                     roles.unshift({
                         id: null,
                         handle: "null",
-                        title: "ROLE_TOP_LEVEL",
                         roles: [],
+                        translations: translations,
                         focus: true,
                     });
                     CreateRoleForm(roles)
@@ -39,11 +43,16 @@ module.controller("RoleListCtrl",
                 .then(function (result) {
                     var role = result[0];
                     var roles = result[1];
+
+                    var translations = {};
+                    translations[$scope.appControl.getProfile().locale.current] = {
+                        title: $filter('glMessage')('TOP_ROLE_LABEL'),
+                    };
                     roles.unshift({
                         id: null,
                         handle: "null",
-                        title: "ROLE_TOP_LEVEL",
                         roles: [],
+                        translations: translations,
                         focus: true,
                     });
 
