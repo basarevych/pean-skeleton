@@ -126,9 +126,10 @@ JobRepository.prototype.processNewJobs = function () {
             }
 
             db.query(
-                "SELECT * "
-              + "  FROM jobs "
-              + " WHERE status = $1 AND scheduled_for <= $2 ",
+                "  SELECT * "
+              + "    FROM jobs "
+              + "   WHERE status = $1 AND scheduled_for <= $2 "
+              + "ORDER BY id ASC ",
                 [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
                 function (err, result) {
                     if (err) {
@@ -137,32 +138,102 @@ JobRepository.prototype.processNewJobs = function () {
                         process.exit(1);
                     }
 
-                    if (result.rows.length == 0) {
-                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                            if (err) {
-                                defer.reject();
-                                logger.error('JobRepository.processNewJobs() - pg query', err);
-                                process.exit(1);
-                            }
-
-                            db.end();
-                            defer.resolve(returnValue);
-                        });
-                        return;
-                    }
-
                     var promises = [];
+                    var queuedJobs = [];
                     result.rows.forEach(function (row) {
                         var job = new JobModel(row);
+                        var jobDefer = q.defer();
+
                         if (now.isAfter(job.getValidUntil())) {
-                            job.setStatus('expired');
-                            returnValue.expired.push(job);
-                        } else {
-                            job.setStatus('started');
-                            returnValue.started.push(job);
+                            db.query(
+                                "UPDATE jobs "
+                              + "   SET status = $1 "
+                              + " WHERE id = $2 ",
+                                [ 'expired', job.getId() ],
+                                function (err, result) {
+                                    if (err) {
+                                        defer.reject();
+                                        logger.error('JobRepository.processNewJobs() - pg query', err);
+                                        process.exit(1);
+                                    }
+                                    returnValue.expired.push(job);
+                                    jobDefer.resolve();
+                                }
+                            );
+                            promises.push(jobDefer.promise);
+                            return;
                         }
-                        promises.push(me.save(job));
+
+                        if (job.getQueue() == null) {
+                            db.query(
+                                "UPDATE jobs "
+                              + "   SET status = $1 "
+                              + " WHERE id = $2 ",
+                                [ 'started', job.getId() ],
+                                function (err, result) {
+                                    if (err) {
+                                        defer.reject();
+                                        logger.error('JobRepository.processNewJobs() - pg query', err);
+                                        process.exit(1);
+                                    }
+                                    returnValue.started.push(job);
+                                    jobDefer.resolve();
+                                }
+                            );
+                            promises.push(jobDefer.promise);
+                            return;
+                        }
+
+                        queuedJobs.push(job);
                     });
+
+                    var queuedDefer = q.defer();
+                    promises.push(queuedDefer.promise);
+
+                    function processQueue() {
+                        var job = queuedJobs.shift();
+                        if (!job) {
+                            queuedDefer.resolve();
+                            return;
+                        }
+
+                        db.query(
+                            "  SELECT * "
+                          + "    FROM jobs "
+                          + "   WHERE status = $1 AND queue = $2 ",
+                            [ 'started', job.getQueue() ],
+                            function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('JobRepository.processNewJobs() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                if (result.rows.length > 0) {
+                                    processQueue();
+                                    return;
+                                }
+
+                                db.query(
+                                    "UPDATE jobs "
+                                  + "   SET status = $1 "
+                                  + " WHERE id = $2 ",
+                                    [ 'started', job.getId() ],
+                                    function (err, result) {
+                                        if (err) {
+                                            defer.reject();
+                                            logger.error('JobRepository.processNewJobs() - pg query', err);
+                                            process.exit(1);
+                                        }
+                                        returnValue.started.push(job);
+                                        processQueue();
+                                    }
+                                );
+                            }
+                        );
+                    }
+
+                    processQueue();
 
                     q.all(promises)
                         .then(function (result) {
@@ -207,15 +278,17 @@ JobRepository.prototype.save = function (job) {
         if (job.getId()) {
             query = "UPDATE jobs "
                   + "   SET name = $1, "
-                  + "       status = $2, "
-                  + "       created_at = $3, "
-                  + "       scheduled_for = $4, "
-                  + "       valid_until = $5, "
-                  + "       input_data = $6, "
-                  + "       output_data = $7 "
-                  + " WHERE id = $8 ";
+                  + "       queue = $2, "
+                  + "       status = $3, "
+                  + "       created_at = $4, "
+                  + "       scheduled_for = $5, "
+                  + "       valid_until = $6, "
+                  + "       input_data = $7, "
+                  + "       output_data = $8 "
+                  + " WHERE id = $9 ";
             params = [
                 job.getName(),
+                job.getQueue(),
                 job.getStatus(),
                 job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                 job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
@@ -226,11 +299,12 @@ JobRepository.prototype.save = function (job) {
             ];
         } else {
             query = "   INSERT "
-                  + "     INTO jobs(name, status, created_at, scheduled_for, valid_until, input_data, output_data) "
-                  + "   VALUES ($1, $2, $3, $4, $5, $6, $7) "
+                  + "     INTO jobs(name, queue, status, created_at, scheduled_for, valid_until, input_data, output_data) "
+                  + "   VALUES ($1, $2, $3, $4, $5, $6, $7, $8) "
                   + "RETURNING id ";
             params = [
                 job.getName(),
+                job.getQueue(),
                 job.getStatus(),
                 job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
                 job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
@@ -277,6 +351,41 @@ JobRepository.prototype.save = function (job) {
 
     return defer.promise;
 };
+
+JobRepository.prototype.restartInterrupted = function () {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+    var me = this;
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('JobRepository.restartInterrupted() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "UPDATE jobs "
+          + "   SET status = $1 "
+          + " WHERE status = $2 ",
+            [ 'created', 'started' ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('JobRepository.restartInterrupted() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
 
 JobRepository.prototype.delete = function (job) {
     var logger = locator.get('logger');

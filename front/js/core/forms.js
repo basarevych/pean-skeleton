@@ -486,6 +486,7 @@ forms.factory('CreateJobForm',
                     model: function () {
                         return {
                             name: { value: '', focus: true, required: true },
+                            queue: { value: '', focus: false, required: false },
                             status: { list: statuses, value: statuses[0], focus: false, required: true },
                             scheduled_for: { value: '', focus: false, required: false },
                             valid_until: { value: '', focus: false, required: false },
@@ -528,6 +529,7 @@ forms.factory('EditJobForm',
                         return {
                             id: { value: job.id, focus: false, required: false },
                             name: { value: job.name, focus: true, required: true },
+                            queue: { value: job.queue, focus: false, required: false },
                             status: { list: statuses, value: job.status, focus: false, required: true },
                             scheduled_for: { value: moment.unix(job.scheduled_for).format($filter('glMessage')('DT_DATE_TIME_FORMAT')), focus: false, required: false },
                             valid_until: { value: moment.unix(job.valid_until).format($filter('glMessage')('DT_DATE_TIME_FORMAT')), focus: false, required: false },

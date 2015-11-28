@@ -13,7 +13,7 @@ function WorkerServer() {
     this.timer = null;
 };
 
-WorkerServer.INTERVAL = 30000;
+WorkerServer.INTERVAL = 10000;
 
 WorkerServer.prototype.startTimer = function () {
     if (this.timer)
@@ -36,18 +36,24 @@ WorkerServer.prototype.start = function () {
     var logger = locator.get('logger');
 
     var jobRepo = locator.get('job-repository');
-    var subscriber = jobRepo.getRedis();
-    subscriber.on("message", function (channel, message) {
-        switch (channel) {
-            case process.env.PROJECT + ":jobs":
-                me.cancelTimer();
-                me.work();
-                break;
-        }
-    });
-    subscriber.subscribe(process.env.PROJECT + ":jobs");
+    jobRepo.restartInterrupted()
+        .then(function () {
+            var subscriber = jobRepo.getRedis();
+            subscriber.on("message", function (channel, message) {
+                switch (channel) {
+                    case process.env.PROJECT + ":jobs":
+                        me.cancelTimer();
+                        me.work();
+                        break;
+                }
+            });
+            subscriber.subscribe(process.env.PROJECT + ":jobs");
 
-    this.work();
+            me.work();
+        })
+        .catch(function (err) {
+            logger.error('WorkerServer.start() - jobRepo.restartInterrupted', err);
+        });
 };
 
 WorkerServer.prototype.work = function () {
@@ -78,7 +84,7 @@ WorkerServer.prototype.doJob = function (job) {
     var dir = path.join(__dirname, '..', 'jobs');
     try {
         require(dir + '/' + job.getName())(job);
-        console.log('-> Finished #' + job.getId() + ': ' + job.getName());
+        console.log('-> Executing #' + job.getId() + ': ' + job.getName());
     } catch (e) {
         console.log('-> Failed #' + job.getId() + ': ' + job.getName());
 

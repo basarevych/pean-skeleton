@@ -12,6 +12,7 @@ var BaseModel = locator.get('base-model');
 function JobModel(model) {
     this.id = null;
     this.name = null;
+    this.queue = null;
     this.status = null;
     this.created_at = moment();
     this.scheduled_for = moment();
@@ -30,6 +31,7 @@ JobModel.prototype.data = function (model) {
         model = {
             id: this.id,
             name: this.name,
+            queue: this.queue,
             status: this.status,
             created_at: this.created_at.tz('UTC').format(BaseModel.DATETIME_FORMAT), // return in UTC
             scheduled_for: this.scheduled_for.tz('UTC').format(BaseModel.DATETIME_FORMAT),
@@ -44,6 +46,7 @@ JobModel.prototype.data = function (model) {
 
         this.id = model.id;
         this.name = model.name;
+        this.queue = model.queue;
         this.status = model.status;
         this.created_at = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
         this.scheduled_for = moment.tz(utcScheduled.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
@@ -71,6 +74,15 @@ JobModel.prototype.setName = function (name) {
 
 JobModel.prototype.getName = function () {
     return this.field('name');
+};
+
+JobModel.prototype.setQueue = function (queue) {
+    this.field('queue', queue);
+    return this;
+};
+
+JobModel.prototype.getQueue = function () {
+    return this.field('queue');
 };
 
 JobModel.prototype.setStatus = function (status) {

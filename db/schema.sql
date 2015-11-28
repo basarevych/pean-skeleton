@@ -88,6 +88,7 @@ CREATE TYPE job_status AS ENUM ('created', 'started', 'success', 'failure', 'exp
 CREATE TABLE "jobs" (
     "id" serial NOT NULL,
     "name" character varying(255) NOT NULL,
+    "queue" character varying(255) NULL,
     "status" job_status NOT NULL,
     "created_at" timestamp NOT NULL,
     "scheduled_for" timestamp NOT NULL,

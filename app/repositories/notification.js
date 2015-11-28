@@ -39,7 +39,11 @@ NotificationRepository.prototype.find = function (id) {
             notification.setTitle(reply['title']);
         if (reply['icon'])
             notification.setIcon(reply['icon']);
-        notification.setVariables(JSON.parse(reply['variables']));
+        try {
+            notification.setVariables(JSON.parse(reply['variables']));
+        } catch (e) {
+            // do nothing
+        }
         if (reply['user_id'])
             notification.setUserId(reply['user_id']);
         if (reply['role_id'])

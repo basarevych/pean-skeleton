@@ -26,6 +26,7 @@ module.exports = function () {
 
         var form = {
             name: validator.trim(req.body.name),
+            queue: validator.trim(req.body.queue),
             status: validator.trim(req.body.status),
             scheduled_for: validator.trim(req.body.scheduled_for),
             valid_until: validator.trim(req.body.valid_until),
@@ -98,6 +99,14 @@ module.exports = function () {
                         sortable: true,
                         visible: true,
                     },
+                    queue: {
+                        title: res.locals.glMessage('JOB_QUEUE_COLUMN'),
+                        sql_id: 'queue',
+                        type: Table.TYPE_STRING,
+                        filters: [ Table.FILTER_LIKE, Table.FILTER_NULL ],
+                        sortable: true,
+                        visible: true,
+                    },
                     status: {
                         title: res.locals.glMessage('JOB_STATUS_COLUMN'),
                         sql_id: 'status',
@@ -112,7 +121,7 @@ module.exports = function () {
                         type: Table.TYPE_DATETIME,
                         filters: [ Table.FILTER_BETWEEN ],
                         sortable: true,
-                        visible: true,
+                        visible: false,
                     },
                     scheduled_for: {
                         title: res.locals.glMessage('JOB_SCHEDULED_FOR_COLUMN'),
@@ -128,13 +137,14 @@ module.exports = function () {
                         type: Table.TYPE_DATETIME,
                         filters: [ Table.FILTER_BETWEEN ],
                         sortable: true,
-                        visible: true,
+                        visible: false,
                     },
                 });
                 table.setMapper(function (row) {
                     var result = row;
 
                     result['name'] = validator.escape(row['name']);
+                    result['queue'] = validator.escape(row['queue']);
                     result['status'] = validator.escape(row['status']);
 
                     if (row['created_at']) {
@@ -269,6 +279,7 @@ module.exports = function () {
                             res.json({
                                 id: job.getId(),
                                 name: job.getName(),
+                                queue: job.getQueue(),
                                 status: job.getStatus(),
                                 created_at: job.getCreatedAt().unix(),
                                 scheduled_for: job.getScheduledFor().unix(),
@@ -306,6 +317,7 @@ module.exports = function () {
                             result.push({
                                 id: job.getId(),
                                 name: job.getName(),
+                                queue: job.getQueue(),
                                 status: job.getStatus(),
                                 created_at: job.getCreatedAt().unix(),
                                 scheduled_for: job.getScheduledFor().unix(),
@@ -338,23 +350,26 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var name = parseForm('name', req, res);
+                var queue = parseForm('queue', req, res);
                 var status = parseForm('status', req, res);
                 var scheduledFor = parseForm('scheduled_for', req, res);
                 var validUntil = parseForm('valid_until', req, res);
                 var inputData = parseForm('input_data', req, res);
-                q.all([ name, status, scheduledFor, validUntil, inputData ])
+                q.all([ name, queue, status, scheduledFor, validUntil, inputData ])
                     .then(function (result) {
                         name = result[0];
-                        status = result[1];
-                        scheduledFor = result[2];
-                        validUntil = result[3];
-                        inputData = result[4];
-                        if (!name.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
+                        queue = result[1];
+                        status = result[2];
+                        scheduledFor = result[3];
+                        validUntil = result[4];
+                        inputData = result[5];
+                        if (!name.valid || !queue.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
+                                    queue: queue.errors,
                                     status: status.errors,
                                     scheduled_for: scheduledFor.errors,
                                     valid_until: validUntil.errors,
@@ -365,6 +380,7 @@ module.exports = function () {
 
                         var job = new JobModel();
                         job.setName(name.value);
+                        job.setQueue(queue.value.length ? queue.value : null);
                         job.setStatus(status.value);
                         job.setCreatedAt(moment());
                         job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
@@ -411,23 +427,26 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var name = parseForm('name', req, res);
+                var queue = parseForm('queue', req, res);
                 var status = parseForm('status', req, res);
                 var scheduledFor = parseForm('scheduled_for', req, res);
                 var validUntil = parseForm('valid_until', req, res);
                 var inputData = parseForm('input_data', req, res);
-                q.all([ name, status, scheduledFor, validUntil, inputData ])
+                q.all([ name, queue, status, scheduledFor, validUntil, inputData ])
                     .then(function (result) {
                         name = result[0];
-                        status = result[1];
-                        scheduledFor = result[2];
-                        validUntil = result[3];
-                        inputData = result[4];
-                        if (!name.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
+                        queue = result[1];
+                        status = result[2];
+                        scheduledFor = result[3];
+                        validUntil = result[4];
+                        inputData = result[5];
+                        if (!name.valid || !queue.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
                             return res.json({
                                 success: false,
                                 errors: [],
                                 fields: {
                                     name: name.errors,
+                                    queue: queue.errors,
                                     status: status.errors,
                                     scheduled_for: scheduledFor.errors,
                                     valid_until: validUntil.errors,
@@ -444,6 +463,7 @@ module.exports = function () {
                                     return app.abort(res, 404, "Job " + jobId + " not found");
 
                                 job.setName(name.value);
+                                job.setQueue(queue.value.length ? queue.value : null);
                                 job.setStatus(status.value);
                                 job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
                                 job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(5, 'minutes'));
