@@ -84,7 +84,6 @@ WorkerServer.prototype.doJob = function (job) {
     var dir = path.join(__dirname, '..', 'jobs');
     try {
         require(dir + '/' + job.getName())(job);
-        console.log('-> Executing #' + job.getId() + ': ' + job.getName());
     } catch (e) {
         console.log('-> Failed #' + job.getId() + ': ' + job.getName());
 
