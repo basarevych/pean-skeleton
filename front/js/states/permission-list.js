@@ -14,6 +14,7 @@ module.controller("PermissionListCtrl",
             url: $window['config']['apiUrl'] + '/permission/table',
             row_id_column: 'id',
             sort_column: 'id',
+            mapper: function (row) { return row; },
         });
 
         $scope.createPermission = function () {

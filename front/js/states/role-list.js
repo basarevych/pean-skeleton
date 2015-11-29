@@ -14,6 +14,7 @@ module.controller("RoleListCtrl",
             url: $window['config']['apiUrl'] + '/role/table',
             row_id_column: 'id',
             sort_column: 'id',
+            mapper: function (row) { return row; },
         });
 
         $scope.createRole = function () {
