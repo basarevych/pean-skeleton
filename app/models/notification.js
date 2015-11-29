@@ -7,11 +7,10 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var moment = require('moment-timezone');
-var uuid = require('uuid');
 var BaseModel = locator.get('base-model');
 
 function NotificationModel(model) {
-    this.id = uuid.v1();
+    this.id = null;
     this.text = "";
     this.title = null;
     this.icon = null;

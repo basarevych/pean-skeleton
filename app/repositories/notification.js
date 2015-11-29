@@ -60,6 +60,9 @@ NotificationRepository.prototype.save = function (notification) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
+    if (!notification.getId())
+        notification.setId(notification.generateUuid());
+
     var name = process.env.PROJECT + ":notification:" + notification.getId();
     var value = { text: notification.getText(), variables: JSON.stringify(notification.getVariables()) };
     if (notification.getTitle())
