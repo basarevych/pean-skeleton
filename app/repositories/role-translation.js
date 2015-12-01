@@ -70,7 +70,7 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
 
     roleId = parseInt(roleId, 10);
     if (isNaN(roleId)) {
-        defer.reject('RoleTranslationRepository.findByRoleIdAndLocale() - invalid parameters');
+        defer.reject('RoleTranslationRepository.findByRoleId() - invalid parameters');
         return defer.promise;
     }
 
@@ -78,7 +78,7 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
     db.connect(function (err) {
         if (err) {
             defer.reject();
-            logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg connect', err);
+            logger.error('RoleTranslationRepository.findByRoleId() - pg connect', err);
             process.exit(1);
         }
 
@@ -90,7 +90,7 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
             function (err, result) {
                 if (err) {
                     defer.reject();
-                    logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg query', err);
+                    logger.error('RoleTranslationRepository.findByRoleId() - pg query', err);
                     process.exit(1);
                 }
 
