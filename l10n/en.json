@@ -188,6 +188,8 @@
         "NOTIFICATION_SHUTDOWN_TITLE": "System message",
         "NOTIFICATION_SHUTDOWN_ICON": "glyphicon glyphicon-envelope",
         "NOTIFICATION_SHUTDOWN_TEXT": "The site will be shut down for maintenance in {minutes} minute(s)",
+        "NOTIFICATION_ERROR_TITLE": "Error occured",
+        "NOTIFICATION_ERROR_TEXT": "Could not send notification",
 
         "DT_BANNER_LOADING": "Loading... Please wait",
         "DT_BANNER_EMPTY": "Nothing found",
