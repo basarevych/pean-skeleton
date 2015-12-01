@@ -522,8 +522,8 @@ module.exports = function () {
                                                 res.json({ success: success });
                                             })
                                             .catch(function (err) {
-                                                logger.error('POST /v1/role failed', err);
-                                                app.abort(res, 500, 'POST /v1/role failed');
+                                                logger.error('PUT /v1/role/' + roleId + ' failed', err);
+                                                app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed');
                                             });
                                     })
                                     .catch(function (err) {
