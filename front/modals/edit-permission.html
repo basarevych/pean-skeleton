@@ -24,7 +24,9 @@
                         <label>
                             <input type="radio" ng-show="node.focus" ng-model="model.role_id.value" ng-value="node.id" focus-on="model.role_id.focus" on-key-enter="model.resource.focus = true" autofocus="autofocus">
                             <input type="radio" ng-hide="node.focus" ng-model="model.role_id.value" ng-value="node.id" on-key-enter="model.resource.focus = true">
-                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
+                            {{ node.translations[model.locale.current]['title']
+                                ? node.translations[model.locale.current]['title']
+                                : node.translations[model.locale.default]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">

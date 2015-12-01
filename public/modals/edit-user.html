@@ -147,7 +147,9 @@
                                    focus-on="model.roles.focus" on-key-enter="submit()">
                             <input type="checkbox" ng-hide="node.focus" ng-model="node.checked" ng-change="model.updateRoles(); resetValidation('roles'); validate('roles')"
                                    on-key-enter="submit()">
-                            {{ node.translations[model.locale.current]['title'] }} ({{ node.handle }})
+                            {{ node.translations[model.locale.current]['title']
+                                ? node.translations[model.locale.current]['title']
+                                : node.translations[model.locale.default]['title'] }} ({{ node.handle }})
                         </label>
                     </div>
                     <ul ui-tree-nodes="" ng-model="node.roles">
