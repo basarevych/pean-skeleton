@@ -571,7 +571,10 @@ module.exports = function () {
                         return roleRepo.delete(role);
                     })
                     .then(function (count) {
-                        res.json({ success: count > 0 });
+                        if (count == 0)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/role/' + roleId + ' failed', err);
@@ -597,7 +600,10 @@ module.exports = function () {
                 var roleRepo = locator.get('role-repository');
                 roleRepo.deleteAll()
                     .then(function (count) {
-                        res.json({ success: count > 0 });
+                        if (count == 0)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/role failed', err);

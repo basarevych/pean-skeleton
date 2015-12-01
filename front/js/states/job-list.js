@@ -76,8 +76,24 @@ module.controller("JobListCtrl",
                     }
 
                     $q.all(promises)
-                        .finally(function () {
+                        .then(function (result) {
                             $scope.tableCtrl.plugin.refresh();
+
+                            var failure = null;
+                            result.some(function (item) {
+                                if (item.success == false) {
+                                    failure = item.errors.join('<br>');
+                                    return true;
+                                }
+                                return false;
+                            });
+
+                            if (failure) {
+                                InfoDialog({
+                                    title: 'ERROR_OPERATION_FAILED',
+                                    text: failure,
+                                });
+                            }
                         });
                 });
         };

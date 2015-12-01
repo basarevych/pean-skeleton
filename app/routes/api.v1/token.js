@@ -229,7 +229,10 @@ module.exports = function () {
                         return tokenRepo.delete(token);
                     })
                     .then(function (count) {
-                        res.json({ success: count > 0 });
+                        if (count == 0)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/token/' + tokenId + ' failed', err);
@@ -255,7 +258,10 @@ module.exports = function () {
                 var tokenRepo = locator.get('token-repository');
                 tokenRepo.deleteAll()
                     .then(function (count) {
-                        res.json({ success: count > 0 });
+                        if (count == 0)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/token failed', err);

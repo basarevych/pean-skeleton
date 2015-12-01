@@ -402,7 +402,10 @@ module.exports = function () {
                         return permissionRepo.delete(permission);
                     })
                     .then(function (count) {
-                        res.json({ success: count > 0 });
+                        if (count == 0)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/permission/' + permissionId + ' failed', err);
@@ -428,7 +431,10 @@ module.exports = function () {
                 var permissionRepo = locator.get('permission-repository');
                 permissionRepo.deleteAll()
                     .then(function (count) {
-                        res.json({ success: count > 0 });
+                        if (count == 0)
+                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+
+                        res.json({ success: true });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/permission failed', err);
