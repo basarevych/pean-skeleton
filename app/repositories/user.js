@@ -234,9 +234,15 @@ UserRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
-UserRepository.prototype.searchByEmail = function (search) {
+UserRepository.prototype.searchByEmail = function (search, limit) {
     var logger = locator.get('logger');
     var defer = q.defer();
+
+    limit = parseInt(limit, 10);
+    if (isNaN(limit)) {
+        defer.reject('UserRepository.searchByEmail() - invalid parameters');
+        return defer.promise;
+    }
 
     var db = this.getPostgres();
     db.connect(function (err) {
@@ -250,8 +256,8 @@ UserRepository.prototype.searchByEmail = function (search) {
             "SELECT * "
           + "  FROM users "
           + " WHERE email LIKE $1 "
-          + " LIMIT 8 ",
-            [ '%' + search + '%' ],
+          + " LIMIT $2 ",
+            [ '%' + search + '%', limit ],
             function (err, result) {
                 if (err) {
                     defer.reject();

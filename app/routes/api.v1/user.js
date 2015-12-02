@@ -270,6 +270,10 @@ module.exports = function () {
         if (!criteria || ['email'].indexOf(criteria) == -1)
             return app.abort(res, 400, "Invalid criteria");
 
+        var limit = req.body.limit;
+        if (!limit || !validator.isInt(limit))
+            return app.abort(res, 400, "Invalid limit");
+
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
@@ -284,7 +288,7 @@ module.exports = function () {
                 var roleRepo = locator.get('role-repository');
                 switch (criteria) {
                     case 'email':
-                        promise = userRepo.searchByEmail(req.body.search);
+                        promise = userRepo.searchByEmail(req.body.search, limit);
                         break;
                 }
 
