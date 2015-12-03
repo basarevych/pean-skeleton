@@ -5,22 +5,22 @@
   "devDependencies": {
     "jquery": "~2.1.4",
     "moment": "~2.10.6",
-    "bootstrap": "~3.3.5",
+    "bootstrap": "~3.3.6",
     "eonasdan-bootstrap-datetimepicker": "~4.17.37",
-    "cldr-data": "~28.0.0",
-    "angular": "~1.4.7",
-    "angular-animate": "~1.4.7",
-    "angular-loader": "~1.4.7",
-    "angular-resource": "~1.4.7",
-    "angular-cookies": "~1.4.7",
-    "angular-mocks": "~1.4.7",
+    "cldr-data": "~28.0.1",
+    "angular": "~1.4.8",
+    "angular-animate": "~1.4.8",
+    "angular-loader": "~1.4.8",
+    "angular-resource": "~1.4.8",
+    "angular-cookies": "~1.4.8",
+    "angular-mocks": "~1.4.8",
     "angular-loading-bar": "~0.8.0",
     "angular-ui-router": "~0.2.15",
     "angular-ui-bootstrap-bower": "~0.14.3",
     "angular-globalize-wrapper": "~0.2.0",
     "pnotify": "~2.1.0",
-    "highlightjs": "~8.8.0",
-    "angular-highlightjs": "~0.4.3",
-    "angular-ui-tree": "~2.10.0"
+    "highlightjs": "~8.9.1",
+    "angular-highlightjs": "~0.5.1",
+    "angular-ui-tree": "~2.11.0"
   }
 }
