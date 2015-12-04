@@ -519,13 +519,17 @@ module.exports = function () {
                         if (!job)
                             return app.abort(res, 404, "Job " + jobId + " not found");
 
-                        return jobRepo.delete(job);
-                    })
-                    .then(function (count) {
-                        if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                        jobRepo.delete(job)
+                            .then(function (count) {
+                                if (count == 0)
+                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
-                        res.json({ success: true });
+                                res.json({ success: true });
+                            })
+                            .catch(function (err) {
+                                logger.error('DELETE /v1/job/' + jobId + ' failed', err);
+                                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed');
+                            });
                     })
                     .catch(function (err) {
                         logger.error('DELETE /v1/job/' + jobId + ' failed', err);
