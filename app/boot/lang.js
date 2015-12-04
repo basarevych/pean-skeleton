@@ -5,39 +5,36 @@
 'use strict'
 
 var locator = require('node-service-locator');
+var merge = require('merge');
+var globalize = require('globalize');
 
 module.exports = function () {
     var app = locator.get('app');
     var config = locator.get('config');
-    var locales = [];
 
-    locator.register('locale', config['lang']['default']);
-    locator.register('globalize', function (locale) {
-        if (config['lang']['locales'].indexOf(locale) == -1)
-            throw new Error('Unsupported locale: ' + locale);
+    var data = merge.recursive(
+        require("../../node_modules/cldr-data/supplemental/currencyData"),
+        require("../../node_modules/cldr-data/supplemental/likelySubtags"),
+        require("../../node_modules/cldr-data/supplemental/plurals"),
+        require("../../node_modules/cldr-data/supplemental/timeData"),
+        require("../../node_modules/cldr-data/supplemental/weekData")
+    );
 
-        if (typeof locales[locale] != 'undefined')
-            return locales[locale];
-
-        var globalize = require('globalize');
-
-        globalize.load(
-            require("../../node_modules/cldr-data/supplemental/currencyData"),
-            require("../../node_modules/cldr-data/supplemental/likelySubtags"),
-            require("../../node_modules/cldr-data/supplemental/plurals"),
-            require("../../node_modules/cldr-data/supplemental/timeData"),
-            require("../../node_modules/cldr-data/supplemental/weekData"),
+    var messages = {};
+    config['lang']['locales'].forEach(function (locale) {
+        data = merge.recursive(
+            data,
             require("../../node_modules/cldr-data/main/" + locale + "/ca-gregorian"),
             require("../../node_modules/cldr-data/main/" + locale + "/currencies"),
             require("../../node_modules/cldr-data/main/" + locale + "/dateFields"),
             require("../../node_modules/cldr-data/main/" + locale + "/numbers")
         );
-        globalize.loadMessages(require("../../l10n/" + locale));
-        globalize.locale(locale);
-
-        locales[locale] = globalize;
-        return globalize;
+        messages = merge.recursive(messages, require("../../l10n/" + locale));
     });
+
+    globalize.load(data);
+    globalize.loadMessages(messages);
+    globalize.locale(config['lang']['default']);
 
     app.use(function (req, res, next) {
         var logger = locator.get('logger');
@@ -50,9 +47,8 @@ module.exports = function () {
         if (locator.get('locale') != lang)
             locator.register('locale', lang);
 
-        var globalize = null;
         try {
-            globalize = locator.get('globalize')(lang);
+            globalize.locale(lang);
         } catch (err) {
             logger.warn('globalize', err);
         }
