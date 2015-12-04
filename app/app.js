@@ -30,7 +30,6 @@ var app = module.exports = express();
 // load application
 require('./boot/init.js')(app);         // initialize the app
 require('./boot/logger.js')();          // logger
-require('./boot/lang.js')();            // translations
 
 // Return if this is a console command
 if (process.env.CONSOLE) return;
@@ -77,6 +76,7 @@ app.use(favicon(path.join(__dirname, '..', 'public', 'img', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // bootstrap the app
+require('./boot/lang.js')();        // translations
 require('./boot/session.js')();     // session support
 require('./boot/jwt.js')();         // JSON Web Tokens
 require('./boot/routes.js')();      // load routes
