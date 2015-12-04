@@ -13,7 +13,7 @@ module.controller("LayoutCtrl",
             if (locale === null)
                 $cookies.remove('locale');
             else
-                $cookies.put('locale', locale);
+                $cookies.put('locale', locale, { path: '/', expires: moment().add(1, 'year').toDate() });
 
             $scope.appControl.loadProfile();
         };
