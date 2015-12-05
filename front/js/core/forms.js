@@ -333,7 +333,7 @@ forms.factory('EditPermissionForm',
 forms.factory('CreateUserForm',
     [ '$uibModal', '$filter', 'AppControl', 'ValidationCtrl', 'UserApi', 'PasswordGenerator',
     function ($uibModal, $filter, AppControl, ValidationCtrl, UserApi, PasswordGenerator) {
-        return function (preselectedRoles, allRoles) {
+        return function (preselectedRoles, roles) {
             return $uibModal.open({
                 controller: ValidationCtrl,
                 templateUrl: 'modals/create-user.html',
@@ -344,7 +344,7 @@ forms.factory('CreateUserForm',
                             email: { value: '', focus: false, required: true },
                             password: { value: '', focus: false, required: true },
                             retyped_password: { value: '', focus: false, required: true },
-                            roles: { tree: allRoles, value: preselectedRoles, focus: false, required: false },
+                            roles: { tree: roles, value: preselectedRoles, focus: false, required: false },
                             locale: AppControl.getProfile().locale,
                             updateRoles: function () {
                                 var model = this.roles;
