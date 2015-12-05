@@ -101,14 +101,14 @@ CREATE TABLE "jobs" (
 
 CREATE VIEW dt_roles AS
     SELECT r1.*,
-           (SELECT handle
-              FROM roles r2
-             WHERE r2.id = r1.parent_id) AS parent,
+           r2.handle AS parent,
            string_agg(rt.title, '\n' ORDER BY rt.title) AS title
       FROM roles r1
+ LEFT JOIN roles r2
+        ON r2.id = r1.parent_id
  LEFT JOIN role_translations rt
         ON rt.role_id = r1.id
-  GROUP BY r1.id;
+  GROUP BY r1.id, r2.handle;
 
 CREATE VIEW dt_permissions AS
     SELECT p.*,
