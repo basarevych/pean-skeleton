@@ -15,7 +15,7 @@ module.controller("LayoutCtrl",
             else
                 $cookies.put('locale', locale, { path: '/', expires: moment().add(1, 'year').toDate() });
 
-            $scope.appControl.loadProfile();
+            $scope.appControl.loadProfile(function () { $window.location.reload() });
         };
 
         $scope.changeProfile = function () {
