@@ -210,11 +210,21 @@ RoleRepository.prototype.save = function (role) {
                 process.exit(1);
             }
 
+            var query = "SELECT handle "
+                      + "  FROM roles "
+                      + " WHERE handle = $1 ";
+            var params = [
+                role.getHandle()
+            ];
+
+            if (role.getId()) {
+                query += " AND id <> $2 ";
+                params.push(role.getId());
+            }
+
             db.query(
-                "SELECT handle "
-              + "  FROM roles "
-              + " WHERE id <> $1 AND handle = $2 ",
-                [ role.getId(), role.getHandle() ],
+                query,
+                params,
                 function (err, result) {
                     if (err) {
                         defer.reject();
@@ -236,7 +246,6 @@ RoleRepository.prototype.save = function (role) {
                         return;
                     }
 
-                    var query, params = [];
                     if (role.getId()) {
                         query = "UPDATE roles "
                               + "   SET parent_id = $1, "

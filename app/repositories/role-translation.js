@@ -213,17 +213,23 @@ RoleTranslationRepository.prototype.save = function (translation) {
                 process.exit(1);
             }
 
+            var query = "SELECT id "
+                      + "  FROM role_translations "
+                      + " WHERE role_id = $1 "
+                      + "       AND locale = $2 ";
+            var params = [
+                translation.getRoleId(),
+                translation.getLocale(),
+            ];
+
+            if (translation.getId()) {
+                query += " AND id <> $3 ";
+                params.push(translation.getId());
+            }
+
             db.query(
-                "SELECT id "
-              + "  FROM role_translations "
-              + " WHERE id <> $1 "
-              + "       AND role_id = $2 "
-              + "       AND locale = $3 ",
-                [
-                    translation.getId(),
-                    translation.getRoleId(),
-                    translation.getLocale(),
-                ],
+                query,
+                params,
                 function (err, result) {
                     if (err) {
                         defer.reject();
@@ -245,7 +251,6 @@ RoleTranslationRepository.prototype.save = function (translation) {
                         return;
                     }
 
-                    var query, params = [];
                     if (translation.getId()) {
                         query = "UPDATE role_translations "
                               + "   SET role_id = $1, "

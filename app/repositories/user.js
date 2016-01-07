@@ -300,11 +300,21 @@ UserRepository.prototype.save = function (user) {
                 process.exit(1);
             }
 
+            var query = "SELECT email "
+                      + "  FROM users "
+                      + " WHERE email = $1 ";
+            var params = [
+                user.getEmail()
+            ];
+
+            if (user.getId()) {
+                query += " AND id <> $2 ";
+                params.push(user.getId());
+            }
+
             db.query(
-                "SELECT email "
-              + "  FROM users "
-              + " WHERE id <> $1 AND email = $2 ",
-                [ user.getId(), user.getEmail() ],
+                query,
+                params,
                 function (err, result) {
                     if (err) {
                         defer.reject();
@@ -326,7 +336,6 @@ UserRepository.prototype.save = function (user) {
                         return;
                     }
 
-                    var query, params = [];
                     if (user.getId()) {
                         query = "UPDATE users "
                               + "   SET name = $1, "
