@@ -90,7 +90,7 @@ forms.factory('ValidationCtrl',
                             return;
                         if (!$('.modal').is(':visible'))
                             return;
-                        if (angular.isUndefined(validator))
+                        if (!validator)
                             return;
 
                         var params = {};
@@ -118,7 +118,7 @@ forms.factory('ValidationCtrl',
                     $scope.processing = true;
 
                     $scope.resetValidation();
-                    if (angular.isUndefined(submitter)) {
+                    if (!submitter) {
                         $scope.processing = false;
                         return;
                     }
