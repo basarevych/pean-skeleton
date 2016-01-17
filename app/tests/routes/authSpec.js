@@ -3,10 +3,10 @@
 var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
-var app = require('../../../app.js');
-var UserModel = require('../../../app/models/user');
+var app = require('../../app.js');
+var UserModel = require('../../models/user');
 
-describe('/api/auth route', function () {
+describe('/v1/auth route', function () {
     var config;
 
     beforeEach(function () {
@@ -37,58 +37,65 @@ describe('/api/auth route', function () {
                 return defer.promise;
             },
         });
+        locator.register('token-repository', {
+            save: function () {
+                var defer = q.defer();
+                defer.resolve(1);
+                return defer.promise;
+            },
+        });
 
         request(app)
-            .post('/api/auth/token')
+            .post('/v1/auth/token')
             .send({ email: 'root@example.com', password: 'foobar' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(searchedEmail).toBe('root@example.com');
                 expect(searchedPassword).toBe('foobar');
-                expect(res.body.valid).toBeTruthy();
+                expect(res.body.success).toBeTruthy();
             })
             .expect(200, done);
     });
 
     it('validates', function (done) {
         request(app)
-            .post('/api/auth/validate')
-            .send({ field: 'email', form: { email: 'foo' } })
+            .post('/v1/auth/validate')
+            .send({ _field: 'email', email: 'foo' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(false);
+                expect(res.body.success).toBe(false);
             })
             .expect(200, done);
 
         request(app)
-            .post('/api/auth/validate')
-            .send({ field: 'email', form: { email: 'foo@bar.com' } })
+            .post('/v1/auth/validate')
+            .send({ _field: 'email', email: 'foo@bar.com' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(true);
+                expect(res.body.success).toBe(true);
             })
             .expect(200, done);
 
         request(app)
-            .post('/api/auth/validate')
-            .send({ field: 'password', form: { password: 'foo' } })
+            .post('/v1/auth/validate')
+            .send({ _field: 'password', password: 'foo' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(false);
+                expect(res.body.success).toBe(false);
             })
             .expect(200, done);
 
         request(app)
-            .post('/api/auth/validate')
-            .send({ field: 'password', form: { password: 'foobar' } })
+            .post('/v1/auth/validate')
+            .send({ _field: 'password', password: 'foobar' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(true);
+                expect(res.body.success).toBe(true);
             })
             .expect(200, done);
     });

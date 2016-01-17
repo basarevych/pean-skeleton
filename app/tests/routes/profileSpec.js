@@ -3,10 +3,10 @@
 var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
-var app = require('../../../app.js');
-var UserModel = require('../../../app/models/user');
+var app = require('../../app.js');
+var UserModel = require('../../models/user');
 
-describe('/api/profile route', function () {
+describe('/v1/profile route', function () {
     var config;
 
     beforeEach(function () {
@@ -23,15 +23,15 @@ describe('/api/profile route', function () {
 
     it('responds to GET', function (done) {
         request(app)
-            .get('/api/profile')
+            .get('/v1/profile')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(res.body.locale).toEqual({
                     current: config['lang']['default'],
-                    fallback: config['lang']['default'],
+                    default: config['lang']['default'],
                     available: config['lang']['locales']
                 });
-                expect(res.body.userId).toBeNull();
+                expect(res.body.user_id).toBeNull();
                 expect(res.body.roles).toEqual([]);
             })
             .expect(200, done);
@@ -43,7 +43,7 @@ describe('/api/profile route', function () {
         app.set('config', config);
 
         request(app)
-            .get('/api/profile')
+            .get('/v1/profile')
             .set('Accept-Language', 'ru')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -54,24 +54,20 @@ describe('/api/profile route', function () {
 
     it('rejects unauthorized save', function (done) {
         request(app)
-            .put('/api/profile')
+            .put('/v1/profile')
             .send({ name: 'Foo' })
             .set('Accept', 'application/json')
-            .expect(403, done);
+            .expect(401, done);
     });
 
     it('saves profile', function (done) {
-        var searchedId, savedUser;
+        var authUser = new UserModel();
+        authUser.setId(42);
         var foundUser = new UserModel();
+        var savedUser;
 
-        locator.register('token', { user_id: 42 });
+        locator.register('user', authUser);
         locator.register('user-repository', {
-            find: function (id) {
-                searchedId = id;
-                var defer = q.defer();
-                defer.resolve([ foundUser ]);
-                return defer.promise;
-            },
             save: function (user) {
                 savedUser = user;
                 var defer = q.defer();
@@ -81,13 +77,12 @@ describe('/api/profile route', function () {
         });
 
         request(app)
-            .put('/api/profile')
+            .put('/v1/profile')
             .send({ name: 'Foo' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect({ valid: true })
+            .expect({ success: true })
             .expect(function (res) {
-                expect(searchedId).toBe(42);
                 expect(savedUser.getName()).toBe('Foo');
             })
             .expect(200, done);
@@ -95,32 +90,32 @@ describe('/api/profile route', function () {
 
     it('validates', function (done) {
         request(app)
-            .post('/api/profile/validate')
-            .send({ field: 'newPassword', form: { newPassword: 'foo', retypedPassword: 'bar' } })
+            .post('/v1/profile/validate')
+            .send({ _field: 'new_password', new_password: 'foo', retyped_password: 'bar' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(false);
+                expect(res.body.success).toBe(false);
             })
             .expect(200, done);
 
         request(app)
-            .post('/api/profile/validate')
-            .send({ field: 'newPassword', form: { newPassword: 'foo', retypedPassword: 'foo' } })
+            .post('/v1/profile/validate')
+            .send({ _field: 'new_password', new_password: 'foo', retyped_password: 'foo' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(false);
+                expect(res.body.success).toBe(false);
             })
             .expect(200, done);
 
         request(app)
-            .post('/api/profile/validate')
-            .send({ field: 'newPassword', form: { newPassword: 'foobar', retypedPassword: 'foobar' } })
+            .post('/v1/profile/validate')
+            .send({ _field: 'new_password', new_password: 'foobar', retyped_password: 'foobar' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.valid).toBe(true);
+                expect(res.body.success).toBe(true);
             })
             .expect(200, done);
     });

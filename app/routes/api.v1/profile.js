@@ -136,7 +136,7 @@ module.exports = function () {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
-        parseForm(req.body.field, req, res)
+        parseForm(req.body._field, req, res)
             .then(function (data) {
                 res.json({ success: data.valid, errors: data.errors });
             })

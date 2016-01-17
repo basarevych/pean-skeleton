@@ -132,7 +132,7 @@ module.exports = function () {
     });
 
     router.post('/validate', function (req, res) {
-        parseForm(req.body.field, req, res)
+        parseForm(req.body._field, req, res)
             .then(function (data) {
                 res.json({ success: data.valid, errors: data.errors });
             })

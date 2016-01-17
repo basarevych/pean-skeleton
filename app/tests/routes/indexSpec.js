@@ -2,7 +2,7 @@
 
 var locator = require('node-service-locator');
 var request = require('supertest');
-var app = require('../../../app.js');
+var app = require('../../app.js');
 
 describe('Index route', function () {
     it('responds to /', function (done) {
