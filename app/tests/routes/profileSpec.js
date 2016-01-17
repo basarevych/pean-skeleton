@@ -8,6 +8,7 @@ var UserModel = require('../../models/user');
 
 describe('/v1/profile route', function () {
     var config;
+    var authUser = new UserModel({ id: 42 });
 
     beforeEach(function () {
         config = locator.get('config');
@@ -19,9 +20,20 @@ describe('/v1/profile route', function () {
             warn: function () {},
             error: function () {},
         });
+        locator.register('acl', {
+            isAllowed: function () {
+                var defer = q.defer();
+                defer.resolve(true);
+                return defer.promise;
+            },
+        });
     });
 
-    it('responds to GET', function (done) {
+    afterEach(function () {
+        locator.register('user', undefined);
+    });
+
+    it('responds to anonymous', function (done) {
         request(app)
             .get('/v1/profile')
             .expect('Content-Type', /json/)
@@ -61,8 +73,6 @@ describe('/v1/profile route', function () {
     });
 
     it('saves profile', function (done) {
-        var authUser = new UserModel();
-        authUser.setId(42);
         var foundUser = new UserModel();
         var savedUser;
 
@@ -89,6 +99,8 @@ describe('/v1/profile route', function () {
     });
 
     it('validates', function (done) {
+        locator.register('user', authUser);
+
         request(app)
             .post('/v1/profile/validate')
             .send({ _field: 'new_password', new_password: 'foo', retyped_password: 'bar' })
@@ -98,6 +110,10 @@ describe('/v1/profile route', function () {
                 expect(res.body.success).toBe(false);
             })
             .expect(200, done);
+    });
+
+    it('validates', function (done) {
+        locator.register('user', authUser);
 
         request(app)
             .post('/v1/profile/validate')
@@ -108,6 +124,10 @@ describe('/v1/profile route', function () {
                 expect(res.body.success).toBe(false);
             })
             .expect(200, done);
+    });
+
+    it('validates', function (done) {
+        locator.register('user', authUser);
 
         request(app)
             .post('/v1/profile/validate')
