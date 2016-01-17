@@ -10,23 +10,17 @@ describe('/v1/profile route', function () {
     var config;
     var authUser = new UserModel({ id: 42 });
 
+    locator.register('logger', {
+        log: function () {},
+        trace: function () {},
+        debug: function () {},
+        info: function () {},
+        warn: function () {},
+        error: function () {},
+    });
+
     beforeEach(function () {
         config = locator.get('config');
-        locator.register('logger', {
-            log: function () {},
-            trace: function () {},
-            debug: function () {},
-            info: function () {},
-            warn: function () {},
-            error: function () {},
-        });
-        locator.register('acl', {
-            isAllowed: function () {
-                var defer = q.defer();
-                defer.resolve(true);
-                return defer.promise;
-            },
-        });
     });
 
     afterEach(function () {
@@ -98,21 +92,7 @@ describe('/v1/profile route', function () {
             .expect(200, done);
     });
 
-    it('validates', function (done) {
-        locator.register('user', authUser);
-
-        request(app)
-            .post('/v1/profile/validate')
-            .send({ _field: 'new_password', new_password: 'foo', retyped_password: 'bar' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(res.body.success).toBe(false);
-            })
-            .expect(200, done);
-    });
-
-    it('validates', function (done) {
+    it('validates short passwords', function (done) {
         locator.register('user', authUser);
 
         request(app)
@@ -121,21 +101,21 @@ describe('/v1/profile route', function () {
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.success).toBe(false);
+                expect(res.body.success).toBeFalsy();
             })
             .expect(200, done);
     });
 
-    it('validates', function (done) {
+    it('validates mistyped passwords', function (done) {
         locator.register('user', authUser);
 
         request(app)
             .post('/v1/profile/validate')
-            .send({ _field: 'new_password', new_password: 'foobar', retyped_password: 'foobar' })
+            .send({ _field: 'retyped_password', new_password: 'foobar1', retyped_password: 'foobar2' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
-                expect(res.body.success).toBe(true);
+                expect(res.body.success).toBeFalsy();
             })
             .expect(200, done);
     });
