@@ -10,17 +10,16 @@ describe('/v1/profile route', function () {
     var config;
     var authUser = new UserModel({ id: 42 });
 
-    locator.register('logger', {
-        log: function () {},
-        trace: function () {},
-        debug: function () {},
-        info: function () {},
-        warn: function () {},
-        error: function () {},
-    });
-
     beforeEach(function () {
         config = locator.get('config');
+        locator.register('logger', {
+            log: function () {},
+            trace: function () {},
+            debug: function () {},
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+        });
     });
 
     afterEach(function () {

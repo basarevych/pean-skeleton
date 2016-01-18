@@ -13,26 +13,25 @@ describe('/v1/job route', function () {
     var authUser = new UserModel({ id: 42 });
     var aclQueried;
 
-    locator.register('logger', {
-        log: function () {},
-        trace: function () {},
-        debug: function () {},
-        info: function () {},
-        warn: function () {},
-        error: function () {},
-    });
-    locator.register('acl', {
-        isAllowed: function () {
-            aclQueried = true;
-            var defer = q.defer();
-            defer.resolve(true);
-            return defer.promise;
-        },
-    });
-
     beforeEach(function () {
         config = locator.get('config');
         aclQueried = false;
+        locator.register('logger', {
+            log: function () {},
+            trace: function () {},
+            debug: function () {},
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+        });
+        locator.register('acl', {
+            isAllowed: function () {
+                aclQueried = true;
+                var defer = q.defer();
+                defer.resolve(true);
+                return defer.promise;
+            },
+        });
     });
 
     afterEach(function () {

@@ -37,7 +37,8 @@ module.exports = function () {
                 if (!text.length
                         || typeof variables != "object"
                         || (userId.length && !validator.isInt(userId))
-                        || (roleId.length && !validator.isInt(roleId))) {
+                        || (roleId.length && !validator.isInt(roleId))
+                        || (req.body.scheduled_for && !moment.unix(req.body.scheduled_for).isValid())) {
                     return res.json({ success: false });
                 }
 
