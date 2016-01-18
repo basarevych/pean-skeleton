@@ -152,6 +152,7 @@ module.exports = function () {
 
                         res.json({
                             id: token.getId(),
+                            user_id: token.getUserId(),
                             ip_address: token.getIpAddress(),
                             created_at: token.getCreatedAt().unix(),
                             updated_at: token.getUpdatedAt().unix(),
@@ -186,6 +187,7 @@ module.exports = function () {
                         tokens.forEach(function (token) {
                             result.push({
                                 id: token.getId(),
+                                user_id: token.getUserId(),
                                 ip_address: token.getIpAddress(),
                                 created_at: token.getCreatedAt().unix(),
                                 updated_at: token.getUpdatedAt().unix(),
