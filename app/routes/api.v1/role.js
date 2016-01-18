@@ -28,7 +28,7 @@ module.exports = function () {
             form_type: validator.trim(req.body._form_type),
             parent_id: req.body.parent_id,
             handle: validator.trim(req.body.handle),
-            translations: null,
+            translations: undefined,
         };
 
         if (typeof req.body.translations == 'object' && !Array.isArray(req.body.translations)) {
