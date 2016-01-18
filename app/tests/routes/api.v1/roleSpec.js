@@ -4,10 +4,10 @@ var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
 var moment = require('moment-timezone');
-var app = require('../../app.js');
-var UserModel = require('../../models/user');
-var RoleModel = require('../../models/role');
-var RoleTranslationModel = require('../../models/role-translation');
+var app = require('../../../app.js');
+var UserModel = require('../../../models/user');
+var RoleModel = require('../../../models/role');
+var RoleTranslationModel = require('../../../models/role-translation');
 
 describe('/v1/role route', function () {
     var config;

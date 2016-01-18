@@ -3,8 +3,8 @@
 var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
-var app = require('../../app.js');
-var UserModel = require('../../models/user');
+var app = require('../../../app.js');
+var UserModel = require('../../../models/user');
 
 describe('/v1/profile route', function () {
     var config;

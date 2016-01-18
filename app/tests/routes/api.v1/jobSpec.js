@@ -4,10 +4,10 @@ var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
 var moment = require('moment-timezone');
-var app = require('../../app.js');
-var BaseModel = require('../../models/base');
-var UserModel = require('../../models/user');
-var JobModel = require('../../models/job');
+var app = require('../../../app.js');
+var BaseModel = require('../../../models/base');
+var UserModel = require('../../../models/user');
+var JobModel = require('../../../models/job');
 
 describe('/v1/job route', function () {
     var config;

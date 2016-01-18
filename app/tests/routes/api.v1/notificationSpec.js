@@ -4,9 +4,9 @@ var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
 var moment = require('moment-timezone');
-var app = require('../../app.js');
-var UserModel = require('../../models/user');
-var NotificationModel = require('../../models/notification');
+var app = require('../../../app.js');
+var UserModel = require('../../../models/user');
+var NotificationModel = require('../../../models/notification');
 
 describe('/v1/notification route', function () {
     var config;
