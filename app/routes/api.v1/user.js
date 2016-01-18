@@ -257,6 +257,9 @@ module.exports = function () {
     });
 
     router.post('/search', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
         var criteria = req.body.criteria;
         if (!criteria || ['email'].indexOf(criteria) == -1)
             return app.abort(res, 400, "Invalid criteria");
@@ -264,9 +267,6 @@ module.exports = function () {
         var limit = req.body.limit;
         if (!limit || !validator.isInt(limit))
             return app.abort(res, 400, "Invalid limit");
-
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
 
         var acl = locator.get('acl');
         acl.isAllowed(req.user, 'user', 'read')

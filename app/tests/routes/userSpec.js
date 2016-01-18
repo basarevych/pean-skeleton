@@ -184,6 +184,74 @@ describe('/v1/user route', function () {
             .expect(200, done);
     });
 
+    it('protects search', function (done) {
+        request(app)
+            .post('/v1/user/search')
+            .set('Accept', 'application/json')
+            .expect(401, done);
+    });
+
+    it('searches by email', function (done) {
+        var utcCreated = moment.unix(123);
+        var localCreated = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
+
+        var searchedId, searchedEmail, searchedLimit;
+        var user = new UserModel({
+            id: 42,
+            name: 'foo',
+            email: 'bar',
+            password: UserModel.encryptPassword('baz'),
+            created_at: utcCreated,
+        });
+        var role = new RoleModel({
+            id: 9000,
+            parent_id: null,
+            handle: 'foo',
+        });
+
+        locator.register('user', authUser);
+        locator.register('user-repository', {
+            searchByEmail: function (email, limit) {
+                searchedEmail = email;
+                searchedLimit = limit;
+                var defer = q.defer();
+                defer.resolve([ user ]);
+                return defer.promise;
+            },
+        });
+        locator.register('role-repository', {
+            findByUserId: function (id) {
+                searchedId = id;
+                var defer = q.defer();
+                defer.resolve([ role ]);
+                return defer.promise;
+            },
+        });
+
+        request(app)
+            .post('/v1/user/search')
+            .send({
+                criteria: 'email',
+                limit: 10,
+                search: 'foobar',
+            })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(function (res) {
+                expect(aclQueried).toBeTruthy();
+                expect(searchedId).toBe(42);
+                expect(searchedEmail).toBe('foobar');
+                expect(searchedLimit).toBe(10);
+                expect(Array.isArray(res.body)).toBeTruthy();
+                expect(res.body[0].id).toBe(42);
+                expect(res.body[0].name).toBe('foo');
+                expect(res.body[0].email).toBe('bar');
+                expect(res.body[0].created_at).toBe(localCreated.unix());
+                expect(res.body[0].roles).toEqual([ 9000 ]);
+            })
+            .expect(200, done);
+    });
+
     it('protects LIST', function (done) {
         request(app)
             .get('/v1/user')
