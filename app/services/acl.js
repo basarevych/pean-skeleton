@@ -47,7 +47,7 @@ Acl.prototype.isAllowed = function (user, resource, action) {
                     });
             })
             .catch(function (err) {
-                loadDefer.reject('Acl.loadRolePermissions() - roleRepo.find', err);
+                roleDefer.reject('Acl.loadRolePermissions() - roleRepo.find', err);
             });
     }
 
