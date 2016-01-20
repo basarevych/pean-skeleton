@@ -54,6 +54,23 @@ describe('/v1/role route', function () {
 
     it('describes table', function (done) {
         locator.register('user', authUser);
+        locator.register('role-repository', {
+            getPostgres: function () {
+                return {
+                    connect: function (cb) {
+                        cb();
+                    },
+                    query: function (sql, params, cb) {
+                        cb(null, {
+                            rows: [
+                                { count: 0 },
+                            ]
+                        });
+                    },
+                    end: function () {},
+                };
+            },
+        });
 
         request(app)
             .get('/v1/role/table?query=describe')

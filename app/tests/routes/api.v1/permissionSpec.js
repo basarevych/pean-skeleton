@@ -47,6 +47,23 @@ describe('/v1/permission route', function () {
 
     it('describes table', function (done) {
         locator.register('user', authUser);
+        locator.register('permission-repository', {
+            getPostgres: function () {
+                return {
+                    connect: function (cb) {
+                        cb();
+                    },
+                    query: function (sql, params, cb) {
+                        cb(null, {
+                            rows: [
+                                { count: 0 },
+                            ]
+                        });
+                    },
+                    end: function () {},
+                };
+            },
+        });
 
         request(app)
             .get('/v1/permission/table?query=describe')
