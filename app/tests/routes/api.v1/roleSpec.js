@@ -107,7 +107,7 @@ describe('/v1/role route', function () {
 
         request(app)
             .post('/v1/role/validate')
-            .send({ _form_type: 'create', _field: 'parent_id', role_id: '' })
+            .send({ _form_type: 'create', _field: 'parent_id', parent_id: '' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
