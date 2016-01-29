@@ -22,18 +22,18 @@ describe('Form', function () {
         }));
     });
 
-    describe('ModalFormCtrl', function() {
+    describe('ValidationCtrl', function() {
 
-        var ModalFormCtrl, scope,
-            fields = [
-                { name: 'login',    value: '', focus: true },
-                { name: 'password', value: '', focus: false },
-            ];
+        var ValidationCtrl, scope,
+            fields = {
+                login:    { name: 'login',    value: '', focus: true, required: true },
+                password: { name: 'password', value: '', focus: false, required: false },
+            };
 
         beforeEach(angular.mock.module('forms'));
 
-        beforeEach(inject(function (_ModalFormCtrl_, $rootScope) {
-            ModalFormCtrl = _ModalFormCtrl_;
+        beforeEach(inject(function (_ValidationCtrl_, $rootScope) {
+            ValidationCtrl = _ValidationCtrl_.pop();
             scope = $rootScope.$new();
 
             var modal = $('<div class="modal"></div>');
@@ -43,10 +43,10 @@ describe('Form', function () {
 
 
         it('initializes scope', function () {
-            var ctrl = ModalFormCtrl(scope, undefined, fields, undefined, undefined),
+            var ctrl = ValidationCtrl(scope, undefined, fields, undefined, undefined),
                 model = {
-                    login:    { name: 'login',    value: '', focus: true },
-                    password: { name: 'password', value: '', focus: false },
+                    login:    { name: 'login',    value: '', focus: true, required: true },
+                    password: { name: 'password', value: '', focus: false, required: false },
                 };
 
             expect(scope.model).toEqual(model);
@@ -54,7 +54,7 @@ describe('Form', function () {
          })
 
         it('resets validation', function () {
-            var ctrl = ModalFormCtrl(scope, undefined, fields, undefined, undefined);
+            var ctrl = ValidationCtrl(scope, undefined, fields, undefined, undefined);
 
             scope.validation.fields = { field1: [ 'foo' ], field2: [ 'bar' ] };
             scope.resetValidation();
@@ -74,14 +74,14 @@ describe('Form', function () {
                 return deferred.promise;
             }
 
-            var ctrl = ModalFormCtrl(scope, undefined, fields, validator, undefined);
+            var ctrl = ValidationCtrl(scope, undefined, fields, validator, undefined);
             scope.model.login.value = 'foo';
             scope.model.password.value = 'bar';
 
-            scope.validate();
+            scope.validate('login');
             $timeout.flush();
 
-            deferred.resolve({ valid: false, errors: { login: [ 'foobar' ] } });
+            deferred.resolve({ success: false, errors: [ 'foobar' ] });
             scope.$digest();
             expect(scope.validation.fields.login).toEqual([ 'foobar' ]);
         }));
@@ -95,11 +95,11 @@ describe('Form', function () {
                 return deferred.promise;
             }
 
-            var ctrl = ModalFormCtrl(scope, undefined, fields, undefined, worker);
+            var ctrl = ValidationCtrl(scope, undefined, fields, undefined, worker);
 
             scope.submit();
 
-            deferred.resolve({ valid: false, errors: [ 'baz' ], fields: { password: [ 'foobar' ] } });
+            deferred.resolve({ success: false, errors: [ 'baz' ], fields: { password: [ 'foobar' ] } });
             scope.$digest();
             expect(scope.validation.errors).toEqual([ 'baz' ]);
             expect(scope.validation.fields.password).toEqual([ 'foobar' ]);

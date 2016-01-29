@@ -60,7 +60,7 @@
         <div class="form-group" ng-class="{ 'has-error': validation.fields.parent_id.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'PARENT_LABEL' | glMessage }}:
-               <span ng-show="model.roles.required" class="required-marker text-danger">
+               <span ng-show="model.parent_id.required" class="required-marker text-danger">
                     {{ 'REQUIRED_FIELD_LABEL' | glMessage | uppercase }}
                 </span>
             </label>

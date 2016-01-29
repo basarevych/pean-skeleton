@@ -1,5 +1,7 @@
 'use strict';
 
+var io = { connect: function () { return { on: function () {} }; } };
+
 describe('Application', function() {
 
     window['config'] = { apiUrl: '/mock-api' };
@@ -8,7 +10,7 @@ describe('Application', function() {
 
     var fakeLocale = {
         current: 'en',
-        fallback: 'ru',
+        default: 'ru',
         available: [ 'en', 'ru' ],
     };
 
@@ -28,7 +30,7 @@ describe('Application', function() {
         $httpBackend.expectGET('/mock-api/profile')
             .respond({
                 locale: fakeLocale,
-                userId: null,
+                user_id: null,
                 name: 'anonymous',
                 email: null,
                 roles: [ 'role1' ],

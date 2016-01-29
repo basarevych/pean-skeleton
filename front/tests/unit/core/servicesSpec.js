@@ -197,7 +197,6 @@ describe('Service', function() {
         it('init() requires config var', function () {
             window['config'] = undefined;
             AppControl.init();
-            expect(AppControl.isReady()).toBeFalsy();
             expect(AppControl.isError()).toBeTruthy();
             expect(AppControl.getError()).toBe('CONFIG');
         });
@@ -246,7 +245,6 @@ describe('Service', function() {
             $state.go('foobar');
             AppControl.init();
             $httpBackend.flush();
-            expect(AppControl.isReady()).toBeTruthy();
             expect(broadcastSpy).toHaveBeenCalledWith('AppInitialized');
             expect(stateSpy).toHaveBeenCalledWith('foobar');
         }));
