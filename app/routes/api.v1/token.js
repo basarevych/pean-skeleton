@@ -232,7 +232,7 @@ module.exports = function () {
                     })
                     .then(function (count) {
                         if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
                     })
@@ -261,7 +261,7 @@ module.exports = function () {
                 tokenRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
                     })

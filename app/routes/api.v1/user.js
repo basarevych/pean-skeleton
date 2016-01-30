@@ -11,6 +11,7 @@ var moment = require('moment-timezone');
 var q = require('q');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
+var ValidatorService = locator.get('validator-service');
 var UserModel = locator.get('user-model');
 
 module.exports = function () {
@@ -18,98 +19,127 @@ module.exports = function () {
     var app = locator.get('app');
     var logger = locator.get('logger');
 
-    function parseForm(field, req, res) {
-        var defer = q.defer();
-        var glMessage = res.locals.glMessage;
+    var userForm = new ValidatorService();
+    userForm.addParser(
+        'name',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        var form = {
-            form_type: validator.trim(req.body._form_type),
-            name: validator.trim(req.body.name),
-            email: validator.trim(req.body.email),
-            password: validator.trim(req.body.password),
-            retyped_password: validator.trim(req.body.retyped_password),
-            roles: req.body.roles,
-        };
+            var value = validator.trim(req.body.name);
+            var errors = [];
 
-        var userRepo = locator.get('user-repository');
-        var errors = [];
-        switch (field) {
-            case 'email':
-                if (form.form_type == 'create') {
-                    if (!validator.isLength(form.email, 1))
-                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                    if (!validator.isEmail(form.email))
-                        errors.push(glMessage('VALIDATOR_EMAIL'));
-                } else {
-                    if (form.email.length && !validator.isEmail(form.email))
-                        errors.push(glMessage('VALIDATOR_EMAIL'));
-                }
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    userForm.addParser(
+        'email',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-                if (form.email.length == 0)
-                    break;
+            var value = validator.trim(req.body.email);
+            var errors = [];
 
-                userRepo.findByEmail(form.email)
+            if (req.body._form_type == 'create') {
+                if (!validator.isLength(value, 1))
+                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                else if (!validator.isEmail(value))
+                    errors.push(glMessage('VALIDATOR_EMAIL'));
+            } else {
+                if (value.length && !validator.isEmail(value))
+                    errors.push(glMessage('VALIDATOR_EMAIL'));
+            }
+
+            if (value.length) {
+                var userRepo = locator.get('user-repository');
+                userRepo.findByEmail(value)
                     .then(function (users) {
                         if (users.length)
                             errors.push(glMessage('VALIDATOR_RECORD_EXISTS'));
 
-                        defer.resolve({
-                            field: field,
-                            value: form[field],
-                            form: form,
-                            valid: errors.length == 0,
-                            errors: errors
-                        });
+                        defer.resolve({ value: value, errors: errors });
                     })
                     .catch(function (err) {
                         defer.reject(err);
                     });
 
                 return defer.promise;
-            case 'password':
-                if (form.form_type == 'create') {
-                    if (!form.password.length)
-                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                    else if (!validator.isLength(form.password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                } else {
-                    if (form.password.length && !validator.isLength(form.password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                }
-                break;
-            case 'retyped_password':
-                if (form.form_type == 'create') {
-                    if (!form.retyped_password.length)
-                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                    else if (!validator.isLength(form.retyped_password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                    if (form.retyped_password != form.password)
-                        errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
-                } else {
-                    if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
-                        errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                    if ((form.password.length || form.retyped_password.length)
-                            && form.retyped_password != form.password) {
-                        errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
-                    }
-                }
-                break;
-            case 'roles':
-                if (typeof form.roles != 'object' || typeof form.roles.forEach != 'function')
-                    errors.push(glMessage('VALIDATOR_NOT_ARRAY'));
-                break;
+            }
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
         }
+    );
+    userForm.addParser(
+        'password',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        defer.resolve({
-            field: field,
-            value: form[field],
-            form: form,
-            valid: errors.length == 0,
-            errors: errors
-        });
+            var value = validator.trim(req.body.password);
+            var errors = [];
 
-        return defer.promise;
-    }
+            if (req.body._form_type == 'create') {
+                if (!value.length)
+                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                else if (!validator.isLength(value, 6))
+                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+            } else {
+                if (value.length && !validator.isLength(value, 6))
+                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+            }
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    userForm.addParser(
+        'retyped_password',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var otherValue = validator.trim(req.body.password);
+            var value = validator.trim(req.body.retyped_password);
+            var errors = [];
+
+            if (req.body._form_type == 'create') {
+                if (!value.length)
+                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+                else if (!validator.isLength(value, 6))
+                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                else if (value != otherValue)
+                    errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+            } else {
+                if (value.length && !validator.isLength(value, 6))
+                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+                else if ((value.length || otherValue.length) && value != otherValue) {
+                    errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+                }
+            }
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    userForm.addParser(
+        'roles',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = req.body.roles;
+            var errors = [];
+
+            if (typeof value != 'object' || !Array.isArray(value))
+                errors.push(glMessage('VALIDATOR_NOT_ARRAY'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
 
     router.get('/table', function (req, res) {
         if (!req.user)
@@ -241,9 +271,10 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                parseForm(req.body._field, req, res)
-                    .then(function (data) {
-                        res.json({ success: data.valid, errors: data.errors });
+                var field = req.body._field;
+                userForm.validateField(field, req, res)
+                    .then(function (success) {
+                        res.json({ success: success, errors: userForm.getErrors(field) });
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/user/validate failed', err);
@@ -440,36 +471,20 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'create';
-                var name = parseForm('name', req, res);
-                var email = parseForm('email', req, res);
-                var password = parseForm('password', req, res);
-                var retypedPassword = parseForm('retyped_password', req, res);
-                var roles = parseForm('roles', req, res);
-                q.all([ name, email, password, retypedPassword, roles ])
-                    .then(function (result) {
-                        name = result[0];
-                        email = result[1];
-                        password = result[2];
-                        retypedPassword = result[3];
-                        roles = result[4];
-                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
+                userForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    name: name.errors,
-                                    email: email.errors,
-                                    password: password.errors,
-                                    retyped_password: retypedPassword.errors,
-                                    roles: roles.errors,
-                                }
+                                messages: [],
+                                errors: userForm.getErrors(),
                             });
                         }
 
                         var user = new UserModel();
-                        user.setName(name.value.length ? name.value : null);
-                        user.setEmail(email.value);
-                        user.setPassword(UserModel.encryptPassword(password.value));
+                        user.setName(userForm.getValue('name').length ? userForm.getValue('name') : null);
+                        user.setEmail(userForm.getValue('email'));
+                        user.setPassword(UserModel.encryptPassword(userForm.getValue('password')));
                         user.setCreatedAt(moment());
 
                         var userRepo = locator.get('user-repository');
@@ -479,11 +494,11 @@ module.exports = function () {
                                 var userId = result[0];
                                 var allRoles = result[1];
                                 if (userId === null)
-                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 var promises = [];
                                 allRoles.forEach(function (role) {
-                                    if (roles.value.indexOf(role.getId()) != -1)
+                                    if (userForm.getValue('roles').indexOf(role.getId()) != -1)
                                         promises.push(userRepo.addRole(user, role));
                                 });
 
@@ -527,29 +542,13 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'edit';
-                var name = parseForm('name', req, res);
-                var email = parseForm('email', req, res);
-                var password = parseForm('password', req, res);
-                var retypedPassword = parseForm('retyped_password', req, res);
-                var roles = parseForm('roles', req, res);
-                q.all([ name, email, password, retypedPassword, roles ])
-                    .then(function (result) {
-                        name = result[0];
-                        email = result[1];
-                        password = result[2];
-                        retypedPassword = result[3];
-                        roles = result[4];
-                        if (!name.valid || !email.valid || !password.valid || !retypedPassword.valid || !roles.valid) {
+                userForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    name: name.errors,
-                                    email: email.errors,
-                                    password: password.errors,
-                                    retyped_password: retypedPassword.errors,
-                                    roles: roles.errors,
-                                }
+                                messages: [],
+                                errors: userForm.getErrors(),
                             });
                         }
 
@@ -561,22 +560,22 @@ module.exports = function () {
                                 if (!user)
                                     return app.abort(res, 404, "User " + userId + " not found");
 
-                                user.setName(name.value.length ? name.value : null);
-                                if (email.value.length)
-                                    user.setEmail(email.value);
-                                if (password.value.length)
-                                    user.setPassword(UserModel.encryptPassword(password.value));
+                                user.setName(userForm.getValue('name').length ? userForm.getValue('name') : null);
+                                if (userForm.getValue('email').length)
+                                    user.setEmail(userForm.getValue('email'));
+                                if (userForm.getValue('password').length)
+                                    user.setPassword(UserModel.encryptPassword(userForm.getValue('password')));
 
                                 q.all([ userRepo.save(user), roleRepo.findAll() ])
                                     .then(function (result) {
                                         var userId = result[0];
                                         var allRoles = result[1];
                                         if (userId === null)
-                                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                         var promises = [];
                                         allRoles.forEach(function (role) {
-                                            if (roles.value.indexOf(role.getId()) == -1)
+                                            if (userForm.getValue('roles').indexOf(role.getId()) == -1)
                                                 promises.push(userRepo.removeRole(user, role));
                                             else
                                                 promises.push(userRepo.addRole(user, role));
@@ -636,7 +635,7 @@ module.exports = function () {
                         userRepo.delete(user)
                             .then(function (count) {
                                 if (count == 0)
-                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
                             })
@@ -670,7 +669,7 @@ module.exports = function () {
                 userRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
                     })

@@ -11,6 +11,7 @@ var moment = require('moment-timezone');
 var q = require('q');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
+var ValidatorService = locator.get('validator-service');
 var RoleModel = locator.get('role-model');
 var RoleTranslationModel = locator.get('role-translation-model');
 
@@ -20,86 +21,91 @@ module.exports = function () {
     var logger = locator.get('logger');
     var config = locator.get('config');
 
-    function parseForm(field, req, res) {
-        var defer = q.defer();
-        var glMessage = res.locals.glMessage;
+    var roleForm = new ValidatorService();
+    roleForm.addParser(
+        'parent_id',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        var form = {
-            form_type: validator.trim(req.body._form_type),
-            parent_id: req.body.parent_id,
-            handle: validator.trim(req.body.handle),
-            translations: undefined,
-        };
+            var value = req.body.parent_id;
+            var errors = [];
 
-        if (typeof req.body.translations == 'object' && !Array.isArray(req.body.translations)) {
-            form['translations'] = {};
-            config['lang']['locales'].forEach(function (locale) {
-                form['translations'][locale] = {
-                    title: validator.trim(req.body.translations[locale] && req.body.translations[locale]['title']),
-                };
-            });
-        }
-
-        var roleRepo = locator.get('role-repository');
-        var errors = [];
-        switch (field) {
-            case 'parent_id':
-                if (form.parent_id !== null && !validator.isLength(form.parent_id, 1))
+            if (value !== null) {
+                if (!validator.isLength(value, 1))
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                else if (form.parent_id !== null && !validator.isInt(form.parent_id))
+                else if (!validator.isInt(value))
                     errors.push(glMessage('VALIDATOR_NOT_INT'));
-                break;
-            case 'handle':
-                if (form.form_type == 'create') {
-                    if (!validator.isLength(form.handle, 1))
-                        errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                }
+            }
 
-                if (form.handle.length == 0)
-                    break;
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    roleForm.addParser(
+        'handle',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-                roleRepo.findByHandle(form.handle)
+            var value = validator.trim(req.body.handle);
+            var errors = [];
+
+            if (req.body._form_type == 'create') {
+                if (!validator.isLength(value, 1))
+                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+            }
+
+            if (value.length) {
+                var roleRepo = locator.get('role-repository');
+                roleRepo.findByHandle(value)
                     .then(function (roles) {
                         if (roles.length)
                             errors.push(glMessage('VALIDATOR_RECORD_EXISTS'));
 
-                        defer.resolve({
-                            field: field,
-                            value: form[field],
-                            form: form,
-                            valid: errors.length == 0,
-                            errors: errors
-                        });
+                        defer.resolve({ value: value, errors: errors });
                     })
                     .catch(function (err) {
                         defer.reject(err);
                     });
-
                 return defer.promise;
-            case 'translations':
-                if (typeof form.translations != 'object') {
-                    errors.push(glMessage('VALIDATOR_INVALID_FORMAT'));
-                } else {
-                    for (var key in form.translations) {
-                        if (!validator.isLength(form.translations[key]['title'], 1)) {
-                            errors.push(glMessage('VALIDATOR_FILL_ALL'));
-                            break;
-                        }
+            }
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    roleForm.addParser(
+        'translations',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var data = req.body.translations;
+            var value = {};
+            var errors = [];
+
+            if (typeof data == 'object' && data !== null && !Array.isArray(data)) {
+                config['lang']['locales'].forEach(function (locale) {
+                    value[locale] = {
+                        title: validator.trim(data[locale] && data[locale]['title']),
+                    };
+                });
+
+                for (var key in value) {
+                    if (!validator.isLength(value[key]['title'], 1)) {
+                        errors.push(glMessage('VALIDATOR_FILL_ALL'));
+                        break;
                     }
                 }
-                break;
+            } else {
+                errors.push(glMessage('VALIDATOR_INVALID_FORMAT'));
+            }
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
         }
-
-        defer.resolve({
-            field: field,
-            value: form[field],
-            form: form,
-            valid: errors.length == 0,
-            errors: errors
-        });
-
-        return defer.promise;
-    }
+    );
 
     function loadRoles(roles, translations, parentId) {
         var foundRoles = [];
@@ -235,9 +241,10 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                parseForm(req.body._field, req, res)
-                    .then(function (data) {
-                        res.json({ success: data.valid, errors: data.errors });
+                var field = req.body._field;
+                roleForm.validateField(field, req, res)
+                    .then(function (success) {
+                        res.json({ success: success, errors: roleForm.getErrors(field) });
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/role/validate failed', err);
@@ -363,43 +370,33 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'create';
-                var parentId = parseForm('parent_id', req, res);
-                var handle = parseForm('handle', req, res);
-                var translations = parseForm('translations', req, res);
-                q.all([ parentId, handle, translations ])
-                    .then(function (result) {
-                        parentId = result[0];
-                        handle = result[1];
-                        translations = result[2];
-                        if (!parentId.valid || !handle.valid || !translations.valid) {
+                roleForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    parent_id: parentId.errors,
-                                    handle: handle.errors,
-                                    translations: translations.errors,
-                                }
+                                messages: [],
+                                errors: roleForm.getErrors(),
                             });
                         }
 
                         var role = new RoleModel();
-                        role.setParentId(parentId.value);
-                        role.setHandle(handle.value);
+                        role.setParentId(roleForm.getValue('parent_id') ? parseInt(roleForm.getValue('parent_id')) : null);
+                        role.setHandle(roleForm.getValue('handle'));
 
                         var roleRepo = locator.get('role-repository');
                         var roleTranslationRepo = locator.get('role-translation-repository');
                         roleRepo.save(role)
                             .then(function (roleId) {
                                 if (roleId === null)
-                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                     
                                 var promises = [];
                                 config['lang']['locales'].forEach(function (locale) {
                                     var translation = new RoleTranslationModel();
                                     translation.setRoleId(roleId);
                                     translation.setLocale(locale);
-                                    translation.setTitle(translations.value[locale]['title']);
+                                    translation.setTitle(roleForm.getValue('translations')[locale]['title']);
                                     promises.push(roleTranslationRepo.save(translation));
                                 });
 
@@ -448,28 +445,18 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'edit';
-                var parentId = parseForm('parent_id', req, res);
-                var handle = parseForm('handle', req, res);
-                var translations = parseForm('translations', req, res);
-                q.all([ parentId, handle, translations ])
-                    .then(function (result) {
-                        parentId = result[0];
-                        handle = result[1];
-                        translations = result[2];
-                        if (!parentId.valid || !handle.valid || !translations.valid) {
+                roleForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    parent_id: parentId.errors,
-                                    handle: handle.errors,
-                                    translations: translations.errors,
-                                }
+                                messages: [],
+                                errors: roleForm.getErrors(),
                             });
                         }
 
-                        if (parentId.value == roleId)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                        if (parseInt(roleForm.getValue('parent_id')) == roleId)
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         var roleRepo = locator.get('role-repository');
                         var roleTranslationRepo = locator.get('role-translation-repository');
@@ -482,14 +469,14 @@ module.exports = function () {
                                 if (!role)
                                     return app.abort(res, 404, "Role " + roleId + " not found");
 
-                                role.setParentId(parentId.value);
-                                if (handle.value.length)
-                                    role.setHandle(handle.value);
+                                role.setParentId(roleForm.getValue('parent_id') ? parseInt(roleForm.getValue('parent_id')) : null);
+                                if (roleForm.getValue('handle').length)
+                                    role.setHandle(roleForm.getValue('handle'));
 
                                 roleRepo.save(role)
                                     .then(function (roleId) {
                                         if (roleId === null)
-                                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                         var promises = [];
                                         config['lang']['locales'].forEach(function (locale) {
@@ -508,7 +495,7 @@ module.exports = function () {
                                                 foundTranslation.setLocale(locale);
                                             }
 
-                                            foundTranslation.setTitle(translations.value[locale]['title']);
+                                            foundTranslation.setTitle(roleForm.getValue('translations')[locale]['title']);
                                             promises.push(roleTranslationRepo.save(foundTranslation));
                                         });
 
@@ -571,7 +558,7 @@ module.exports = function () {
                         roleRepo.delete(role)
                             .then(function (count) {
                                 if (count == 0)
-                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
                             })
@@ -605,7 +592,7 @@ module.exports = function () {
                 roleRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
                     })

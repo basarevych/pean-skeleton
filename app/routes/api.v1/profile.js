@@ -8,6 +8,7 @@ var locator = require('node-service-locator');
 var express = require('express');
 var validator = require('validator');
 var q = require('q');
+var ValidatorService = locator.get('validator-service');
 var UserModel = locator.get('user-model');
 
 module.exports = function () {
@@ -15,42 +16,70 @@ module.exports = function () {
     var app = locator.get('app');
     var logger = locator.get('logger');
 
-    function parseForm(field, req, res) {
-        var defer = q.defer();
-        var glMessage = res.locals.glMessage;
+    var profileForm = new ValidatorService();
+    profileForm.addParser(
+        'name',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        var form = {
-            name: validator.trim(req.body.name),
-            new_password: validator.trim(req.body.new_password),
-            retyped_password: validator.trim(req.body.retyped_password),
-        };
+            var value = validator.trim(req.body.name);
+            var errors = [];
 
-        var errors = [];
-        switch (field) {
-            case 'new_password':
-                if (form.new_password.length && !validator.isLength(form.new_password, 6))
-                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                break;
-            case 'retyped_password':
-                if (form.retyped_password.length && !validator.isLength(form.retyped_password, 6))
-                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                if ((form.new_password.length || form.retyped_password.length)
-                        && form.retyped_password != form.new_password) {
-                    errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
-                }
-                break;
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
         }
+    );
+    profileForm.addParser(
+        'new_password',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        defer.resolve({
-            field: field,
-            value: form[field],
-            form: form,
-            valid: errors.length == 0,
-            errors: errors
-        });
+            var value = validator.trim(req.body.new_password);
+            var errors = [];
 
-        return defer.promise;
-    }
+            if (value.length && !validator.isLength(value, 6))
+                errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    profileForm.addParser(
+        'retyped_password',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = validator.trim(req.body.retyped_password);
+            var otherValue = validator.trim(req.body.new_password);
+            var errors = [];
+
+            if (value.length && !validator.isLength(value, 6))
+                errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+            if ((value.length || otherValue.length) && value != otherValue)
+                errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+
+    router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var field = req.body._field
+        profileForm.validateField(field, req, res)
+            .then(function (success) {
+                res.json({ success: success, errors: profileForm.getErrors(field) });
+            })
+            .catch(function (err) {
+                logger.error('POST /v1/profile/validate failed', err);
+                app.abort(res, 500, 'POST /v1/profile/validate failed');
+            });
+    });
 
     router.get('/', function (req, res) {
         var config = locator.get('config');
@@ -92,29 +121,19 @@ module.exports = function () {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
-        var name = parseForm('name', req, res);
-        var newPassword = parseForm('new_password', req, res);
-        var retypedPassword = parseForm('retyped_password', req, res);
-        q.all([ name, newPassword, retypedPassword ])
-            .then(function (result) {
-                name = result[0];
-                newPassword = result[1];
-                retypedPassword = result[2];
-                if (!name.valid || !newPassword.valid || !retypedPassword.valid) {
+        profileForm.validateAll(req, res)
+            .then(function (success) {
+                if (!success) {
                     return res.json({
                         success: false,
-                        errors: [],
-                        fields: {
-                            name: name.errors,
-                            new_password: newPassword.errors,
-                            retyped_password: retypedPassword.errors,
-                        }
+                        messages: [],
+                        errors: profileForm.getErrors(),
                     });
                 }
 
-                req.user.setName(name.value.length ? name.value : null);
-                if (newPassword.value.length)
-                    req.user.setPassword(UserModel.encryptPassword(newPassword.value));
+                req.user.setName(profileForm.getValue('name').length ? profileForm.getValue('name') : null);
+                if (profileForm.getValue('new_password').length)
+                    req.user.setPassword(UserModel.encryptPassword(profileForm.getValue('new_password')));
 
                 var userRepo = locator.get('user-repository');
                 userRepo.save(req.user)
@@ -129,20 +148,6 @@ module.exports = function () {
             .catch(function (err) {
                 logger.error('PUT /v1/profile failed', err);
                 app.abort(res, 500, 'PUT /v1/profile failed');
-            });
-    });
-
-    router.post('/validate', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        parseForm(req.body._field, req, res)
-            .then(function (data) {
-                res.json({ success: data.valid, errors: data.errors });
-            })
-            .catch(function (err) {
-                logger.error('POST /v1/profile/validate failed', err);
-                app.abort(res, 500, 'POST /v1/profile/validate failed');
             });
     });
 

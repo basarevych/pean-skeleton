@@ -10,6 +10,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var jwt = require('jsonwebtoken');
 var q = require('q');
+var ValidatorService = locator.get('validator-service');
 var TokenModel = locator.get('token-model');
 
 module.exports = function () {
@@ -17,41 +18,55 @@ module.exports = function () {
     var app = locator.get('app');
     var logger = locator.get('logger');
 
-    function parseForm(field, req, res) {
-        var defer = q.defer();
-        var glMessage = res.locals.glMessage;
+    var loginForm = new ValidatorService();
+    loginForm.addParser(
+        'email',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        var form = {
-            email: validator.trim(req.body.email),
-            password: validator.trim(req.body.password),
-        };
+            var value = validator.trim(req.body.email);
+            var errors = [];
 
-        var errors = [];
-        switch (field) {
-            case 'email':
-                if (!validator.isLength(form.email, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                if (!validator.isEmail(form.email))
-                    errors.push(glMessage('VALIDATOR_EMAIL'));
-                break;
-            case 'password':
-                if (!validator.isLength(form.password, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                if (!validator.isLength(form.password, 6))
-                    errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-                break;
+            if (!validator.isLength(value, 1))
+                errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+            if (!validator.isEmail(value))
+                errors.push(glMessage('VALIDATOR_EMAIL'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
         }
+    );
+    loginForm.addParser(
+        'password',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        defer.resolve({
-            field: field,
-            value: form[field],
-            form: form,
-            valid: errors.length == 0,
-            errors: errors
-        });
+            var value = validator.trim(req.body.password);
+            var errors = [];
 
-        return defer.promise;
-    }
+            if (!validator.isLength(value, 1))
+                errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+            if (!validator.isLength(value, 6))
+                errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+
+    router.post('/validate', function (req, res) {
+        var field = req.body._field;
+        loginForm.validateField(field, req, res)
+            .then(function (success) {
+                res.json({ success: success, errors: loginForm.getErrors(field) });
+            })
+            .catch(function (err) {
+                logger.error('POST /v1/auth/validate failed', err);
+                app.abort(res, 500, 'POST /v1/auth/validate failed');
+            });
+    });
 
     router.post('/token', function (req, res) {
         var config = locator.get('config');
@@ -59,20 +74,13 @@ module.exports = function () {
         var tokenRepo = locator.get('token-repository');
         var glMessage = res.locals.glMessage;
 
-        var email = parseForm('email', req, res);
-        var password = parseForm('password', req, res);
-        q.all([ email, password ])
-            .then(function (result) {
-                email = result[0];
-                password = result[1];
-                if (!email.valid || !password.valid) {
+        loginForm.validateAll(req, res)
+            .then(function (success) {
+                if (!success) {
                     return res.json({
                         success: false,
-                        errors: [],
-                        fields: {
-                            email: email.errors,
-                            password: password.errors,
-                        }
+                        messages: [],
+                        errors: loginForm.getErrors(),
                     });
                 }
 
@@ -80,14 +88,14 @@ module.exports = function () {
                 var token = null;
                 var encryptedData = null;
 
-                userRepo.findByEmail(email.value)
+                userRepo.findByEmail(loginForm.getValue('email'))
                     .then(function (users) {
                         user = users.length && users[0];
-                        if (!user || !user.checkPassword(password.value)) {
+                        if (!user || !user.checkPassword(loginForm.getValue('password'))) {
                             res.json({
                                 success: false,
-                                errors: [ glMessage('ERROR_INVALID_CREDENTIALS') ],
-                                fields: {},
+                                messages: [ glMessage('ERROR_INVALID_CREDENTIALS') ],
+                                errors: {},
                             });
                             return;
                         }
@@ -103,8 +111,8 @@ module.exports = function () {
                                 if (!tokenId) {
                                     res.json({
                                         success: false,
-                                        errors: [ glMessage('ERROR_OPERATION_FAILED') ],
-                                        fields: {},
+                                        messages: [ glMessage('ERROR_OPERATION_FAILED') ],
+                                        errors: {},
                                     });
                                     return;
                                 }
@@ -128,17 +136,6 @@ module.exports = function () {
             .catch(function (err) {
                 logger.error('POST /v1/auth/token failed', err);
                 app.abort(res, 500, 'POST /v1/auth/token failed');
-            });
-    });
-
-    router.post('/validate', function (req, res) {
-        parseForm(req.body._field, req, res)
-            .then(function (data) {
-                res.json({ success: data.valid, errors: data.errors });
-            })
-            .catch(function (err) {
-                logger.error('POST /v1/auth/validate failed', err);
-                app.abort(res, 500, 'POST /v1/auth/validate failed');
             });
     });
 

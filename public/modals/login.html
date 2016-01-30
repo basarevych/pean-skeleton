@@ -4,14 +4,14 @@
 </div>
 
 <div class="modal-body">
-    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.messages">
         <center>
             {{ message }}
         </center>
     </div>
 
     <form class="form-horizontal" role="form" novalidate>
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.email.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.email.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'USERNAME_LABEL' | glMessage }}:
                <span ng-show="model.email.required" class="required-marker text-danger">
@@ -23,13 +23,13 @@
                        ng-keydown="resetValidation('email')" ng-blur="validate('email')" ng-disabled="processing" autofocus="autofocus">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.email">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.email">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.password.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.password.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'PASSWORD_LABEL' | glMessage }}:
                <span ng-show="model.password.required" class="required-marker text-danger">
@@ -41,7 +41,7 @@
                        ng-keydown="resetValidation('password')" ng-blur="validate('password')" ng-disabled="processing">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.password">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.password">{{ message }}</li>
                     </ul>
                 </div>
             </div>

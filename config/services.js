@@ -11,6 +11,10 @@ module.exports = function (app) {
                 path: "app/services/acl.js",
                 instantiate: true,
             },
+            "validator-service": {
+                path: "app/services/validator.js",
+                instantiate: false,
+            },
             "web-server": {
                 path: "app/services/web-server.js",
                 instantiate: true,

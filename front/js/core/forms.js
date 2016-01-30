@@ -44,7 +44,7 @@ forms.factory('ValidationCtrl',
         return [ '$scope', '$uibModalInstance', 'model', 'validator', 'submitter',
             function ($scope, $uibModalInstance, model, validator, submitter) {
                 $scope.model = model;
-                $scope.validation = { errors: [], fields: {} }; 
+                $scope.validation = { messages: [], errors: {} }; 
                 $scope.processing = false;
 
                 var resetFocus = function () {
@@ -70,18 +70,18 @@ forms.factory('ValidationCtrl',
 
                 $scope.resetValidation = function (name) {
                     if (angular.isDefined(name)) {
-                        $scope.validation.fields[name] = undefined;
+                        $scope.validation.errors[name] = undefined;
                     } else {
-                        $scope.validation.errors = [];
-                        $scope.validation.fields = {};
+                        $scope.validation.messages = [];
+                        $scope.validation.errors = {};
                     }
                 };
 
                 $scope.setValidationError = function (name, error) {
-                    if (angular.isUndefined($scope.validation.fields[name]))
-                        $scope.validation.fields[name] = [];
-                    if ($.inArray(error, $scope.validation.fields[name]) == -1)
-                        $scope.validation.fields[name].push(error);
+                    if (angular.isUndefined($scope.validation.errors[name]))
+                        $scope.validation.errors[name] = [];
+                    if ($.inArray(error, $scope.validation.errors[name]) == -1)
+                        $scope.validation.errors[name].push(error);
                 };
 
                 $scope.validate = function (name) {
@@ -137,10 +137,10 @@ forms.factory('ValidationCtrl',
                                 return;
                             }
 
+                            if (angular.isDefined(data.messages))
+                                $scope.validation.messages = data.messages;
                             if (angular.isDefined(data.errors))
                                 $scope.validation.errors = data.errors;
-                            if (angular.isDefined(data.fields))
-                                $scope.validation.fields = data.fields;
 
                             resetFocus();
                         })

@@ -12,64 +12,113 @@ var q = require('q');
 var clone = require('clone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
+var ValidatorService = locator.get('validator-service');
 var JobModel = locator.get('job-model');
 
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
     var logger = locator.get('logger');
+    var config = locator.get('config');
 
-    function parseForm(field, req, res) {
-        var defer = q.defer();
-        var glMessage = res.locals.glMessage;
-        var config = locator.get('config');
+    var jobForm = new ValidatorService();
+    jobForm.addParser(
+        'name',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        var form = {
-            name: validator.trim(req.body.name),
-            queue: validator.trim(req.body.queue),
-            status: validator.trim(req.body.status),
-            scheduled_for: validator.trim(req.body.scheduled_for),
-            valid_until: validator.trim(req.body.valid_until),
-            input_data: validator.trim(req.body.input_data),
-        };
+            var value = validator.trim(req.body.name);
+            var errors = [];
 
-        var errors = [];
-        switch (field) {
-            case 'name':
-                if (!validator.isLength(form.name, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                break;
-            case 'status':
-                if (config['job']['statuses'].indexOf(form.status) == -1)
-                    errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
-                break;
-            case 'scheduled_for':
-                if (form.scheduled_for.length && !moment.unix(form.scheduled_for).isValid())
-                    errors.push(glMessage('VALIDATOR_NOT_DATE'));
-                break;
-            case 'valid_until':
-                if (form.valid_until.length && !moment.unix(form.valid_until).isValid())
-                    errors.push(glMessage('VALIDATOR_NOT_DATE'));
-                break;
-            case 'input_data':
-                try {
-                    if (form.input_data.length)
-                        JSON.parse(form.input_data);
-                } catch (e) {
-                    errors.push(glMessage('VALIDATOR_NOT_JSON'));
-                }
+            if (!validator.isLength(value, 1))
+                errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
         }
+    );
+    jobForm.addParser(
+        'queue',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        defer.resolve({
-            field: field,
-            value: form[field],
-            form: form,
-            valid: errors.length == 0,
-            errors: errors
-        });
+            var value = validator.trim(req.body.queue);
+            var errors = [];
 
-        return defer.promise;
-    }
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    jobForm.addParser(
+        'status',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = validator.trim(req.body.status);
+            var errors = [];
+
+            if (config['job']['statuses'].indexOf(value) == -1)
+                errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    jobForm.addParser(
+        'scheduled_for',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = validator.trim(req.body.scheduled_for);
+            var errors = [];
+
+            if (value.length && !moment.unix(value).isValid())
+                errors.push(glMessage('VALIDATOR_NOT_DATE'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    jobForm.addParser(
+        'valid_until',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = validator.trim(req.body.valid_until);
+            var errors = [];
+
+            if (value.length && !moment.unix(value).isValid())
+                errors.push(glMessage('VALIDATOR_NOT_DATE'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    jobForm.addParser(
+        'input_data',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = validator.trim(req.body.input_data);
+            var errors = [];
+
+            try {
+                if (value.length)
+                    JSON.parse(value);
+            } catch (e) {
+                errors.push(glMessage('VALIDATOR_NOT_JSON'));
+            }
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
 
     router.get('/table', function (req, res) {
         if (!req.user)
@@ -221,9 +270,10 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                parseForm(req.body._field, req, res)
-                    .then(function (data) {
-                        res.json({ success: data.valid, errors: data.errors });
+                var field = req.body._field;
+                jobForm.validateField(field, req, res)
+                    .then(function (success) {
+                        res.json({ success: success, errors: jobForm.getErrors(field) });
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/job/validate failed', err);
@@ -246,7 +296,6 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                var config = locator.get('config');
                 res.json(config['job']['statuses']);
             })
             .catch(function (err) {
@@ -349,50 +398,31 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                var name = parseForm('name', req, res);
-                var queue = parseForm('queue', req, res);
-                var status = parseForm('status', req, res);
-                var scheduledFor = parseForm('scheduled_for', req, res);
-                var validUntil = parseForm('valid_until', req, res);
-                var inputData = parseForm('input_data', req, res);
-                q.all([ name, queue, status, scheduledFor, validUntil, inputData ])
-                    .then(function (result) {
-                        name = result[0];
-                        queue = result[1];
-                        status = result[2];
-                        scheduledFor = result[3];
-                        validUntil = result[4];
-                        inputData = result[5];
-                        if (!name.valid || !queue.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
+                jobForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    name: name.errors,
-                                    queue: queue.errors,
-                                    status: status.errors,
-                                    scheduled_for: scheduledFor.errors,
-                                    valid_until: validUntil.errors,
-                                    input_data: inputData.errors,
-                                }
+                                messages: [],
+                                errors: jobForm.getErrors(),
                             });
                         }
 
                         var job = new JobModel();
-                        job.setName(name.value);
-                        job.setQueue(queue.value.length ? queue.value : null);
-                        job.setStatus(status.value);
+                        job.setName(jobForm.getValue('name'));
+                        job.setQueue(jobForm.getValue('queue').length ? jobForm.getValue('queue') : null);
+                        job.setStatus(jobForm.getValue('status'));
                         job.setCreatedAt(moment());
-                        job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
-                        job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(5, 'minutes'));
-                        job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
+                        job.setScheduledFor(jobForm.getValue('scheduled_for').length ? moment.unix(jobForm.getValue('scheduled_for')) : moment());
+                        job.setValidUntil(jobForm.getValue('valid_until').length ? moment.unix(jobForm.getValue('valid_until')) : moment().add(5, 'minutes'));
+                        job.setInputData(jobForm.getValue('input_data').length ? JSON.parse(jobForm.getValue('input_data')) : {});
                         job.setOutputData({});
 
                         var jobRepo = locator.get('job-repository');
                         jobRepo.save(job)
                             .then(function (jobId) {
                                 if (jobId === null)
-                                    res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                 else
                                     res.json({ success: true, id: jobId });
                             })
@@ -426,32 +456,13 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                var name = parseForm('name', req, res);
-                var queue = parseForm('queue', req, res);
-                var status = parseForm('status', req, res);
-                var scheduledFor = parseForm('scheduled_for', req, res);
-                var validUntil = parseForm('valid_until', req, res);
-                var inputData = parseForm('input_data', req, res);
-                q.all([ name, queue, status, scheduledFor, validUntil, inputData ])
-                    .then(function (result) {
-                        name = result[0];
-                        queue = result[1];
-                        status = result[2];
-                        scheduledFor = result[3];
-                        validUntil = result[4];
-                        inputData = result[5];
-                        if (!name.valid || !queue.valid || !status.valid || !scheduledFor.valid || !validUntil.valid || !inputData.valid) {
+                jobForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    name: name.errors,
-                                    queue: queue.errors,
-                                    status: status.errors,
-                                    scheduled_for: scheduledFor.errors,
-                                    valid_until: validUntil.errors,
-                                    input_data: inputData.errors,
-                                }
+                                messages: [],
+                                errors: jobForm.getErrors(),
                             });
                         }
 
@@ -462,18 +473,18 @@ module.exports = function () {
                                 if (!job)
                                     return app.abort(res, 404, "Job " + jobId + " not found");
 
-                                job.setName(name.value);
-                                job.setQueue(queue.value.length ? queue.value : null);
-                                job.setStatus(status.value);
-                                job.setScheduledFor(scheduledFor.value.length ? moment.unix(scheduledFor.value) : moment());
-                                job.setValidUntil(validUntil.value.length ? moment.unix(validUntil.value) : moment().add(5, 'minutes'));
-                                job.setInputData(inputData.value.length ? JSON.parse(inputData.value) : {});
+                                job.setName(jobForm.getValue('name'));
+                                job.setQueue(jobForm.getValue('queue').length ? jobForm.getValue('queue') : null);
+                                job.setStatus(jobForm.getValue('status'));
+                                job.setScheduledFor(jobForm.getValue('scheduled_for').length ? moment.unix(jobForm.getValue('scheduled_for')) : moment());
+                                job.setValidUntil(jobForm.getValue('valid_until').length ? moment.unix(jobForm.getValue('valid_until')) : moment().add(5, 'minutes'));
+                                job.setInputData(jobForm.getValue('input_data').length ? JSON.parse(jobForm.getValue('input_data')) : {});
 
                                 var jobRepo = locator.get('job-repository');
                                 jobRepo.save(job)
                                     .then(function (jobId) {
                                         if (jobId === null)
-                                            res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                            res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                         else
                                             res.json({ success: true });
                                     })
@@ -522,7 +533,7 @@ module.exports = function () {
                         jobRepo.delete(job)
                             .then(function (count) {
                                 if (count == 0)
-                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
                             })
@@ -556,7 +567,7 @@ module.exports = function () {
                 jobRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
                     })

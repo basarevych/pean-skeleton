@@ -11,6 +11,7 @@ var moment = require('moment-timezone');
 var q = require('q');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
+var ValidatorService = locator.get('validator-service');
 var PermissionModel = locator.get('permission-model');
 
 module.exports = function () {
@@ -18,36 +19,51 @@ module.exports = function () {
     var app = locator.get('app');
     var logger = locator.get('logger');
 
-    function parseForm(field, req, res) {
-        var defer = q.defer();
-        var glMessage = res.locals.glMessage;
+    var permissionForm = new ValidatorService();
+    permissionForm.addParser(
+        'role_id',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        var form = {
-            role_id: req.body.role_id,
-            resource: validator.trim(req.body.resource),
-            action: validator.trim(req.body.action),
-        };
+            var value = validator.trim(req.body.role_id);
+            var errors = [];
 
-        var errors = [];
-        switch (field) {
-            case 'role_id':
-                if (!validator.isLength(form.role_id, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                else if (!validator.isInt(form.role_id))
-                    errors.push(glMessage('VALIDATOR_NOT_INT'));
-                break;
+            if (!validator.isLength(value, 1))
+                errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+            else if (!validator.isInt(value))
+                errors.push(glMessage('VALIDATOR_NOT_INT'));
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
         }
+    );
+    permissionForm.addParser(
+        'resource',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
 
-        defer.resolve({
-            field: field,
-            value: form[field],
-            form: form,
-            valid: errors.length == 0,
-            errors: errors
-        });
+            var value = validator.trim(req.body.resource);
+            var errors = [];
 
-        return defer.promise;
-    }
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
+    permissionForm.addParser(
+        'action',
+        function (req, res) {
+            var defer = q.defer();
+            var glMessage = res.locals.glMessage;
+
+            var value = validator.trim(req.body.action);
+            var errors = [];
+
+            defer.resolve({ value: value, errors: errors });
+            return defer.promise;
+        }
+    );
 
     router.get('/table', function (req, res) {
         if (!req.user)
@@ -157,9 +173,10 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                parseForm(req.body._field, req, res)
-                    .then(function (data) {
-                        res.json({ success: data.valid, errors: data.errors });
+                var field = req.body._field;
+                permissionForm.validateField(field, req, res)
+                    .then(function (success) {
+                        res.json({ success: success, errors: permissionForm.getErrors(field) });
                     })
                     .catch(function (err) {
                         logger.error('POST /v1/permission/validate failed', err);
@@ -256,36 +273,26 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                var roleId = parseForm('role_id', req, res);
-                var resource = parseForm('resource', req, res);
-                var action = parseForm('action', req, res);
-                q.all([ roleId, resource, action ])
-                    .then(function (result) {
-                        roleId = result[0];
-                        resource = result[1];
-                        action = result[2];
-                        if (!roleId.valid || !resource.valid || !action.valid) {
+                permissionForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    role_id: roleId.errors,
-                                    resource: resource.errors,
-                                    action: action.errors,
-                                }
+                                messages: [],
+                                errors: permissionForm.getErrors(),
                             });
                         }
 
                         var permission = new PermissionModel();
-                        permission.setRoleId(roleId.value);
-                        permission.setResource(resource.value);
-                        permission.setAction(action.value);
+                        permission.setRoleId(parseInt(permissionForm.getValue('role_id')));
+                        permission.setResource(permissionForm.getValue('resource').length ? permissionForm.getValue('resource') : null);
+                        permission.setAction(permissionForm.getValue('action').length ? permissionForm.getValue('action') : null);
 
                         var permissionRepo = locator.get('permission-repository');
                         permissionRepo.save(permission)
                             .then(function (permissionId) {
                                 if (permissionId === null)
-                                    res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                 else
                                     res.json({ success: true, id: permissionId });
                             })
@@ -319,23 +326,13 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                var roleId = parseForm('role_id', req, res);
-                var resource = parseForm('resource', req, res);
-                var action = parseForm('action', req, res);
-                q.all([ roleId, resource, action ])
-                    .then(function (result) {
-                        roleId = result[0];
-                        resource = result[1];
-                        action = result[2];
-                        if (!roleId.valid || !resource.valid || !action.valid) {
+                permissionForm.validateAll(req, res)
+                    .then(function (success) {
+                        if (!success) {
                             return res.json({
                                 success: false,
-                                errors: [],
-                                fields: {
-                                    role_id: roleId.errors,
-                                    resource: resource.errors,
-                                    action: action.errors,
-                                }
+                                messages: [],
+                                errors: permissionForm.getErrors(),
                             });
                         }
 
@@ -346,14 +343,14 @@ module.exports = function () {
                                 if (!permission)
                                     return app.abort(res, 404, "Permission " + permissionId + " not found");
 
-                                permission.setRoleId(roleId.value);
-                                permission.setResource(resource.value.length ? resource.value : null);
-                                permission.setAction(action.value.length ? action.value : null);
+                                permission.setRoleId(parseInt(permissionForm.getValue('role_id')));
+                                permission.setResource(permissionForm.getValue('resource').length ? permissionForm.getValue('resource') : null);
+                                permission.setAction(permissionForm.getValue('action').length ? permissionForm.getValue('action') : null);
 
                                 permissionRepo.save(permission)
                                     .then(function (permissionId) {
                                         if (permissionId === null)
-                                            res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                            res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                         else
                                             res.json({ success: true });
                                     })
@@ -402,7 +399,7 @@ module.exports = function () {
                         permissionRepo.delete(permission)
                             .then(function (count) {
                                 if (count == 0)
-                                    return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                                    return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
                             })
@@ -436,7 +433,7 @@ module.exports = function () {
                 permissionRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
-                            return res.json({ success: false, errors: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
+                            return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
                     })
