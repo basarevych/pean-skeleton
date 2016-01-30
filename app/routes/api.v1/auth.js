@@ -30,7 +30,7 @@ module.exports = function () {
 
             if (!validator.isLength(value, 1))
                 errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-            if (!validator.isEmail(value))
+            else if (!validator.isEmail(value))
                 errors.push(glMessage('VALIDATOR_EMAIL'));
 
             defer.resolve({ value: value, errors: errors });
@@ -48,7 +48,7 @@ module.exports = function () {
 
             if (!validator.isLength(value, 1))
                 errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-            if (!validator.isLength(value, 6))
+            else if (!validator.isLength(value, 6))
                 errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
 
             defer.resolve({ value: value, errors: errors });
