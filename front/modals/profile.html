@@ -4,14 +4,14 @@
 </div>
 
 <div class="modal-body">
-    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.messages">
         <center>
             {{ message }}
         </center>
     </div>
 
     <form class="form-horizontal" role="form" novalidate>
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.name.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.name.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'NAME_LABEL' | glMessage }}:
                <span ng-show="model.name.required" class="required-marker text-danger">
@@ -23,13 +23,13 @@
                        ng-keydown="resetValidation('name')" ng-blur="validate('name')" ng-disabled="processing" autofocus="autofocus">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.name">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.name">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.new_password.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.new_password.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'NEW_PASSWORD_LABEL' | glMessage }}:
                <span ng-show="model.new_password.required" class="required-marker text-danger">
@@ -42,13 +42,13 @@
                 <div class="help-block">
                     <p>{{ 'NEW_PASSWORD_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.new_password">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.new_password">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.retyped_password.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.retyped_password.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'RETYPED_PASSWORD_LABEL' | glMessage }}:
                <span ng-show="model.retyped_password.required" class="required-marker text-danger">
@@ -60,7 +60,7 @@
                        ng-keydown="resetValidation('retyped_password')" ng-blur="validate('retyped_password')" ng-disabled="processing">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.retyped_password">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.retyped_password">{{ message }}</li>
                     </ul>
                 </div>
             </div>

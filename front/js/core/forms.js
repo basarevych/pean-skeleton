@@ -50,8 +50,8 @@ forms.factory('ValidationCtrl',
                 var resetFocus = function () {
                     var errorFound = false;
                     $.each($scope.model, function (key, value) {
-                        var messages = $scope.validation.fields[key];
-                        if (angular.isDefined(messages) && messages.length) {
+                        var errors = $scope.validation.errors[key];
+                        if (angular.isDefined(errors) && errors.length) {
                             $scope.model[key].focus = true;
                             errorFound = true;
                             return false;

@@ -4,7 +4,7 @@
 </div>
 
 <div class="modal-body">
-    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.messages">
         <center>
             {{ message }}
         </center>
@@ -31,7 +31,7 @@
         </div>
 
         <div ng-show="model.handle_changed">
-            <div class="form-group" ng-class="{ 'has-error': validation.fields.handle.length }">
+            <div class="form-group" ng-class="{ 'has-error': validation.errors.handle.length }">
                 <label class="col-sm-4 control-label required">
                     {{ 'HANDLE_LABEL' | glMessage }}:
                    <span ng-show="model.handle.required" class="required-marker text-danger">
@@ -50,14 +50,14 @@
                     </div>
                     <div class="help-block">
                         <ul class="list-unstyled icon-list error-list">
-                            <li ng-repeat="message in validation.fields.handle">{{ message }}</li>
+                            <li ng-repeat="message in validation.errors.handle">{{ message }}</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.parent_id.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.parent_id.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'PARENT_LABEL' | glMessage }}:
                <span ng-show="model.parent_id.required" class="required-marker text-danger">
@@ -90,13 +90,13 @@
                 </div>
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.parent_id">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.parent_id">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.translations.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.translations.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'TRANSLATION_LABEL' | glMessage }}:
                <span ng-show="model.translations.required" class="required-marker text-danger">
@@ -111,7 +111,7 @@
                 <div class="help-block">
                     <p>{{ 'LANGUAGE_FILL_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.translations">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.translations">{{ message }}</li>
                     </ul>
                 </div>
             </div>

@@ -4,14 +4,14 @@
 </div>
 
 <div class="modal-body">
-    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.messages">
         <center>
             {{ message }}
         </center>
     </div>
 
     <form class="form-horizontal" role="form" novalidate>
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.name.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.name.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'NAME_LABEL' | glMessage }}:
                <span ng-show="model.name.required" class="required-marker text-danger">
@@ -23,13 +23,13 @@
                        ng-keydown="resetValidation('name')" ng-blur="validate('name')" ng-disabled="processing" autofocus="autofocus">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.name">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.name">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.queue.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.queue.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'QUEUE_LABEL' | glMessage }}:
                <span ng-show="model.queue.required" class="required-marker text-danger">
@@ -41,13 +41,13 @@
                        ng-keydown="resetValidation('queue')" ng-blur="validate('queue')" ng-disabled="processing">
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.queue">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.queue">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.status.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.status.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'STATUS_LABEL' | glMessage }}:
                <span ng-show="model.status.required" class="required-marker text-danger">
@@ -61,13 +61,13 @@
                 </select>
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.status">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.status">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.scheduled_for.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.scheduled_for.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'SCHEDULED_FOR_LABEL' | glMessage }}:
                <span ng-show="model.scheduled_for.required" class="required-marker text-danger">
@@ -85,13 +85,13 @@
                 <div class="help-block">
                     <p>{{ 'JOB_SCHEDULED_FOR_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.scheduled_for">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.scheduled_for">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.valid_until.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.valid_until.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'VALID_UNTIL_LABEL' | glMessage }}:
                <span ng-show="model.valid_until.required" class="required-marker text-danger">
@@ -109,13 +109,13 @@
                 <div class="help-block">
                     <p>{{ 'JOB_VALID_UNTIL_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.valid_until">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.valid_until">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.input_data.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.input_data.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'INPUT_DATA_LABEL' | glMessage }}:
                <span ng-show="model.input_data.required" class="required-marker text-danger">
@@ -127,7 +127,7 @@
                           ng-keydown="resetValidation('input_data')" ng-blur="validate('input_data')" ng-disabled="processing"></textarea>
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.input_data">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.input_data">{{ message }}</li>
                     </ul>
                 </div>
             </div>

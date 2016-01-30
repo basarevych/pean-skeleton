@@ -50,7 +50,7 @@ describe('Form', function () {
                 };
 
             expect(scope.model).toEqual(model);
-            expect(scope.validation).toEqual({ errors: [], fields: {} });
+            expect(scope.validation).toEqual({ messages: [], errors: {} });
          })
 
         it('resets validation', function () {
@@ -58,11 +58,11 @@ describe('Form', function () {
 
             scope.validation.fields = { field1: [ 'foo' ], field2: [ 'bar' ] };
             scope.resetValidation();
-            expect(scope.validation.fields).toEqual({});
+            expect(scope.validation.errors).toEqual({});
 
-            scope.validation.fields = { field1: [ 'foo' ], field2: [ 'bar' ] };
+            scope.validation.errors = { field1: [ 'foo' ], field2: [ 'bar' ] };
             scope.resetValidation('field2');
-            expect(scope.validation.fields).toEqual({ field1: [ 'foo' ], field2: undefined });
+            expect(scope.validation.errors).toEqual({ field1: [ 'foo' ], field2: undefined });
         });
 
         it('validates', inject(function ($q, $timeout) {
@@ -83,7 +83,7 @@ describe('Form', function () {
 
             deferred.resolve({ success: false, errors: [ 'foobar' ] });
             scope.$digest();
-            expect(scope.validation.fields.login).toEqual([ 'foobar' ]);
+            expect(scope.validation.errors.login).toEqual([ 'foobar' ]);
         }));
 
         it('submits', inject(function ($q) {
@@ -99,10 +99,10 @@ describe('Form', function () {
 
             scope.submit();
 
-            deferred.resolve({ success: false, errors: [ 'baz' ], fields: { password: [ 'foobar' ] } });
+            deferred.resolve({ success: false, messages: [ 'baz' ], errors: { password: [ 'foobar' ] } });
             scope.$digest();
-            expect(scope.validation.errors).toEqual([ 'baz' ]);
-            expect(scope.validation.fields.password).toEqual([ 'foobar' ]);
+            expect(scope.validation.messages).toEqual([ 'baz' ]);
+            expect(scope.validation.errors.password).toEqual([ 'foobar' ]);
             expect(scope.model.password.focus).toBeTruthy();
         }));
 

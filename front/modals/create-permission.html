@@ -4,14 +4,14 @@
 </div>
 
 <div class="modal-body">
-    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.errors">
+    <div class="alert alert-modal alert-danger" ng-repeat="message in validation.messages">
         <center>
             {{ message }}
         </center>
     </div>
 
     <form class="form-horizontal" role="form" novalidate>
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.role_id.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.role_id.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'ROLE_LABEL' | glMessage }}:
                <span ng-show="model.role_id.required" class="required-marker text-danger">
@@ -40,13 +40,13 @@
                 </div>
                 <div class="help-block">
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.role_id">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.role_id">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.resource.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.resource.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'RESOURCE_LABEL' | glMessage }}:
                <span ng-show="model.resource.required" class="required-marker text-danger">
@@ -59,13 +59,13 @@
                 <div class="help-block">
                     <p>{{ 'PERMISSION_NULL_RESOURCE_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.resource">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.resource">{{ message }}</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="form-group" ng-class="{ 'has-error': validation.fields.action.length }">
+        <div class="form-group" ng-class="{ 'has-error': validation.errors.action.length }">
             <label class="col-sm-4 control-label required">
                 {{ 'ACTION_LABEL' | glMessage }}:
                <span ng-show="model.action.required" class="required-marker text-danger">
@@ -78,7 +78,7 @@
                 <div class="help-block">
                     <p>{{ 'PERMISSION_NULL_ACTION_NOTICE' | glMessage }}</p>
                     <ul class="list-unstyled icon-list error-list">
-                        <li ng-repeat="message in validation.fields.action">{{ message }}</li>
+                        <li ng-repeat="message in validation.errors.action">{{ message }}</li>
                     </ul>
                 </div>
             </div>
