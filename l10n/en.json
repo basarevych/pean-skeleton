@@ -33,6 +33,7 @@
         "ERROR_API_GENERIC_TEXT": "An error encountered while communicating with the server",
         "INDEX_PAGE_LINK_TEXT": "Go to index page",
 
+        "VALIDATOR_UNKNOWN_FIELD": "Unknown field",
         "VALIDATOR_REQUIRED_FIELD": "Value is required",
         "VALIDATOR_FILL_ALL": "Please fill all the fields",
         "VALIDATOR_INVALID_FORMAT": "Invalid format",

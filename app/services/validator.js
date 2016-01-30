@@ -44,20 +44,8 @@ Validator.prototype.addParser = function (field, parser) {
 };
 
 Validator.prototype.validateField = function(field, req, res) {
-    var me = this;
-    var defer = q.defer();
-
-    this.parsers[field](req, res)
-        .then(function (result) {
-            me.values[field] = result.value;
-            me.errors[field] = result.errors;
-            defer.resolve(result.errors.length == 0);
-        })
-        .catch(function (err) {
-            logger.error('Validator.validateField', err);
-        });
-
-    return defer.promise;
+    this.reset();
+    return this._validate(field, req, res);
 };
 
 Validator.prototype.validateAll = function (req, res) {
@@ -68,7 +56,7 @@ Validator.prototype.validateAll = function (req, res) {
 
     var promises = [];
     this.fields.forEach(function (field) {
-        promises.push(me.validateField(field, req, res));
+        promises.push(me._validate(field, req, res));
     });
 
     q.all(promises)
@@ -80,6 +68,30 @@ Validator.prototype.validateAll = function (req, res) {
         })
         .catch(function (err) {
             logger.error('Validator.validateAll', err);
+        });
+
+    return defer.promise;
+};
+
+Validator.prototype._validate = function (field, req, res) {
+    var me = this;
+    var defer = q.defer();
+
+    if (typeof this.parsers[field] == 'undefined') {
+        var glMessage = res.locals.glMessage;
+        me.errors[field] = [ glMessage('VALIDATOR_UNKNOWN_FIELD') ];
+        defer.resolve(false);
+        return defer.promise;
+    }
+
+    this.parsers[field](req, res)
+        .then(function (result) {
+            me.values[field] = result.value;
+            me.errors[field] = result.errors;
+            defer.resolve(result.errors.length == 0);
+        })
+        .catch(function (err) {
+            logger.error('Validator.validateField', err);
         });
 
     return defer.promise;
