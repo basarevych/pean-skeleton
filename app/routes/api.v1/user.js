@@ -17,7 +17,6 @@ var UserModel = locator.get('user-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
 
     var userForm = new ValidatorService();
     userForm.addParser(
@@ -230,10 +229,8 @@ module.exports = function () {
                 switch (req.query.query) {
                     case 'describe':
                         table.describe(function (err, result) {
-                            if (err) {
-                                logger.error('GET /v1/user/table failed', err);
-                                return app.abort(res, 500, 'GET /v1/user/table failed');
-                            }
+                            if (err)
+                                return app.abort(res, 500, 'GET /v1/user/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -242,10 +239,8 @@ module.exports = function () {
                     case 'data':
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
-                                if (err) {
-                                    logger.error('GET /v1/user/table failed', err);
-                                    return app.abort(res, 500, 'GET /v1/user/table failed');
-                                }
+                                if (err)
+                                    return app.abort(res, 500, 'GET /v1/user/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -256,8 +251,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                logger.error('GET /v1/user/table failed', err);
-                app.abort(res, 500, 'GET /v1/user/table failed');
+                app.abort(res, 500, 'GET /v1/user/table failed', err);
             });
     });
 
@@ -277,13 +271,11 @@ module.exports = function () {
                         res.json({ success: success, errors: userForm.getErrors(field) });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/user/validate failed', err);
-                        app.abort(res, 500, 'POST /v1/user/validate failed');
+                        app.abort(res, 500, 'POST /v1/user/validate failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/user/validate failed', err);
-                app.abort(res, 500, 'POST /v1/user/validate failed');
+                app.abort(res, 500, 'POST /v1/user/validate failed', err);
             });
     });
 
@@ -340,18 +332,15 @@ module.exports = function () {
                                 res.json(result);
                             })
                             .catch(function (err) {
-                                logger.error('POST /v1/user/search failed', err);
-                                app.abort(res, 500, 'POST /v1/user/search failed');
+                                app.abort(res, 500, 'POST /v1/user/search failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/user/search failed', err);
-                        app.abort(res, 500, 'POST /v1/user/search failed');
+                        app.abort(res, 500, 'POST /v1/user/search failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/user/search failed', err);
-                app.abort(res, 500, 'POST /v1/user/search failed');
+                app.abort(res, 500, 'POST /v1/user/search failed', err);
             });
     });
 
@@ -392,18 +381,15 @@ module.exports = function () {
                                 });
                             })
                             .catch(function (err) {
-                                logger.error('GET /v1/user/' + userId + ' failed', err);
-                                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed');
+                                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/user/' + userId + ' failed', err);
-                        app.abort(res, 500, 'GET /v1/user/' + userId + ' failed');
+                        app.abort(res, 500, 'GET /v1/user/' + userId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/user/' + userId + ' failed', err);
-                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed');
+                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed', err);
             });
     });
 
@@ -445,18 +431,15 @@ module.exports = function () {
                                 res.json(result);
                             })
                             .catch(function (err) {
-                                logger.error('GET /v1/user failed', err);
-                                app.abort(res, 500, 'GET /v1/user failed');
+                                app.abort(res, 500, 'GET /v1/user failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/user failed', err);
-                        app.abort(res, 500, 'GET /v1/user failed');
+                        app.abort(res, 500, 'GET /v1/user failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/user failed', err);
-                app.abort(res, 500, 'GET /v1/user failed');
+                app.abort(res, 500, 'GET /v1/user failed', err);
             });
     });
 
@@ -507,23 +490,19 @@ module.exports = function () {
                                         res.json({ success: true, id: userId });
                                     })
                                     .catch(function (err) {
-                                        logger.error('POST /v1/user failed', err);
-                                        app.abort(res, 500, 'POST /v1/user failed');
+                                        app.abort(res, 500, 'POST /v1/user failed', err);
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('POST /v1/user failed', err);
-                                app.abort(res, 500, 'POST /v1/user failed');
+                                app.abort(res, 500, 'POST /v1/user failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/user failed', err);
-                        app.abort(res, 500, 'POST /v1/user failed');
+                        app.abort(res, 500, 'POST /v1/user failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/user failed', err);
-                app.abort(res, 500, 'POST /v1/user failed');
+                app.abort(res, 500, 'POST /v1/user failed', err);
             });
     });
 
@@ -586,28 +565,23 @@ module.exports = function () {
                                                 res.json({ success: true });
                                             })
                                             .catch(function (err) {
-                                                logger.error('PUT /v1/user/' + userId + ' failed', err);
-                                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
+                                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
                                             });
                                     })
                                     .catch(function (err) {
-                                        logger.error('PUT /v1/user/' + userId + ' failed', err);
-                                        app.abort(res, 500, 'PUT /v1/user' + userId + ' failed');
+                                        app.abort(res, 500, 'PUT /v1/user' + userId + ' failed', err);
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('PUT /v1/user/' + userId + ' failed', err);
-                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
+                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('PUT /v1/user/' + userId + ' failed', err);
-                        app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
+                        app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('PUT /v1/user/' + userId + ' failed', err);
-                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed');
+                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
             });
     });
 
@@ -640,18 +614,15 @@ module.exports = function () {
                                 res.json({ success: true });
                             })
                             .catch(function (err) {
-                                logger.error('DELETE /v1/user/' + userId + ' failed', err);
-                                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed');
+                                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/user/' + userId + ' failed', err);
-                        app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed');
+                        app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/user/' + userId + ' failed', err);
-                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed');
+                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
             });
     });
 
@@ -674,13 +645,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/user failed', err);
-                        app.abort(res, 500, 'DELETE /v1/user failed');
+                        app.abort(res, 500, 'DELETE /v1/user failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/user failed', err);
-                app.abort(res, 500, 'DELETE /v1/user failed');
+                app.abort(res, 500, 'DELETE /v1/user failed', err);
             });
     });
 

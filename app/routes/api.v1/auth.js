@@ -16,7 +16,6 @@ var TokenModel = locator.get('token-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
 
     var loginForm = new ValidatorService();
     loginForm.addParser(
@@ -63,8 +62,7 @@ module.exports = function () {
                 res.json({ success: success, errors: loginForm.getErrors(field) });
             })
             .catch(function (err) {
-                logger.error('POST /v1/auth/validate failed', err);
-                app.abort(res, 500, 'POST /v1/auth/validate failed');
+                app.abort(res, 500, 'POST /v1/auth/validate failed', err);
             });
     });
 
@@ -124,18 +122,15 @@ module.exports = function () {
                                 });
                             })
                             .catch(function (err) {
-                                logger.error('POST /v1/auth/token failed', err);
-                                app.abort(res, 500, 'POST /v1/auth/token failed');
+                                app.abort(res, 500, 'POST /v1/auth/token failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/auth/token failed', err);
-                        app.abort(res, 500, 'POST /v1/auth/token failed');
+                        app.abort(res, 500, 'POST /v1/auth/token failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/auth/token failed', err);
-                app.abort(res, 500, 'POST /v1/auth/token failed');
+                app.abort(res, 500, 'POST /v1/auth/token failed', err);
             });
     });
 

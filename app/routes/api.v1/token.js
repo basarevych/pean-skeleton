@@ -15,7 +15,6 @@ var TokenModel = locator.get('token-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
 
     router.get('/table', function (req, res) {
         var userId = parseInt(req.query.user_id, 10);
@@ -98,10 +97,8 @@ module.exports = function () {
                 switch (req.query.query) {
                     case 'describe':
                         table.describe(function (err, result) {
-                            if (err) {
-                                logger.error('GET /v1/token/table failed', err);
-                                return app.abort(res, 500, 'GET /v1/token/table failed');
-                            }
+                            if (err)
+                                return app.abort(res, 500, 'GET /v1/token/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -110,10 +107,8 @@ module.exports = function () {
                     case 'data':
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
-                                if (err) {
-                                    logger.error('GET /v1/token/table failed', err);
-                                    return app.abort(res, 500, 'GET /v1/token/table failed');
-                                }
+                                if (err)
+                                    return app.abort(res, 500, 'GET /v1/token/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -124,8 +119,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                logger.error('GET /v1/token/table failed', err);
-                app.abort(res, 500, 'GET /v1/token/table failed');
+                app.abort(res, 500, 'GET /v1/token/table failed', err);
             });
     });
 
@@ -160,13 +154,11 @@ module.exports = function () {
                         });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/token/' + tokenId + ' failed', err);
-                        app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed');
+                        app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/token/' + tokenId + ' failed', err);
-                app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed');
+                app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed', err);
             });
     });
 
@@ -197,13 +189,11 @@ module.exports = function () {
                         res.json(result);
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/token failed', err);
-                        app.abort(res, 500, 'GET /v1/token failed');
+                        app.abort(res, 500, 'GET /v1/token failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/token failed', err);
-                app.abort(res, 500, 'GET /v1/token failed');
+                app.abort(res, 500, 'GET /v1/token failed', err);
             });
     });
 
@@ -237,13 +227,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/token/' + tokenId + ' failed', err);
-                        app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed');
+                        app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/token/' + tokenId + ' failed', err);
-                app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed');
+                app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed', err);
             });
     });
 
@@ -266,13 +254,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/token failed', err);
-                        app.abort(res, 500, 'DELETE /v1/token failed');
+                        app.abort(res, 500, 'DELETE /v1/token failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/token failed', err);
-                app.abort(res, 500, 'DELETE /v1/token failed');
+                app.abort(res, 500, 'DELETE /v1/token failed', err);
             });
     });
 

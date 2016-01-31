@@ -14,7 +14,6 @@ var UserModel = locator.get('user-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
 
     var profileForm = new ValidatorService();
     profileForm.addParser(
@@ -76,8 +75,7 @@ module.exports = function () {
                 res.json({ success: success, errors: profileForm.getErrors(field) });
             })
             .catch(function (err) {
-                logger.error('POST /v1/profile/validate failed', err);
-                app.abort(res, 500, 'POST /v1/profile/validate failed');
+                app.abort(res, 500, 'POST /v1/profile/validate failed', err);
             });
     });
 
@@ -112,8 +110,7 @@ module.exports = function () {
                 res.json(result);
             })
             .catch(function (err) {
-                logger.error('GET /v1/profile failed', err);
-                app.abort(res, 500, 'GET /v1/profile failed');
+                app.abort(res, 500, 'GET /v1/profile failed', err);
             });
     });
 
@@ -141,13 +138,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('PUT /v1/profile failed', err);
-                        app.abort(res, 500, 'PUT /v1/profile failed');
+                        app.abort(res, 500, 'PUT /v1/profile failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('PUT /v1/profile failed', err);
-                app.abort(res, 500, 'PUT /v1/profile failed');
+                app.abort(res, 500, 'PUT /v1/profile failed', err);
             });
     });
 

@@ -45,22 +45,23 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // error function
-app.abort = function (res, status, err) {
-    if (typeof err != 'object')
-        err = new Error(err);
+app.abort = function (res, status) {
+    var errors = [];
+    for (var i = 2; i < arguments.length; i++)
+        errors.push(arguments[i]);
 
     var code = status || 500;
     var params = {
         statusCode: code,
         statusPhrase: http.STATUS_CODES[code],
-        error: err,
+        errors: errors,
         renderStack: [ 'development', 'test' ].indexOf(app.get('env')) != -1,  // render stack trace or not
     };
 
     if (code == 500) {
         var locator = require('node-service-locator');
         var logger = locator.get('logger');
-        logger.error(err);
+        logger.error.apply(logger, errors);
     }
 
     res.status(code);

@@ -15,7 +15,6 @@ var JobModel = locator.get('job-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
 
     router.post('/', function (req, res) {
         if (!req.user)
@@ -77,13 +76,11 @@ module.exports = function () {
                         res.json({ success: id !== null });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/notification failed', err);
-                        app.abort(res, 500, 'POST /v1/notification failed');
+                        app.abort(res, 500, 'POST /v1/notification failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/notification failed', err);
-                app.abort(res, 500, 'POST /v1/notification failed');
+                app.abort(res, 500, 'POST /v1/notification failed', err);
             });
     });
 

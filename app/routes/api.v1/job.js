@@ -18,7 +18,6 @@ var JobModel = locator.get('job-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
     var config = locator.get('config');
 
     var jobForm = new ValidatorService();
@@ -229,10 +228,8 @@ module.exports = function () {
                 switch (req.query.query) {
                     case 'describe':
                         table.describe(function (err, result) {
-                            if (err) {
-                                logger.error('GET /v1/job/table failed', err);
-                                return app.abort(res, 500, 'GET /v1/job/table failed');
-                            }
+                            if (err)
+                                return app.abort(res, 500, 'GET /v1/job/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -241,10 +238,8 @@ module.exports = function () {
                     case 'data':
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
-                                if (err) {
-                                    logger.error('GET /v1/job/table failed', err);
-                                    return app.abort(res, 500, 'GET /v1/job/table failed');
-                                }
+                                if (err)
+                                    return app.abort(res, 500, 'GET /v1/job/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -255,8 +250,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                logger.error('GET /v1/job/table failed', err);
-                app.abort(res, 500, 'GET /v1/job/table failed');
+                app.abort(res, 500, 'GET /v1/job/table failed', err);
             });
     });
 
@@ -276,13 +270,11 @@ module.exports = function () {
                         res.json({ success: success, errors: jobForm.getErrors(field) });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/job/validate failed', err);
-                        app.abort(res, 500, 'POST /v1/job/validate failed');
+                        app.abort(res, 500, 'POST /v1/job/validate failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/job/validate failed', err);
-                app.abort(res, 500, 'POST /v1/job/validate failed');
+                app.abort(res, 500, 'POST /v1/job/validate failed', err);
             });
     });
 
@@ -299,8 +291,7 @@ module.exports = function () {
                 res.json(config['job']['statuses']);
             })
             .catch(function (err) {
-                logger.error('GET /v1/job/statuses failed', err);
-                app.abort(res, 500, 'POST /v1/job/statuses failed');
+                app.abort(res, 500, 'POST /v1/job/statuses failed', err);
             });
     });
 
@@ -338,13 +329,11 @@ module.exports = function () {
                             });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/job/' + jobId + ' failed', err);
-                        app.abort(res, 500, 'GET /v1/job/' + jobId + ' failed');
+                        app.abort(res, 500, 'GET /v1/job/' + jobId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/job/' + jobId + ' failed', err);
-                app.abort(res, 500, 'GET /v1/job/' + jobId + ' failed');
+                app.abort(res, 500, 'GET /v1/job/' + jobId + ' failed', err);
             });
     });
 
@@ -378,13 +367,11 @@ module.exports = function () {
                         res.json(result);
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/job failed', err);
-                        app.abort(res, 500, 'GET /v1/job failed');
+                        app.abort(res, 500, 'GET /v1/job failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/job failed', err);
-                app.abort(res, 500, 'GET /v1/job failed');
+                app.abort(res, 500, 'GET /v1/job failed', err);
             });
     });
 
@@ -427,18 +414,15 @@ module.exports = function () {
                                     res.json({ success: true, id: jobId });
                             })
                             .catch(function (err) {
-                                logger.error('POST /v1/job failed', err);
-                                app.abort(res, 500, 'POST /v1/job failed');
+                                app.abort(res, 500, 'POST /v1/job failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/job failed', err);
-                        app.abort(res, 500, 'POST /v1/job failed');
+                        app.abort(res, 500, 'POST /v1/job failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/job failed', err);
-                app.abort(res, 500, 'POST /v1/job failed');
+                app.abort(res, 500, 'POST /v1/job failed', err);
             });
     });
 
@@ -489,23 +473,19 @@ module.exports = function () {
                                             res.json({ success: true });
                                     })
                                     .catch(function (err) {
-                                        logger.error('PUT /v1/job/' + jobId + ' failed', err);
-                                        app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed');
+                                        app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('PUT /v1/job/' + jobId + ' failed', err);
-                                app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed');
+                                app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('PUT /v1/job/' + jobId + ' failed', err);
-                        app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed');
+                        app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('PUT /v1/job/' + jobId + ' failed', err);
-                app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed');
+                app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
             });
     });
 
@@ -538,18 +518,15 @@ module.exports = function () {
                                 res.json({ success: true });
                             })
                             .catch(function (err) {
-                                logger.error('DELETE /v1/job/' + jobId + ' failed', err);
-                                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed');
+                                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/job/' + jobId + ' failed', err);
-                        app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed');
+                        app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/job/' + jobId + ' failed', err);
-                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed');
+                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed', err);
             });
     });
 
@@ -572,13 +549,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/job failed', err);
-                        app.abort(res, 500, 'DELETE /v1/job failed');
+                        app.abort(res, 500, 'DELETE /v1/job failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/job failed', err);
-                app.abort(res, 500, 'DELETE /v1/job failed');
+                app.abort(res, 500, 'DELETE /v1/job failed', err);
             });
     });
 

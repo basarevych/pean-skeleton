@@ -18,7 +18,6 @@ var RoleTranslationModel = locator.get('role-translation-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
     var config = locator.get('config');
 
     var roleForm = new ValidatorService();
@@ -200,10 +199,8 @@ module.exports = function () {
                 switch (req.query.query) {
                     case 'describe':
                         table.describe(function (err, result) {
-                            if (err) {
-                                logger.error('GET /v1/role/table failed', err);
-                                return app.abort(res, 500, 'GET /v1/role/table failed');
-                            }
+                            if (err)
+                                return app.abort(res, 500, 'GET /v1/role/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -212,10 +209,8 @@ module.exports = function () {
                     case 'data':
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
-                                if (err) {
-                                    logger.error('GET /v1/role/table failed', err);
-                                    return app.abort(res, 500, 'GET /v1/role/table failed');
-                                }
+                                if (err)
+                                    return app.abort(res, 500, 'GET /v1/role/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -226,8 +221,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                logger.error('GET /v1/role/table failed', err);
-                app.abort(res, 500, 'GET /v1/role/table failed');
+                app.abort(res, 500, 'GET /v1/role/table failed', err);
             });
     });
 
@@ -247,13 +241,11 @@ module.exports = function () {
                         res.json({ success: success, errors: roleForm.getErrors(field) });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/role/validate failed', err);
-                        app.abort(res, 500, 'POST /v1/role/validate failed');
+                        app.abort(res, 500, 'POST /v1/role/validate failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/role/validate failed', err);
-                app.abort(res, 500, 'POST /v1/role/validate failed');
+                app.abort(res, 500, 'POST /v1/role/validate failed', err);
             });
     });
 
@@ -297,13 +289,11 @@ module.exports = function () {
                         });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/role/' + roleId + ' failed', err);
-                        app.abort(res, 500, 'GET /v1/role/' + roleId + ' failed');
+                        app.abort(res, 500, 'GET /v1/role/' + roleId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/role/' + roleId + ' failed', err);
-                app.abort(res, 500, 'GET /v1/role/' + roleId + ' failed');
+                app.abort(res, 500, 'GET /v1/role/' + roleId + ' failed', err);
             });
     });
 
@@ -349,13 +339,11 @@ module.exports = function () {
                         res.json(result);
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/role failed', err);
-                        app.abort(res, 500, 'GET /v1/role failed');
+                        app.abort(res, 500, 'GET /v1/role failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/role failed', err);
-                app.abort(res, 500, 'GET /v1/role failed');
+                app.abort(res, 500, 'GET /v1/role failed', err);
             });
     });
 
@@ -410,23 +398,19 @@ module.exports = function () {
                                         res.json({ success: success, id: roleId });
                                     })
                                     .catch(function (err) {
-                                        logger.error('POST /v1/role failed', err);
-                                        app.abort(res, 500, 'POST /v1/role failed');
+                                        app.abort(res, 500, 'POST /v1/role failed', err);
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('POST /v1/role failed', err);
-                                app.abort(res, 500, 'POST /v1/role failed');
+                                app.abort(res, 500, 'POST /v1/role failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/role failed', err);
-                        app.abort(res, 500, 'POST /v1/role failed');
+                        app.abort(res, 500, 'POST /v1/role failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/role failed', err);
-                app.abort(res, 500, 'POST /v1/role failed');
+                app.abort(res, 500, 'POST /v1/role failed', err);
             });
     });
 
@@ -509,28 +493,23 @@ module.exports = function () {
                                                 res.json({ success: success });
                                             })
                                             .catch(function (err) {
-                                                logger.error('PUT /v1/role/' + roleId + ' failed', err);
-                                                app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed');
+                                                app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
                                             });
                                     })
                                     .catch(function (err) {
-                                        logger.error('PUT /v1/role/' + roleId + ' failed', err);
-                                        app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed');
+                                        app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('PUT /v1/role/' + roleId + ' failed', err);
-                                app.abort(res, 500, 'PUT /v1/role/' + userId + ' failed');
+                                app.abort(res, 500, 'PUT /v1/role/' + userId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('PUT /v1/role/' + roleId + ' failed', err);
-                        app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed');
+                        app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('PUT /v1/role/' + roleId + ' failed', err);
-                app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed');
+                app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
             });
     });
 
@@ -563,18 +542,15 @@ module.exports = function () {
                                 res.json({ success: true });
                             })
                             .catch(function (err) {
-                                logger.error('DELETE /v1/role/' + roleId + ' failed', err);
-                                app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed');
+                                app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/role/' + roleId + ' failed', err);
-                        app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed');
+                        app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/role/' + roleId + ' failed', err);
-                app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed');
+                app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed', err);
             });
     });
 
@@ -597,13 +573,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/role failed', err);
-                        app.abort(res, 500, 'DELETE /v1/role failed');
+                        app.abort(res, 500, 'DELETE /v1/role failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/role failed', err);
-                app.abort(res, 500, 'DELETE /v1/role failed');
+                app.abort(res, 500, 'DELETE /v1/role failed', err);
             });
     });
 

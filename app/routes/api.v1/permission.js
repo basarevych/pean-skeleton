@@ -17,7 +17,6 @@ var PermissionModel = locator.get('permission-model');
 module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
-    var logger = locator.get('logger');
 
     var permissionForm = new ValidatorService();
     permissionForm.addParser(
@@ -132,10 +131,8 @@ module.exports = function () {
                 switch (req.query.query) {
                     case 'describe':
                         table.describe(function (err, result) {
-                            if (err) {
-                                logger.error('GET /v1/permission/table failed', err);
-                                return app.abort(res, 500, 'GET /v1/permission/table failed');
-                            }
+                            if (err)
+                                return app.abort(res, 500, 'GET /v1/permission/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -144,10 +141,8 @@ module.exports = function () {
                     case 'data':
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
-                                if (err) {
-                                    logger.error('GET /v1/permission/table failed', err);
-                                    return app.abort(res, 500, 'GET /v1/permission/table failed');
-                                }
+                                if (err)
+                                    return app.abort(res, 500, 'GET /v1/permission/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -158,8 +153,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                logger.error('GET /v1/permission/table failed', err);
-                app.abort(res, 500, 'GET /v1/permission/table failed');
+                app.abort(res, 500, 'GET /v1/permission/table failed', err);
             });
     });
 
@@ -179,13 +173,11 @@ module.exports = function () {
                         res.json({ success: success, errors: permissionForm.getErrors(field) });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/permission/validate failed', err);
-                        app.abort(res, 500, 'POST /v1/permission/validate failed');
+                        app.abort(res, 500, 'POST /v1/permission/validate failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/permission/validate failed', err);
-                app.abort(res, 500, 'POST /v1/permission/validate failed');
+                app.abort(res, 500, 'POST /v1/permission/validate failed', err);
             });
     });
 
@@ -218,13 +210,11 @@ module.exports = function () {
                         });
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/permission/' + permissionId + ' failed', err);
-                        app.abort(res, 500, 'GET /v1/permission/' + permissionId + ' failed');
+                        app.abort(res, 500, 'GET /v1/permission/' + permissionId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/permission/' + permissionId + ' failed', err);
-                app.abort(res, 500, 'GET /v1/permission/' + permissionId + ' failed');
+                app.abort(res, 500, 'GET /v1/permission/' + permissionId + ' failed', err);
             });
     });
 
@@ -253,13 +243,11 @@ module.exports = function () {
                         res.json(result);
                     })
                     .catch(function (err) {
-                        logger.error('GET /v1/permission failed', err);
-                        app.abort(res, 500, 'GET /v1/permission failed');
+                        app.abort(res, 500, 'GET /v1/permission failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('GET /v1/permission failed', err);
-                app.abort(res, 500, 'GET /v1/permission failed');
+                app.abort(res, 500, 'GET /v1/permission failed', err);
             });
     });
 
@@ -297,18 +285,15 @@ module.exports = function () {
                                     res.json({ success: true, id: permissionId });
                             })
                             .catch(function (err) {
-                                logger.error('POST /v1/permission failed', err);
-                                app.abort(res, 500, 'POST /v1/permission failed');
+                                app.abort(res, 500, 'POST /v1/permission failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('POST /v1/permission failed', err);
-                        app.abort(res, 500, 'POST /v1/permission failed');
+                        app.abort(res, 500, 'POST /v1/permission failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('POST /v1/permission failed', err);
-                app.abort(res, 500, 'POST /v1/permission failed');
+                app.abort(res, 500, 'POST /v1/permission failed', err);
             });
     });
 
@@ -355,23 +340,19 @@ module.exports = function () {
                                             res.json({ success: true });
                                     })
                                     .catch(function (err) {
-                                        logger.error('PUT /v1/permission/' + permissionId + ' failed', err);
-                                        app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed');
+                                        app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
                                     });
                             })
                             .catch(function (err) {
-                                logger.error('PUT /v1/permission/' + permissionId + ' failed', err);
-                                app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed');
+                                app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('PUT /v1/permission/' + permissionId + ' failed', err);
-                        app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed');
+                        app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('PUT /v1/permission/' + permissionId + ' failed', err);
-                app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed');
+                app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
             });
     });
 
@@ -404,18 +385,15 @@ module.exports = function () {
                                 res.json({ success: true });
                             })
                             .catch(function (err) {
-                                logger.error('DELETE /v1/permission/' + permissionId + ' failed', err);
-                                app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed');
+                                app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed', err);
                             });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/permission/' + permissionId + ' failed', err);
-                        app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed');
+                        app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/permission/' + permissionId + ' failed', err);
-                app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed');
+                app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed', err);
             });
     });
 
@@ -438,13 +416,11 @@ module.exports = function () {
                         res.json({ success: true });
                     })
                     .catch(function (err) {
-                        logger.error('DELETE /v1/permission failed', err);
-                        app.abort(res, 500, 'DELETE /v1/permission failed');
+                        app.abort(res, 500, 'DELETE /v1/permission failed', err);
                     });
             })
             .catch(function (err) {
-                logger.error('DELETE /v1/permission failed', err);
-                app.abort(res, 500, 'DELETE /v1/permission failed');
+                app.abort(res, 500, 'DELETE /v1/permission failed', err);
             });
     });
 

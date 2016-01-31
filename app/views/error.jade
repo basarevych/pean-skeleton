@@ -14,4 +14,8 @@ block content
                     h3= glMessage('HTTP_500')
 
                 if renderStack
-                    pre= error.stack
+                    each error in errors
+                        if error.stack
+                            pre= error.stack
+                        else
+                            pre= error
