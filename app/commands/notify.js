@@ -10,11 +10,17 @@ var NotificationModel = locator.get('notification-model');
 module.exports = function (argv, rl) {
     var config = locator.get('config');
 
+    /**
+     * One liner for command
+     */
     function info(done) {
         rl.write("\tnotify\t\t\tWeb-interface notification\n");
         done();
     }
 
+    /**
+     * Detailed help for command
+     */
     function help(done) {
         rl.write("\nUsage:");
         rl.write("\tbin/cmd notify [--title=<title>] [--icon=<icon>] [--variables=<variables>]\\\n");
@@ -30,6 +36,9 @@ module.exports = function (argv, rl) {
         done();
     }
 
+    /**
+     * Execute command
+     */
     function run(done) {
         if (!argv['_'][1]) {
             help(function () { rl.write("\n"); done() });
@@ -57,7 +66,7 @@ module.exports = function (argv, rl) {
                 done();
             })
             .catch(function (err) {
-                logger.err('notify.run() failed', err);
+                logger.error('notify.run() failed', err);
                 done();
             });
     }

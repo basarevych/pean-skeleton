@@ -8,8 +8,7 @@ var locator = require('node-service-locator');
 var merge = require('merge');
 var globalize = require('globalize');
 
-module.exports = function () {
-    var app = locator.get('app');
+module.exports = function (app) {
     var config = locator.get('config');
 
     var data = merge.recursive(
@@ -36,6 +35,9 @@ module.exports = function () {
     globalize.loadMessages(messages);
     globalize.locale(config['lang']['default']);
 
+    /**
+     * Create Globalize wrapper in res.locals
+     */
     app.use(function (req, res, next) {
         var logger = locator.get('logger');
 

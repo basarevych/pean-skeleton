@@ -13,17 +13,26 @@ var UserModel = locator.get('user-model');
 module.exports = function (argv, rl) {
     var config = locator.get('config');
 
+    /**
+     * One liner for command
+     */
     function info(done) {
         rl.write("\tpopulate-db\t\tPopulate the database\n");
         done();
     }
 
+    /**
+     * Detailed help for command
+     */
     function help(done) {
         rl.write("\nUsage:\tbin/cmd populate-db\n\n");
         rl.write("\tThis command will populate the database with initial data\n");
         done();
     }
 
+    /**
+     * Execute command
+     */
     function run(done) {
         var logger = locator.get('logger');
         var roleRepo = locator.get('role-repository');

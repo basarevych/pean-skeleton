@@ -8,9 +8,7 @@ var locator = require('node-service-locator');
 var fs = require('fs');
 var path = require('path');
 
-module.exports = function () {
-    var app = locator.get('app');
-
+module.exports = function (app) {
     var dir = path.join(__dirname, '..', 'routes');
     loadDir(dir);
 

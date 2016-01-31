@@ -26,7 +26,7 @@ module.exports = function (job) {
             return jobRepo.save(job);
         })
         .catch(function (err) {
-            logger.err('notify.run() failed', err);
+            logger.error('notify.run() failed', err);
             job.setStatus('failure');
             job.setOutputData({ error: err });
             return jobRepository.save(job);

@@ -10,7 +10,7 @@ var emailjs = require('emailjs/email')
 var EmailTemplate = require('email-templates').EmailTemplate
 var path = require('path')
 
-module.exports = function () {
+module.exports = function (app) {
     var server  = emailjs.server.connect({ host: "127.0.0.1" });
 
     var templateDir = path.join(__dirname, '..', 'views', 'email', 'error-report')
@@ -18,7 +18,7 @@ module.exports = function () {
 
     var original = logger.error;
     logger.error = function () {
-        if (process.env.REPORT_ERROR_TO) {
+        if (process.env.REPORT_ERROR_TO) { // send the error via email
             newsletter.render(
                 {
                     errors: arguments

@@ -18,7 +18,6 @@ try {
 require('dotenv').load();
 
 var express = require('express');
-var http = require('http');
 var path = require('path');
 var favicon = require('serve-favicon');
 var morgan = require('morgan');
@@ -29,7 +28,7 @@ var app = module.exports = express();
 
 // load application
 require('./boot/init.js')(app);         // initialize the app
-require('./boot/logger.js')();          // logger
+require('./boot/logger.js')(app);       // logger
 
 // Return if this is a console command
 if (process.env.CONSOLE) return;
@@ -44,30 +43,6 @@ app.set('trust proxy', typeof trustProxy == 'undefined' ? false : trustProxy);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-// error function
-app.abort = function (res, status) {
-    var errors = [];
-    for (var i = 2; i < arguments.length; i++)
-        errors.push(arguments[i]);
-
-    var code = status || 500;
-    var params = {
-        statusCode: code,
-        statusPhrase: http.STATUS_CODES[code],
-        errors: errors,
-        renderStack: [ 'development', 'test' ].indexOf(app.get('env')) != -1,  // render stack trace or not
-    };
-
-    if (code == 500) {
-        var locator = require('node-service-locator');
-        var logger = locator.get('logger');
-        logger.error.apply(logger, errors);
-    }
-
-    res.status(code);
-    res.render('error', params);
-};
-
 // middleware
 if (process.env.NODE_ENV != 'test') app.use(morgan('dev'));
 app.use(bodyParser.json());
@@ -77,8 +52,8 @@ app.use(favicon(path.join(__dirname, '..', 'public', 'img', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // bootstrap the app
-require('./boot/lang.js')();        // translations
-require('./boot/session.js')();     // session support
-require('./boot/jwt.js')();         // JSON Web Tokens
-require('./boot/routes.js')();      // load routes
-require('./boot/errors.js')();      // error handling
+require('./boot/lang.js')(app);     // translations
+require('./boot/session.js')(app);  // session support
+require('./boot/jwt.js')(app);      // JSON Web Tokens
+require('./boot/routes.js')(app);   // load routes
+require('./boot/errors.js')(app);   // error handling

@@ -8,32 +8,18 @@ var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');
 var moment = require('moment-timezone');
 
-module.exports = function () {
+module.exports = function (app) {
     var config = locator.get('config');
     if (!config['jwt']['enable'])
         return;
 
-    var app = locator.get('app');
     var logger = locator.get('logger');
     var tokenRepo = locator.get('token-repository');
     var userRepo = locator.get('user-repository');
 
-    function loadModels(req, token, next) {
-        req.token = token;
-
-        userRepo.find(token.getUserId())
-            .then(function (users) {
-                var user = users.length && users[0];
-                if (user)
-                    req.user = user;
-
-                next();
-            })
-            .catch(function () {
-                next();
-            });
-    }
-
+    /**
+     * Read token and create req.user and req.token if successful
+     */
     app.use(function (req, res, next) {
         if (app.get('env') == 'test') { // override token when testing
             req.token = null;
@@ -73,7 +59,19 @@ module.exports = function () {
                                 return;
                             }
 
-                            loadModels(req, token, next);
+                            userRepo.find(token.getUserId())
+                                .then(function (users) {
+                                    var user = users.length && users[0];
+                                    if (user)
+                                        req.user = user;
+
+                                    req.token = token;
+
+                                    next();
+                                })
+                                .catch(function () {
+                                    next();
+                                });
                         })
                         .catch(function () {
                             next();

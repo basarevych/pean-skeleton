@@ -9,12 +9,11 @@ var path = require('path');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 
-module.exports = function () {
+module.exports = function (app) {
     var config = locator.get('config');
     if (!config['session']['enable'])
         return;
 
-    var app = locator.get('app');
     var ttl = config['session']['ttl'];
     var store = undefined;
 
@@ -27,7 +26,6 @@ module.exports = function () {
     }
 
     // session support
-
     app.use(session({
         name: config['session']['cookie'],  // cookie name
         resave: false,              // don't save session if unmodified
