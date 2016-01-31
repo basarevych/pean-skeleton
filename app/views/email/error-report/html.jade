@@ -1,0 +1,9 @@
+div.letter
+    h3 Error occured
+    ul
+        each error in errors
+            li
+                if error.stack
+                    pre= error.stack
+                else
+                    p= error

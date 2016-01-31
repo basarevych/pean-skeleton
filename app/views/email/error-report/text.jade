@@ -1,0 +1,12 @@
+| Error occureod
+= "\n"
+= "\n"
+each error in errors
+    if error.stack
+        | * #{error.stack}
+        = "\n"
+        = "\n"
+    else
+        | * #{error}
+        = "\n"
+        = "\n"
