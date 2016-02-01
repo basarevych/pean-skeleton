@@ -17,6 +17,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // Login form validator
     var loginForm = new ValidatorService();
     loginForm.addParser(
         'email',
@@ -55,6 +56,7 @@ module.exports = function () {
         }
     );
 
+    // Validate login field route
     router.post('/validate', function (req, res) {
         var field = req.body._field;
         loginForm.validateField(field, req, res)
@@ -66,6 +68,7 @@ module.exports = function () {
             });
     });
 
+    // Create token route
     router.post('/token', function (req, res) {
         var config = locator.get('config');
         var userRepo = locator.get('user-repository');

@@ -9,12 +9,20 @@ var jwt = require('jsonwebtoken');
 var path = require('path');
 var fs = require('fs');
 
+/**
+ * Service for background task execution
+ *
+ * @constructor
+ */
 function WorkerServer() {
     this.timer = null;
 };
 
-WorkerServer.INTERVAL = 10000;
+WorkerServer.INTERVAL = 10000;      // Job polling interval
 
+/**
+ * Create job polling timer
+ */
 WorkerServer.prototype.startTimer = function () {
     if (this.timer)
         return;
@@ -23,6 +31,9 @@ WorkerServer.prototype.startTimer = function () {
     this.timer = setInterval(function () { me.work(); }, WorkerServer.INTERVAL);
 };
 
+/**
+ * Cancel job polling timer
+ */
 WorkerServer.prototype.cancelTimer = function () {
     if (!this.timer)
         return;
@@ -31,6 +42,9 @@ WorkerServer.prototype.cancelTimer = function () {
     this.timer = null;
 };
 
+/**
+ * Create server and start waiting for the jobs
+ */
 WorkerServer.prototype.start = function () {
     var me = this;
     var logger = locator.get('logger');
@@ -41,7 +55,7 @@ WorkerServer.prototype.start = function () {
             var subscriber = jobRepo.getRedis();
             subscriber.on("message", function (channel, message) {
                 switch (channel) {
-                    case process.env.PROJECT + ":jobs":
+                    case process.env.PROJECT + ":jobs":     // New job posted notification
                         me.cancelTimer();
                         me.work();
                         break;
@@ -56,6 +70,9 @@ WorkerServer.prototype.start = function () {
         });
 };
 
+/**
+ * Process current jobs
+ */
 WorkerServer.prototype.work = function () {
     var me = this;
     var logger = locator.get('logger');
@@ -78,6 +95,9 @@ WorkerServer.prototype.work = function () {
     this.startTimer();
 };
 
+/**
+ * Load and execute job script (app/jobs directory)
+ */
 WorkerServer.prototype.doJob = function (job) {
     var logger = locator.get('logger');
 

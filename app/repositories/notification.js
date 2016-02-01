@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var NotificationModel = locator.get('notification-model');
 
+/**
+ * Notification repository
+ *
+ * @constructor
+ */
 function NotificationRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function NotificationRepository() {
 NotificationRepository.prototype = new BaseRepository();
 NotificationRepository.prototype.constructor = NotificationRepository;
 
+/**
+ * Find a notification by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 NotificationRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -56,6 +67,12 @@ NotificationRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Save notification model
+ *
+ * @param {object} notification The notification to save
+ * @return {object}             Returns promise resolving to notification ID
+ */
 NotificationRepository.prototype.save = function (notification) {
     var logger = locator.get('logger');
     var defer = q.defer();

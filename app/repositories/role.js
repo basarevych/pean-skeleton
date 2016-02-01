@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var RoleModel = locator.get('role-model');
 
+/**
+ * Role repository
+ *
+ * @constructor
+ */
 function RoleRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function RoleRepository() {
 RoleRepository.prototype = new BaseRepository();
 RoleRepository.prototype.constructor = RoleRepository;
 
+/**
+ * Find a role by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 RoleRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -64,6 +75,12 @@ RoleRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Find roles by handle
+ *
+ * @param {string} handle       Handle to search by
+ * @return {object}             Returns promise resolving to array of models
+ */
 RoleRepository.prototype.findByHandle = function (handle) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -104,6 +121,12 @@ RoleRepository.prototype.findByHandle = function (handle) {
     return defer.promise;
 };
 
+/**
+ * Find roles by user ID
+ *
+ * @param {integer} userId      User ID to search by
+ * @return {object}             Return promise resolving to array of models
+ */
 RoleRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -152,6 +175,11 @@ RoleRepository.prototype.findByUserId = function (userId) {
     return defer.promise;
 };
 
+/**
+ * Find all the roles
+ *
+ * @return {object}                 Returns promise resolving to array of models
+ */
 RoleRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -191,6 +219,12 @@ RoleRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+/**
+ * Save role model
+ *
+ * @param {object} role     The role to save
+ * @return {object}         Returns promise resolving to role ID
+ */
 RoleRepository.prototype.save = function (role) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -300,6 +334,12 @@ RoleRepository.prototype.save = function (role) {
     return defer.promise;
 };
 
+/**
+ * Delete a role
+ *
+ * @param {object} role         Role to delete
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 RoleRepository.prototype.delete = function (role) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -341,6 +381,11 @@ RoleRepository.prototype.delete = function (role) {
     return defer.promise;
 };
 
+/**
+ * Delete all the roles
+ *
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 RoleRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

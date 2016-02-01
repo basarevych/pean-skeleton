@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var PermissionModel = locator.get('permission-model');
 
+/**
+ * Permission repository
+ *
+ * @constructor
+ */
 function PermissionRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function PermissionRepository() {
 PermissionRepository.prototype = new BaseRepository();
 PermissionRepository.prototype.constructor = PermissionRepository;
 
+/**
+ * Find a permission by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 PermissionRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -64,6 +75,12 @@ PermissionRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Find permissions by role ID
+ *
+ * @param {integer} roleId      Role ID to search by
+ * @return {object}             Returns promise resolving to array of models
+ */
 PermissionRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -110,6 +127,14 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
     return defer.promise;
 };
 
+/**
+ * Find permissions by role ID, resource and action
+ *
+ * @param {integer} roleId          Role ID
+ * @param {string|null} resource    Resource
+ * @param {string|null} action      Action
+ * @return {object}                 Returns promise resolving to array of models
+ */
 PermissionRepository.prototype.findByParams = function (roleId, resource, action) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -179,6 +204,11 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
     return defer.promise;
 };
 
+/**
+ * Find all the permissions
+ *
+ * @return {object}             Returns promise resolving to array of models
+ */
 PermissionRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -217,6 +247,12 @@ PermissionRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+/**
+ * Save permission model
+ *
+ * @param {object} permission   The permission to save
+ * @return {object}             Returns promise resolving to permission ID
+ */
 PermissionRepository.prototype.save = function (permission) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -277,6 +313,12 @@ PermissionRepository.prototype.save = function (permission) {
     return defer.promise;
 };
 
+/**
+ * Delete permission
+ *
+ * @param {object} permission       Model to delete
+ * @return {object}                 Returns promise resolving to a number or DB rows deleted
+ */
 PermissionRepository.prototype.delete = function (permission) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -318,6 +360,11 @@ PermissionRepository.prototype.delete = function (permission) {
     return defer.promise;
 };
 
+/**
+ * Delete all the permission
+ *
+ * @return {object}                 Returns promise resolving to a number or DB rows deleted
+ */
 PermissionRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

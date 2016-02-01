@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var RoleTranslationModel = locator.get('role-translation-model');
 
+/**
+ * Role translation repository
+ *
+ * @constructor
+ */
 function RoleTranslationRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function RoleTranslationRepository() {
 RoleTranslationRepository.prototype = new BaseRepository();
 RoleTranslationRepository.prototype.constructor = RoleTranslationRepository;
 
+/**
+ * Find a translation by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 RoleTranslationRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -64,6 +75,12 @@ RoleTranslationRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Find translations by role ID
+ *
+ * @param {integer} roleID      Role ID to search by
+ * @return {object}             Returns promise resolving to array of models
+ */
 RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -110,6 +127,13 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
     return defer.promise;
 };
 
+/**
+ * Find translations by role ID and locale
+ *
+ * @param {integer} roleId          Role ID
+ * @param {string} locale           Locale
+ * @return {object}                 Returns promise resolving to array of models
+ */
 RoleTranslationRepository.prototype.findByRoleIdAndLocale = function (roleId, locale) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -156,6 +180,11 @@ RoleTranslationRepository.prototype.findByRoleIdAndLocale = function (roleId, lo
     return defer.promise;
 };
 
+/**
+ * Find all the translations
+ *
+ * @return {object}             Returns promise resolving to array of models
+ */
 RoleTranslationRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -194,6 +223,12 @@ RoleTranslationRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+/**
+ * Save translation model
+ *
+ * @param {object} translation  The translation to save
+ * @return {object}             Returns promise resolving to translation ID
+ */
 RoleTranslationRepository.prototype.save = function (translation) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -308,6 +343,12 @@ RoleTranslationRepository.prototype.save = function (translation) {
     return defer.promise;
 };
 
+/**
+ * Delete a translation
+ *
+ * @param {object} translation      Translation to delete
+ * @return {object}                 Returns promise resolving to a number of deleted DB rows
+ */
 RoleTranslationRepository.prototype.delete = function (translation) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -349,6 +390,11 @@ RoleTranslationRepository.prototype.delete = function (translation) {
     return defer.promise;
 };
 
+/**
+ * Delete all the translations
+ *
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 RoleTranslationRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

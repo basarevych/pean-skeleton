@@ -15,6 +15,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // Profile form validator
     var profileForm = new ValidatorService();
     profileForm.addParser(
         'name',
@@ -65,6 +66,7 @@ module.exports = function () {
         }
     );
 
+    // Validate profile field route
     router.post('/validate', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -79,6 +81,7 @@ module.exports = function () {
             });
     });
 
+    // Get profile route
     router.get('/', function (req, res) {
         var config = locator.get('config');
         var roleRepo = locator.get('role-repository');
@@ -114,6 +117,7 @@ module.exports = function () {
             });
     });
 
+    // Update profile route
     router.put('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

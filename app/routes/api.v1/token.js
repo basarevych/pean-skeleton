@@ -16,6 +16,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // Token list table route
     router.get('/table', function (req, res) {
         var userId = parseInt(req.query.user_id, 10);
         if (isNaN(userId))
@@ -123,6 +124,7 @@ module.exports = function () {
             });
     });
 
+    // Get particular token route
     router.get('/:tokenId', function (req, res) {
         var tokenId = parseInt(req.params.tokenId, 10);
         if (isNaN(tokenId))
@@ -162,6 +164,7 @@ module.exports = function () {
             });
     });
 
+    // Get all tokens route
     router.get('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -197,6 +200,7 @@ module.exports = function () {
             });
     });
 
+    // Delete particular token route
     router.delete('/:tokenId', function (req, res) {
         var tokenId = parseInt(req.params.tokenId, 10);
         if (isNaN(tokenId))
@@ -235,6 +239,7 @@ module.exports = function () {
             });
     });
 
+    // Delete all tokens route
     router.delete('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

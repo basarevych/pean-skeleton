@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var TokenModel = locator.get('token-model');
 
+/**
+ * Token repository
+ *
+ * @constructor
+ */
 function TokenRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function TokenRepository() {
 TokenRepository.prototype = new BaseRepository();
 TokenRepository.prototype.constructor = TokenRepository;
 
+/**
+ * Find a token by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 TokenRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -64,6 +75,12 @@ TokenRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Find tokens by user ID
+ *
+ * @param {integer} userId          User ID to search by
+ * @return {object}                 Returns promise resolving to array of models
+ */
 TokenRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -110,6 +127,11 @@ TokenRepository.prototype.findByUserId = function (userId) {
     return defer.promise;
 };
 
+/**
+ * Find all the tokens
+ *
+ * @return {object}         Returns promise resolving to array of models
+ */
 TokenRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -148,6 +170,12 @@ TokenRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+/**
+ * Save token model
+ *
+ * @param {object} token   The token to save
+ * @return {object}         Returns promise resolving to token ID
+ */
 TokenRepository.prototype.save = function (token) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -258,6 +286,12 @@ TokenRepository.prototype.save = function (token) {
     return defer.promise;
 };
 
+/**
+ * Delete the token
+ *
+ * @param {object} token        Token to delete
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 TokenRepository.prototype.delete = function (token) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -299,6 +333,11 @@ TokenRepository.prototype.delete = function (token) {
     return defer.promise;
 };
 
+/**
+ * Delete all the tokens
+ *
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 TokenRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

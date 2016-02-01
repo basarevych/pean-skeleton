@@ -16,6 +16,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // Create notification route
     router.post('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

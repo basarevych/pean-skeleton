@@ -24,6 +24,9 @@ BaseModel.UUID_REGEX = '^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9
 /**
  * Mark/query field is dirty (model not saved)
  *
+ * Note: If a field is date/time then UTC string should be passed
+ *       It will be converted to local time zone Moment.js instance
+ *
  * @param {boolean} [newValue]  New value
  * @return {boolean}            Current value
  */

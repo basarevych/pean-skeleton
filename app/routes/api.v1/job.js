@@ -20,6 +20,7 @@ module.exports = function () {
     var app = locator.get('app');
     var config = locator.get('config');
 
+    // Job form validator
     var jobForm = new ValidatorService();
     jobForm.addParser(
         'name',
@@ -119,6 +120,7 @@ module.exports = function () {
         }
     );
 
+    // Job list table route
     router.get('/table', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -254,6 +256,7 @@ module.exports = function () {
             });
     });
 
+    // Validate job field route
     router.post('/validate', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -278,6 +281,7 @@ module.exports = function () {
             });
     });
 
+    // Route for list of job statuses
     router.get('/statuses', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -295,6 +299,7 @@ module.exports = function () {
             });
     });
 
+    // Get particular job route
     router.get('/:jobId', function (req, res) {
         var jobId = parseInt(req.params.jobId, 10);
         if (isNaN(jobId))
@@ -337,6 +342,7 @@ module.exports = function () {
             });
     });
 
+    // Get all the jobs route
     router.get('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -375,6 +381,7 @@ module.exports = function () {
             });
     });
 
+    // Create job route
     router.post('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -426,6 +433,7 @@ module.exports = function () {
             });
     });
 
+    // Update job route
     router.put('/:jobId', function (req, res) {
         var jobId = parseInt(req.params.jobId, 10);
         if (isNaN(jobId))
@@ -489,6 +497,7 @@ module.exports = function () {
             });
     });
 
+    // Delete particular job route
     router.delete('/:jobId', function (req, res) {
         var jobId = parseInt(req.params.jobId, 10);
         if (isNaN(jobId))
@@ -530,6 +539,7 @@ module.exports = function () {
             });
     });
 
+    // Delete all jobs route
     router.delete('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

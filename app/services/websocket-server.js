@@ -7,6 +7,11 @@
 var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');
 
+/**
+ * Web socket server
+ *
+ * @constructor
+ */
 function WebSocketServer() {
     this.httpServer = null;
     this.httpClients = {};
@@ -14,42 +19,49 @@ function WebSocketServer() {
     this.httpsClients = {};
 };
 
+/**
+ * HTTP Web socket server setter
+ *
+ * @param {object}          The server
+ * @return {object}         Returns self
+ */
 WebSocketServer.prototype.setHttpServer = function (server) {
     this.httpServer = server;
     return this;
 };
 
+/**
+ * HTTP Web socket server getter
+ *
+ * @return {object}         Returns current server
+ */
 WebSocketServer.prototype.getHttpServer = function () {
     return this.httpServer;
 };
 
+/**
+ * HTTPS Web socket server setter
+ *
+ * @param {object}          The server
+ * @return {object}         Returns self
+ */
 WebSocketServer.prototype.setHttpsServer = function (server) {
     this.httpsServer = server;
     return this;
 };
 
+/**
+ * HTTPS Web socket server getter
+ *
+ * @return {object}         Returns current server
+ */
 WebSocketServer.prototype.getHttpsServer = function () {
     return this.httpsServer;
 };
 
-WebSocketServer.prototype.setHttpClients = function (clients) {
-    this.httpClients = clients;
-    return this;
-};
-
-WebSocketServer.prototype.getHttpClients = function () {
-    return this.httpClients;
-}
-
-WebSocketServer.prototype.setHttpsClients = function (clients) {
-    this.httpsClients = clients;
-    return this;
-};
-
-WebSocketServer.prototype.getHttpsClients = function () {
-    return this.httpsClients;
-}
-
+/**
+ * Create HTTP and HTTPS Web socket servers
+ */
 WebSocketServer.prototype.start = function () {
     var me = this;
     var logger = locator.get('logger');
@@ -70,7 +82,7 @@ WebSocketServer.prototype.start = function () {
     var subscriber = notificationRepo.getRedis();
     subscriber.on("message", function (channel, message) {
         switch (channel) {
-            case process.env.PROJECT + ":notifications":
+            case process.env.PROJECT + ":notifications":        // Notification has been created - send it
                 notificationRepo.find(message)
                     .then(function (notifications) {
                         var notification = notifications.length && notifications[0];
@@ -131,6 +143,12 @@ WebSocketServer.prototype.start = function () {
     subscriber.subscribe(process.env.PROJECT + ":notifications");
 };
 
+/**
+ * Web socket server 'connect' event handler
+ *
+ * @param {string} type     Possible values: 'http', 'https'
+ * @param {object} socket   Web socket
+ */
 WebSocketServer.prototype.onConnect = function (type, socket) {
     var me = this;
     console.log("[WebSocket] Connected (" + type + ") " + socket.id);
@@ -138,6 +156,12 @@ WebSocketServer.prototype.onConnect = function (type, socket) {
     socket.on('token', function (data) { me.onToken(type, socket, data); });
 };
 
+/**
+ * Web socket server 'disconnect' event handler
+ *
+ * @param {string} type     Possible values: 'http', 'https'
+ * @param {object} socket   Web socket
+ */
 WebSocketServer.prototype.onDisconnect = function (type, socket) {
     console.log("[WebSocket] Disconnected (" + type + ") " + socket.id);
     if (type == 'http')
@@ -146,6 +170,13 @@ WebSocketServer.prototype.onDisconnect = function (type, socket) {
         delete this.httpsClients[socket.id];
 };
 
+/**
+ * Handle 'token' message sent by client
+ *
+ * @param {string} type     Possible values: 'http', 'https'
+ * @param {object} socket   Web socket
+ * @param {string} data     The message (encrypted token)
+ */
 WebSocketServer.prototype.onToken = function (type, socket, data) {
     var config = locator.get('config');
 

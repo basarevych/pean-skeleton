@@ -11,6 +11,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // Index route
     router.get('/', function (req, res) {
         res.render('index', { loading: res.locals.glMessage('APP_LOADING') });
     });

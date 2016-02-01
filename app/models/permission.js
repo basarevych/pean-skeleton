@@ -9,6 +9,12 @@ var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = locator.get('base-model');
 
+/**
+ * Permission model class
+ *
+ * @constructor
+ * @param {object} model    DB row used as source for this instance
+ */
 function PermissionModel(model) {
     this.id = null;
     this.role_id = null;
@@ -21,6 +27,12 @@ function PermissionModel(model) {
 PermissionModel.prototype = new BaseModel();
 PermissionModel.prototype.constructor = PermissionModel;
 
+/**
+ * Method for setting/querying model fields
+ *
+ * @param {object} [model]      New value
+ * @return {object}             Current value
+ */
 PermissionModel.prototype.data = function (model) {
     if (typeof model == 'undefined') {
         model = {
@@ -39,39 +51,82 @@ PermissionModel.prototype.data = function (model) {
     return model;
 };
 
-
+/**
+ * ID setter
+ *
+ * @param {integer} id      New ID
+ * @return {object}         Returns self
+ */
 PermissionModel.prototype.setId = function (id) {
     this.field('id', id);
     return this;
 };
 
+/**
+ * ID getter
+ *
+ * @return {integer}        Returns current ID
+ */
 PermissionModel.prototype.getId = function () {
     return this.field('id');
 };
 
-PermissionModel.prototype.setRoleId = function (id) {
-    this.field('role_id', id);
+/**
+ * Role ID setter
+ *
+ * @param {integer} roleId  New role ID
+ * @return {object}         Returns self
+ */
+PermissionModel.prototype.setRoleId = function (roleId) {
+    this.field('role_id', roleId);
     return this;
 };
 
+/**
+ * Role ID getter
+ *
+ * @return {integer}        Returns curent role ID
+ */
 PermissionModel.prototype.getRoleId = function () {
     return this.field('role_id');
 };
 
+/**
+ * Resource setter
+ *
+ * @param {string} resource New resource
+ * @return {object}         Returns self
+ */
 PermissionModel.prototype.setResource = function (resource) {
     this.field('resource', resource);
     return this;
 };
 
+/**
+ * Resource getter
+ *
+ * @return {integer}        Returns current resource
+ */
 PermissionModel.prototype.getResource = function () {
     return this.field('resource');
 };
 
+/**
+ * Action setter
+ *
+ * @param {string} action   New action
+ * @return {object}         Returns self
+ */
 PermissionModel.prototype.setAction = function (action) {
     this.field('action', action);
     return this;
 };
 
+/**
+ * Action getter
+ *
+ * @return {string}         Returns current action
+ */
 PermissionModel.prototype.getAction = function () {
     return this.field('action');
 };

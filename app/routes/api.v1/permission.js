@@ -18,6 +18,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // Permission form validator
     var permissionForm = new ValidatorService();
     permissionForm.addParser(
         'role_id',
@@ -64,6 +65,7 @@ module.exports = function () {
         }
     );
 
+    // Permission list table route
     router.get('/table', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -157,6 +159,7 @@ module.exports = function () {
             });
     });
 
+    // Validate permission field route
     router.post('/validate', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -181,6 +184,7 @@ module.exports = function () {
             });
     });
 
+    // Get particular permission route
     router.get('/:permissionId', function (req, res) {
         var permissionId = parseInt(req.params.permissionId, 10);
         if (isNaN(permissionId))
@@ -218,6 +222,7 @@ module.exports = function () {
             });
     });
 
+    // Get all permissions route
     router.get('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -251,6 +256,7 @@ module.exports = function () {
             });
     });
 
+    // Create permission route
     router.post('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -297,6 +303,7 @@ module.exports = function () {
             });
     });
 
+    // Update perimission route
     router.put('/:permissionId', function (req, res) {
         var permissionId = parseInt(req.params.permissionId, 10);
         if (isNaN(permissionId))
@@ -356,6 +363,7 @@ module.exports = function () {
             });
     });
 
+    // Delete particular permission route
     router.delete('/:permissionId', function (req, res) {
         var permissionId = parseInt(req.params.permissionId, 10);
         if (isNaN(permissionId))
@@ -397,6 +405,7 @@ module.exports = function () {
             });
     });
 
+    // Delete all permissions route
     router.delete('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

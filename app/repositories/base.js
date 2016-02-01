@@ -8,9 +8,19 @@ var locator = require('node-service-locator');
 var pg = require('pg');
 var redis = require('redis');
 
+/**
+ * Repository base class
+ *
+ * @constructor
+ */
 function BaseRepository() {
 }
 
+/**
+ * Retrieve Postgres DB client
+ *
+ * @return {object}
+ */
 BaseRepository.prototype.getPostgres = function () {
     var config = locator.get('config');
     var url = 'postgres://' + config['postgres']['user'] + ':' + config['postgres']['password']
@@ -19,6 +29,11 @@ BaseRepository.prototype.getPostgres = function () {
     return new pg.Client(url);
 };
 
+/**
+ * Retrieve Redis DB client
+ *
+ * @return {object}
+ */
 BaseRepository.prototype.getRedis = function () {
     var config = locator.get('config');
     var options = {};

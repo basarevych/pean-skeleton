@@ -9,11 +9,17 @@ var q = require('q');
 var moment = require('moment-timezone');
 var BaseModel = locator.get('base-model');
 
+/**
+ * Role translation model class
+ *
+ * @constructor
+ * @param {object} model    DB row used as source for this instance
+ */
 function RoleTranslationModel(model) {
     this.id = null;
     this.role_id = null;
-    this.locale = null;
-    this.title = null;
+    this.locale = null;     // Two letter code
+    this.title = null;      // The translation
 
     BaseModel.call(this, model);
 };
@@ -21,6 +27,12 @@ function RoleTranslationModel(model) {
 RoleTranslationModel.prototype = new BaseModel();
 RoleTranslationModel.prototype.constructor = RoleTranslationModel;
 
+/**
+ * Method for setting/querying model fields
+ *
+ * @param {object} [model]      New value
+ * @return {object}             Current value
+ */
 RoleTranslationModel.prototype.data = function (model) {
     if (typeof model == 'undefined') {
         model = {
@@ -39,38 +51,82 @@ RoleTranslationModel.prototype.data = function (model) {
     return model;
 };
 
+/**
+ * ID setter
+ *
+ * @param {integer} id      New ID
+ * @return {object}         Returns self
+ */
 RoleTranslationModel.prototype.setId = function (id) {
     this.field('id', id);
     return this;
 };
 
+/**
+ * ID getter
+ *
+ * @return {integer}        Returns current ID
+ */
 RoleTranslationModel.prototype.getId = function () {
     return this.field('id');
 };
 
-RoleTranslationModel.prototype.setRoleId = function (id) {
-    this.field('role_id', id);
+/**
+ * Role ID setter
+ *
+ * @param {integer} roleId  New role ID
+ * @return {object}         Returns self
+ */
+RoleTranslationModel.prototype.setRoleId = function (roleId) {
+    this.field('role_id', roleId);
     return this;
 };
 
+/**
+ * Role ID getter
+ *
+ * @return {integer}        Returns current role ID
+ */
 RoleTranslationModel.prototype.getRoleId = function () {
     return this.field('role_id');
 };
 
+/**
+ * Locale setter
+ *
+ * @param {string} locale   New locale
+ * @return {object}         Returns self
+ */
 RoleTranslationModel.prototype.setLocale = function (locale) {
     this.field('locale', locale);
     return this;
 };
 
+/**
+ * Locale getter
+ *
+ * @return {string}         Returns current locale
+ */
 RoleTranslationModel.prototype.getLocale = function () {
     return this.field('locale');
 };
 
+/**
+ * Title setter
+ *
+ * @param {string} title    New title
+ * @return {object}         Returns self
+ */
 RoleTranslationModel.prototype.setTitle = function (title) {
     this.field('title', title);
     return this;
 };
 
+/**
+ * Title getter
+ *
+ * @return {string}         Returns current title
+ */
 RoleTranslationModel.prototype.getTitle = function () {
     return this.field('title');
 };

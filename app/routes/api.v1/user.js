@@ -18,6 +18,7 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    // User form validator
     var userForm = new ValidatorService();
     userForm.addParser(
         'name',
@@ -140,6 +141,7 @@ module.exports = function () {
         }
     );
 
+    // User list table route
     router.get('/table', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -255,6 +257,7 @@ module.exports = function () {
             });
     });
 
+    // Validate user field route
     router.post('/validate', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -279,12 +282,13 @@ module.exports = function () {
             });
     });
 
+    // Find a user by some critera route
     router.post('/search', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
         var criteria = req.body.criteria;
-        if (!criteria || ['email'].indexOf(criteria) == -1)
+        if (!criteria || ['email'].indexOf(criteria) == -1)     // Currently only by email
             return app.abort(res, 400, "Invalid criteria");
 
         var limit = req.body.limit;
@@ -344,6 +348,7 @@ module.exports = function () {
             });
     });
 
+    // Get particular user route
     router.get('/:userId', function (req, res) {
         var userId = parseInt(req.params.userId, 10);
         if (isNaN(userId))
@@ -393,6 +398,7 @@ module.exports = function () {
             });
     });
 
+    // Get all users route
     router.get('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -443,6 +449,7 @@ module.exports = function () {
             });
     });
 
+    // Create user route
     router.post('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -506,6 +513,7 @@ module.exports = function () {
             });
     });
 
+    // Update user route
     router.put('/:userId', function (req, res) {
         var userId = parseInt(req.params.userId, 10);
         if (isNaN(userId))
@@ -585,6 +593,7 @@ module.exports = function () {
             });
     });
 
+    // Delete particular user route
     router.delete('/:userId', function (req, res) {
         var userId = parseInt(req.params.userId, 10);
         if (isNaN(userId))
@@ -626,6 +635,7 @@ module.exports = function () {
             });
     });
 
+    // Delete all users route
     router.delete('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

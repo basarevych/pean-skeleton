@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var JobModel = locator.get('job-model');
 
+/**
+ * Job repository
+ *
+ * @constructor
+ */
 function JobRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function JobRepository() {
 JobRepository.prototype = new BaseRepository();
 JobRepository.prototype.constructor = JobRepository;
 
+/**
+ * Find a job by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 JobRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -64,6 +75,11 @@ JobRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Find all the jobs
+ *
+ * @return {object}             Returns promise resolving to array of models
+ */
 JobRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -102,6 +118,113 @@ JobRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+/**
+ * Save job model
+ *
+ * @param {object} job      The job to save
+ * @return {object}         Returns promise resolving to job ID
+ */
+JobRepository.prototype.save = function (job) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+    var me = this;
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('JobRepository.save() - pg connect', err);
+            process.exit(1);
+        }
+
+        var query, params = [];
+        if (job.getId()) {
+            query = "UPDATE jobs "
+                  + "   SET name = $1, "
+                  + "       queue = $2, "
+                  + "       status = $3, "
+                  + "       created_at = $4, "
+                  + "       scheduled_for = $5, "
+                  + "       valid_until = $6, "
+                  + "       input_data = $7, "
+                  + "       output_data = $8 "
+                  + " WHERE id = $9 ";
+            params = [
+                job.getName(),
+                job.getQueue(),
+                job.getStatus(),
+                job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                JSON.stringify(job.getInputData()),
+                JSON.stringify(job.getOutputData()),
+                job.getId(),
+            ];
+        } else {
+            query = "   INSERT "
+                  + "     INTO jobs(name, queue, status, created_at, scheduled_for, valid_until, input_data, output_data) "
+                  + "   VALUES ($1, $2, $3, $4, $5, $6, $7, $8) "
+                  + "RETURNING id ";
+            params = [
+                job.getName(),
+                job.getQueue(),
+                job.getStatus(),
+                job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                JSON.stringify(job.getInputData()),
+                JSON.stringify(job.getOutputData()),
+            ];
+        }
+
+        db.query(query, params, function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('JobRepository.save() - pg query', err);
+                process.exit(1);
+            }
+
+            db.end();
+            job.dirty(false);
+
+            var id = result.rows.length && result.rows[0]['id'];
+            if (id)
+                job.setId(id);
+            else
+                id = job.getId();
+
+            if (job.getStatus() != 'created') {
+                defer.resolve(id);
+                return;
+            }
+
+            var redis = me.getRedis();
+            redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {
+                if (err) {
+                    defer.reject();
+                    logger.error('JobRepository.save() - publish', err);
+                    process.exit(1);
+                }
+
+                redis.quit();
+                defer.resolve(id);
+            });
+        });
+    });
+
+    return defer.promise;
+};
+
+/**
+ * Find expired and active jobs
+ *
+ * Searches for jobs with 'created' status and changes it to either
+ * 'expired' or 'started'
+ *
+ * @return {object}             Returns promise resolving to an object with
+ *                              two arrays of expired/started models:
+ *                              { expired: [], started: [] }
+ */
 JobRepository.prototype.processNewJobs = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -261,97 +384,13 @@ JobRepository.prototype.processNewJobs = function () {
     return defer.promise;
 };
 
-JobRepository.prototype.save = function (job) {
-    var logger = locator.get('logger');
-    var defer = q.defer();
-    var me = this;
-
-    var db = this.getPostgres();
-    db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.save() - pg connect', err);
-            process.exit(1);
-        }
-
-        var query, params = [];
-        if (job.getId()) {
-            query = "UPDATE jobs "
-                  + "   SET name = $1, "
-                  + "       queue = $2, "
-                  + "       status = $3, "
-                  + "       created_at = $4, "
-                  + "       scheduled_for = $5, "
-                  + "       valid_until = $6, "
-                  + "       input_data = $7, "
-                  + "       output_data = $8 "
-                  + " WHERE id = $9 ";
-            params = [
-                job.getName(),
-                job.getQueue(),
-                job.getStatus(),
-                job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                JSON.stringify(job.getInputData()),
-                JSON.stringify(job.getOutputData()),
-                job.getId(),
-            ];
-        } else {
-            query = "   INSERT "
-                  + "     INTO jobs(name, queue, status, created_at, scheduled_for, valid_until, input_data, output_data) "
-                  + "   VALUES ($1, $2, $3, $4, $5, $6, $7, $8) "
-                  + "RETURNING id ";
-            params = [
-                job.getName(),
-                job.getQueue(),
-                job.getStatus(),
-                job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                JSON.stringify(job.getInputData()),
-                JSON.stringify(job.getOutputData()),
-            ];
-        }
-
-        db.query(query, params, function (err, result) {
-            if (err) {
-                defer.reject();
-                logger.error('JobRepository.save() - pg query', err);
-                process.exit(1);
-            }
-
-            db.end();
-            job.dirty(false);
-
-            var id = result.rows.length && result.rows[0]['id'];
-            if (id)
-                job.setId(id);
-            else
-                id = job.getId();
-
-            if (job.getStatus() != 'created') {
-                defer.resolve(id);
-                return;
-            }
-
-            var redis = me.getRedis();
-            redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {
-                if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.save() - publish', err);
-                    process.exit(1);
-                }
-
-                redis.quit();
-                defer.resolve(id);
-            });
-        });
-    });
-
-    return defer.promise;
-};
-
+/**
+ * Find 'started' jobs and change them to 'created'
+ *
+ * Intended to be run on server start to reset not-finished jobs
+ *
+ * @return {object}         Returns promise resolving to a number of processed jobs
+ */
 JobRepository.prototype.restartInterrupted = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -386,7 +425,12 @@ JobRepository.prototype.restartInterrupted = function () {
     return defer.promise;
 };
 
-
+/**
+ * Delete a job
+ *
+ * @param {object} job          The job to delete
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 JobRepository.prototype.delete = function (job) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -428,6 +472,11 @@ JobRepository.prototype.delete = function (job) {
     return defer.promise;
 };
 
+/**
+ * Delete all the jobs
+ *
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
 JobRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

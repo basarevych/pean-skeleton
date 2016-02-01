@@ -7,9 +7,21 @@
 var locator = require('node-service-locator');
 var q = require('q');
 
+/**
+ * Access Control List
+ *
+ * @constructor
+ */
 function Acl() {
 }
 
+/**
+ * Is an action is allowed for a user?
+ *
+ * @param {object} user         User model
+ * @param {string} resource     Resource
+ * @param {string} action       Action
+ */
 Acl.prototype.isAllowed = function (user, resource, action) {
     var defer = q.defer();
 

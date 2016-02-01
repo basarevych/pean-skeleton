@@ -11,6 +11,11 @@ var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var UserModel = locator.get('user-model');
 
+/**
+ * User repository
+ *
+ * @constructor
+ */
 function UserRepository() {
     BaseRepository.call(this);
 }
@@ -18,6 +23,12 @@ function UserRepository() {
 UserRepository.prototype = new BaseRepository();
 UserRepository.prototype.constructor = UserRepository;
 
+/**
+ * Find a user by ID
+ *
+ * @param {integer} id      ID to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
 UserRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -64,6 +75,12 @@ UserRepository.prototype.find = function (id) {
     return defer.promise;
 };
 
+/**
+ * Find users by email
+ *
+ * @param {string} email        Email to search by
+ * @return {object}             Returns promise resolving to array of models
+ */
 UserRepository.prototype.findByEmail = function (email) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -104,6 +121,12 @@ UserRepository.prototype.findByEmail = function (email) {
     return defer.promise;
 };
 
+/**
+ * Find users by role ID
+ *
+ * @param {integer} roleID          Role ID to search by
+ * @return {object}                 Returns promise resolving to array of models
+ */
 UserRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -152,6 +175,12 @@ UserRepository.prototype.findByRoleId = function (roleId) {
     return defer.promise;
 };
 
+/**
+ * Find users by their role handle
+ *
+ * @param {string} handle           Handle to search by
+ * @return {object}                 Return promise resolving to array of models
+ */
 UserRepository.prototype.findByRoleHandle = function (handle) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -196,6 +225,11 @@ UserRepository.prototype.findByRoleHandle = function (handle) {
     return defer.promise;
 };
 
+/**
+ * Find all the users
+ *
+ * @return {object}         Returns promise resolving to array of models
+ */
 UserRepository.prototype.findAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -234,6 +268,13 @@ UserRepository.prototype.findAll = function () {
     return defer.promise;
 };
 
+/**
+ * Find users with similar email (LIKE)
+ *
+ * @param {string} search       Email to search by
+ * @param {integer} limit       Max number of resulting models
+ * @return {object}             Returns promise resolving to array of models
+ */
 UserRepository.prototype.searchByEmail = function (search, limit) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -281,6 +322,12 @@ UserRepository.prototype.searchByEmail = function (search, limit) {
     return defer.promise;
 };
 
+/**
+ * Save user model
+ *
+ * @param {object} user     The user to save
+ * @return {object}         Returns promise resolving to user ID
+ */
 UserRepository.prototype.save = function (user) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -396,6 +443,13 @@ UserRepository.prototype.save = function (user) {
     return defer.promise;
 };
 
+/**
+ * Assign role to a user
+ *
+ * @param {object} user     User model
+ * @param {object} role     Role model
+ * @return {object}         Returns promise resolving to a number of inserted DB rows
+ */
 UserRepository.prototype.addRole = function (user, role) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -485,6 +539,13 @@ UserRepository.prototype.addRole = function (user, role) {
     return defer.promise;
 };
 
+/**
+ * Remove role from a user
+ *
+ * @param {object} user     User model
+ * @param {object} role     Role model
+ * @return {object}         Returns promise resolving to a number of deleted DB rows
+ */
 UserRepository.prototype.removeRole = function (user, role) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -528,6 +589,12 @@ UserRepository.prototype.removeRole = function (user, role) {
     return defer.promise;
 };
 
+/**
+ * Delete a user
+ *
+ * @param {object} user     User to delete
+ * @return {promise}        Returns promise resolving to a number of deleted DB rows
+ */
 UserRepository.prototype.delete = function (user) {
     var logger = locator.get('logger');
     var defer = q.defer();
@@ -569,6 +636,11 @@ UserRepository.prototype.delete = function (user) {
     return defer.promise;
 };
 
+/**
+ * Delete all the users
+ *
+ * @return {object}         Returns promise resolving to a number of deleted DB rows
+ */
 UserRepository.prototype.deleteAll = function () {
     var logger = locator.get('logger');
     var defer = q.defer();

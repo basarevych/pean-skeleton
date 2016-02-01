@@ -20,6 +20,7 @@ module.exports = function () {
     var app = locator.get('app');
     var config = locator.get('config');
 
+    // Role form validator
     var roleForm = new ValidatorService();
     roleForm.addParser(
         'parent_id',
@@ -132,6 +133,7 @@ module.exports = function () {
         return foundRoles;
     }
 
+    // Role list table route
     router.get('/table', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -225,6 +227,7 @@ module.exports = function () {
             });
     });
 
+    // Validate role field route
     router.post('/validate', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -249,6 +252,7 @@ module.exports = function () {
             });
     });
 
+    // Get particular role route
     router.get('/:roleId', function (req, res) {
         var roleId = parseInt(req.params.roleId, 10);
         if (isNaN(roleId))
@@ -297,6 +301,7 @@ module.exports = function () {
             });
     });
 
+    // Get all roles route
     router.get('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -347,6 +352,7 @@ module.exports = function () {
             });
     });
 
+    // Create role route
     router.post('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
@@ -414,6 +420,7 @@ module.exports = function () {
             });
     });
 
+    // Update role route
     router.put('/:roleId', function (req, res) {
         var roleId = parseInt(req.params.roleId, 10);
         if (isNaN(roleId))
@@ -513,6 +520,7 @@ module.exports = function () {
             });
     });
 
+    // Delete particular role route
     router.delete('/:roleId', function (req, res) {
         var roleId = parseInt(req.params.roleId, 10);
         if (isNaN(roleId))
@@ -554,6 +562,7 @@ module.exports = function () {
             });
     });
 
+    // Delete all roles route
     router.delete('/', function (req, res) {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");

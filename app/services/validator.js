@@ -8,21 +8,41 @@ var locator = require('node-service-locator');
 var q = require('q');
 var logger = locator.get('logger');
 
+/**
+ * Form validator
+ *
+ * @constructor
+ */
 function Validator() {
-    this.fields = [];
-    this.parsers = {};
+    this.fields = [];           // Form fields
+    this.parsers = {};          // Form field parsers
     this.reset();
 }
 
+/**
+ * Reset field values and errors
+ */
 Validator.prototype.reset = function () {
     this.values = {};
     this.errors = {};
 };
 
+/**
+ * Get field value
+ *
+ * @param {string} field        Field name
+ * @return {*}                  Returns the value
+ */
 Validator.prototype.getValue = function (field) {
     return this.values[field];
 };
 
+/**
+ * Get field validation errors
+ *
+ * @param {string} field        Field name
+ * @return {string[]}           Returns array of errors
+ */
 Validator.prototype.getErrors = function (field) {
     if (field)
         return this.errors[field];
@@ -36,6 +56,20 @@ Validator.prototype.getErrors = function (field) {
     return result;
 };
 
+/**
+ * Field parser callback which sets field value and errors
+ *
+ * @callback fieldParser
+ * @param {object} data         Form values as an object
+ * @return {object}             Returns object { value: 'some value', errors: [ 'an error' ] }
+ */
+
+/**
+ * Create form field by assigning its parser
+ *
+ * @param {string} field        Field name
+ * @param {fieldParser} parser  Field parser
+ */
 Validator.prototype.addParser = function (field, parser) {
     if (this.fields.indexOf(field) == -1)
         this.fields.push(field);
@@ -43,11 +77,26 @@ Validator.prototype.addParser = function (field, parser) {
     this.parsers[field] = parser;
 };
 
+/**
+ * Validate single field
+ *
+ * @param {string} field        Field name
+ * @param {object} req          Express.js request object
+ * @param {object} res          Express.js response object
+ * @return {object}             Returns promise resolving to validation result
+ */
 Validator.prototype.validateField = function(field, req, res) {
     this.reset();
     return this._validate(field, req, res);
 };
 
+/**
+ * Validate all the fields
+ *
+ * @param {object} req          Express.js request object
+ * @param {object} res          Express.js response object
+ * @return {object}             Returns promise resolving to validation result
+ */
 Validator.prototype.validateAll = function (req, res) {
     var me = this;
     var defer = q.defer();
@@ -73,6 +122,14 @@ Validator.prototype.validateAll = function (req, res) {
     return defer.promise;
 };
 
+/**
+ * Do actual validation on a field
+ *
+ * @param {string} field        Field name
+ * @param {object} req          Express.js request object
+ * @param {object} res          Express.js response object
+ * @return {object}             Returns promise resolving to validation result
+ */
 Validator.prototype._validate = function (field, req, res) {
     var me = this;
     var defer = q.defer();
