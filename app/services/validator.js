@@ -40,17 +40,17 @@ Validator.prototype.getValue = function (field) {
 /**
  * Get field validation errors
  *
- * @param {string} field        Field name
- * @return {string[]}           Returns array of errors
+ * @param {string} [field]      Field name, all fields if ommited
+ * @return {string[]}           Returns object or array of errors
  */
 Validator.prototype.getErrors = function (field) {
     if (field)
-        return this.errors[field];
+        return this.errors[field];          // Return array of errors
 
     var me = this;
     var result = {};
     this.fields.forEach(function (field) {
-        result[field] = me.errors[field];
+        result[field] = me.errors[field];   // Object: { field_name: [ 'errors' ], ... }
     });
 
     return result;
