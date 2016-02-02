@@ -476,7 +476,7 @@ JobRepository.prototype.postponeJob = function (job) {
  * Postpone all created/started jobs in the queue
  *
  * @param {string} queue        The queue name
- * @return {object}         Returns promise resolving to a number of DB rows affected
+ * @return {object}             Returns promise resolving to a number of DB rows affected
  */
 JobRepository.prototype.postponeQueue = function (queue) {
     var logger = locator.get('logger');
