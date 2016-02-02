@@ -19,7 +19,7 @@ var BaseModel = locator.get('base-model');
 function UserModel(model) {
     this.id = null;
     this.name = null;               // Could be null
-    this.email = null;
+    this.email = null;              // Unique
     this.password = null;           // Bcrypted
     this.created_at = moment();
 
