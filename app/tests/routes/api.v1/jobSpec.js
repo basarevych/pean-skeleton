@@ -205,6 +205,7 @@ describe('/v1/job route', function () {
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
                 expect(Array.isArray(res.body)).toBeTruthy();
+                expect(res.body).toEqual(JobModel.STATUS_TYPES);
             })
             .expect(200, done);
     });
