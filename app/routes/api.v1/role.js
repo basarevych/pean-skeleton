@@ -107,6 +107,9 @@ module.exports = function () {
         }
     );
 
+    /**
+     * Generate role tree
+     */
     function loadRoles(roles, translations, parentId) {
         var foundRoles = [];
         roles.forEach(function (role) {
