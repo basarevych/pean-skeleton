@@ -431,7 +431,7 @@ JobRepository.prototype.restartInterrupted = function () {
  * @param {object} job      The job
  * @return {object}         Returns promise resolving to a number of DB rows affected
  */
-jobRepository.prototype.postponeJob = function (job) {
+JobRepository.prototype.postponeJob = function (job) {
     var logger = locator.get('logger');
     var defer = q.defer();
     var me = this;
@@ -470,7 +470,7 @@ jobRepository.prototype.postponeJob = function (job) {
     });
 
     return defer.promise;
-}
+};
 
 /**
  * Postpone all created/started jobs in the queue
