@@ -60,7 +60,7 @@ module.exports = function () {
             var value = validator.trim(req.body.status);
             var errors = [];
 
-            if (config['job']['statuses'].indexOf(value) == -1)
+            if (JobModel.STATUS_TYPES.indexOf(value) == -1)
                 errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
 
             defer.resolve({ value: value, errors: errors });
@@ -292,7 +292,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                res.json(config['job']['statuses']);
+                res.json(JobModel.STATUS_TYPES);
             })
             .catch(function (err) {
                 app.abort(res, 500, 'POST /v1/job/statuses failed', err);

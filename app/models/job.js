@@ -29,6 +29,13 @@ function JobModel(model) {
     BaseModel.call(this, model);
 };
 
+JobModel.STATUS_TYPES = [
+    'created',
+    'started',
+    'success',
+    'failure',
+    'expired',
+];
 JobModel.POSTPONE_INTERVAL = 60; // seconds
 
 JobModel.prototype = new BaseModel();
