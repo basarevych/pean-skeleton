@@ -29,6 +29,8 @@ function JobModel(model) {
     BaseModel.call(this, model);
 };
 
+JobModel.POSTPONE_INTERVAL = 60; // seconds
+
 JobModel.prototype = new BaseModel();
 JobModel.prototype.constructor = JobModel;
 

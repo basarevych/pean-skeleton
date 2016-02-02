@@ -17,9 +17,7 @@ module.exports = function (app) {
     var tokenRepo = locator.get('token-repository');
     var userRepo = locator.get('user-repository');
 
-    /**
-     * Read token and create req.user and req.token if successful
-     */
+    // Read token and create req.user and req.token if successful
     app.use(function (req, res, next) {
         if (app.get('env') == 'test') { // override token when testing
             req.token = null;

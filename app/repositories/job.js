@@ -426,6 +426,148 @@ JobRepository.prototype.restartInterrupted = function () {
 };
 
 /**
+ * Postpone job execution
+ *
+ * @param {object} job      The job
+ * @return {object}         Returns promise resolving to a number of DB rows affected
+ */
+jobRepository.prototype.postponeJob = function (job) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+    var me = this;
+
+    var newTime = clone(job.getScheduledFor()).add(JobModel.POSTPONE_INTERVAL, 'seconds');
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('JobRepository.postponeJob() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "UPDATE jobs "
+          + "   SET status = $1, "
+          + "       scheduled_for = $2 "
+          + " WHERE id = $3 ",
+            [
+                'created',
+                newTime.tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                job.getId(),
+            ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('JobRepository.postponeJob() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+}
+
+/**
+ * Postpone all created/started jobs in the queue
+ *
+ * @param {string} queue        The queue name
+ * @return {object}         Returns promise resolving to a number of DB rows affected
+ */
+JobRepository.prototype.postponeQueue = function (queue) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+    var me = this;
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('JobRepository.postponeQueue() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query("BEGIN TRANSACTION", [], function (err, result) {
+            if (err) {
+                defer.reject();
+                logger.error('JobRepository.postponeQueue() - pg query', err);
+                process.exit(1);
+            }
+
+            db.query(
+                "SELECT * "
+              + "  FROM jobs "
+              + " WHERE queue = $1 "
+              + "   AND (status = $2 OR status = $3) ",
+                [ queue, 'created', 'started' ],
+                function (err, result) {
+                    if (err) {
+                        defer.reject();
+                        logger.error('JobRepository.postponeQueue() - pg query', err);
+                        process.exit(1);
+                    }
+
+                    var count = result.rowCount;
+                    var promises = [];
+                    result.rows.forEach(function (row) {
+                        var job = new JobModel(row);
+                        var jobDefer = q.defer();
+                        promises.push(jobDefer.promise);
+
+                        var newTime = clone(job.getScheduledFor()).add(JobModel.POSTPONE_INTERVAL, 'seconds');
+                        db.query(
+                            "UPDATE jobs "
+                          + "   SET status = $1, "
+                          + "       scheduled_for = $2 "
+                          + " WHERE id = $3 ",
+                            [
+                                'created',
+                                newTime.tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                                job.getId(),
+                            ],
+                            function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('JobRepository.postponeQueue() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                jobDefer.resolve();
+                            }
+                        );
+                    });
+
+                    q.all(promises)
+                        .then(function () {
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    defer.reject();
+                                    logger.error('JobRepository.postponeQueue() - pg query', err);
+                                    process.exit(1);
+                                }
+
+                                db.end();
+                                defer.resolve(count);
+                            });
+                        })
+                        .catch(function (err) {
+                            defer.reject();
+                            logger.error('JobRepository.postponeQueue() - q all', err);
+                            process.exit(1);
+                        });
+                }
+            );
+        });
+    });
+
+    return defer.promise;
+};
+
+/**
  * Delete a job
  *
  * @param {object} job          The job to delete

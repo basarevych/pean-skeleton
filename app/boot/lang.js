@@ -35,9 +35,7 @@ module.exports = function (app) {
     globalize.loadMessages(messages);
     globalize.locale(config['lang']['default']);
 
-    /**
-     * Create Globalize wrapper in res.locals
-     */
+    // Create Globalize wrapper in res.locals
     app.use(function (req, res, next) {
         var logger = locator.get('logger');
 
