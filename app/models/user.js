@@ -29,6 +29,12 @@ function UserModel(model) {
 UserModel.prototype = new BaseModel();
 UserModel.prototype.constructor = UserModel;
 
+/**
+ * Create hash of a password
+ *
+ * @param {string} password     The password
+ * @return {string}             Returns the hash
+ */
 UserModel.encryptPassword = function (password) {
     var salt = bcrypt.genSaltSync(10);
     return bcrypt.hashSync(password, salt);
