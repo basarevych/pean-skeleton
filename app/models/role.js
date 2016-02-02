@@ -29,6 +29,9 @@ RoleModel.prototype.constructor = RoleModel;
 /**
  * Method for setting/querying model fields
  *
+ * Note: If a field is date/time then UTC string should be passed
+ *       It will be converted to local time zone Moment.js instance
+ *
  * @param {object} [model]      New value
  * @return {object}             Current value
  */
