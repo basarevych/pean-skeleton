@@ -295,7 +295,7 @@ module.exports = function () {
                 res.json(JobModel.STATUS_TYPES);
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/job/statuses failed', err);
+                app.abort(res, 500, 'GET /v1/job/statuses failed', err);
             });
     });
 
