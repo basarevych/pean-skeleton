@@ -334,6 +334,50 @@ TokenRepository.prototype.delete = function (token) {
 };
 
 /**
+ * Delete expired tokens
+ *
+ * @return {object}             Returns promise resolving to a number of deleted DB rows
+ */
+TokenRepository.prototype.deleteExpired = function () {
+    var logger = locator.get('logger');
+    var config = locator.get('config');
+    var defer = q.defer();
+
+    var time = moment().subtract(config['jwt']['ttl'], 'seconds');
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err) {
+            defer.reject();
+            logger.error('TokenRepository.deleteExpired() - pg connect', err);
+            process.exit(1);
+        }
+
+        db.query(
+            "DELETE "
+          + "  FROM tokens "
+          + " WHERE updated_at < $1 ",
+            [
+                time.tz('UTC').format(BaseModel.DATETIME_FORMAT), // DB uses UTC
+            ],
+            function (err, result) {
+                if (err) {
+                    defer.reject();
+                    logger.error('TokenRepository.deleteExpired() - pg query', err);
+                    process.exit(1);
+                }
+
+                db.end();
+
+                defer.resolve(result.rowCount);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+/**
  * Delete all the tokens
  *
  * @return {object}             Returns promise resolving to a number of deleted DB rows
