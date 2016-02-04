@@ -17,7 +17,7 @@
     "angular-loading-bar": "~0.8.0",
     "angular-ui-router": "~0.2.15",
     "angular-ui-bootstrap-bower": "~0.14.3",
-    "angular-globalize-wrapper": "~0.2.0",
+    "angular-globalize-wrapper": "~1.0.0",
     "pnotify": "~2.1.0",
     "highlightjs": "~8.9.1",
     "angular-highlightjs": "~0.5.1",

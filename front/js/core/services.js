@@ -58,7 +58,7 @@ services.factory('AppControl',
                 $timeout(reload);
         };
 
-        $rootScope.$on('GlobalizeLoadSuccess', function() {
+        $rootScope.$on('GlobalizeLocaleChanged', function() {
             globalizeLoaded = true;
             sendInitBroadcast();
         });
@@ -156,7 +156,13 @@ services.factory('AppControl',
                         if (!angular.equals(profile, data)) {
                             if (!angular.equals(profile.locale, data.locale)) {
                                 globalizeLoaded = false;
-                                globalizeWrapper.setLocale(data.locale.current.substr(0, 2));
+                                var locales = [data.locale.current.substr(0, 2)];
+                                data.locale.available.forEach(function (locale) {
+                                    var code = locale.substr(0, 2);
+                                    if (locales.indexOf(code) == -1)
+                                        locales.push(code);
+                                });
+                                globalizeWrapper.loadLocales(locales);
                             }
                             profile = data;
                         }
