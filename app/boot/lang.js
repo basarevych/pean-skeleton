@@ -47,15 +47,36 @@ module.exports = function (app) {
         if (locator.get('locale') != lang)
             locator.register('locale', lang);
 
-        try {
-            globalize.locale(lang);
-        } catch (err) {
-            logger.warn('globalize', err);
-        }
-
         // add translation helpers
+
+        /**
+         * Globalize formatDate wrapper
+         *
+         * @param {string} input                Translation key
+         * @param {object} [params]             Parameters
+         * @param {string} [localeOverride]     Use non-default locale
+         * @return {string}                     Returns translation
+         */
         res.locals.glDate = function (input, params) {
-            var output = input;
+            var params = {}, locale = lang, output = input;
+            if (arguments.length == 3) {
+                params = arguments[1];
+                locale = arguments[2];
+            } else if (arguments.length == 2) {
+                if (typeof arguments[1] == 'object')
+                    params = arguments[1];
+                else
+                    locale = arguments[1];
+            } else if (arguments.length != 1) {
+                throw new Error('Invalid parameters to glDate');
+            }
+
+            try {
+                globalize.locale(locale);
+            } catch (err) {
+                logger.warn('globalize.locale', err);
+            }
+
             try {
                 output = globalize.formatDate(input, params);
             } catch (err) {
@@ -63,8 +84,35 @@ module.exports = function (app) {
             }
             return output;
         };
-        res.locals.glMessage = function (input, params) {
-            var output = input;
+
+        /**
+         * Globalize formatMessage wrapper
+         *
+         * @param {string} input                Translation key
+         * @param {object} [params]             Parameters
+         * @param {string} [localeOverride]     Use non-default locale
+         * @return {string}                     Returns translation
+         */
+        res.locals.glMessage = function (input) {
+            var params = {}, locale = lang, output = input;
+            if (arguments.length == 3) {
+                params = arguments[1];
+                locale = arguments[2];
+            } else if (arguments.length == 2) {
+                if (typeof arguments[1] == 'object')
+                    params = arguments[1];
+                else
+                    locale = arguments[1];
+            } else if (arguments.length != 1) {
+                throw new Error('Invalid parameters to glMessage');
+            }
+
+            try {
+                globalize.locale(locale);
+            } catch (err) {
+                logger.warn('globalize.locale', err);
+            }
+
             try {
                 output = globalize.formatMessage(input, params);
             } catch (err) {
@@ -72,8 +120,35 @@ module.exports = function (app) {
             }
             return output;
         };
+
+        /**
+         * Globalize formatNumber wrapper
+         *
+         * @param {string} input                Translation key
+         * @param {object} [params]             Parameters
+         * @param {string} [localeOverride]     Use non-default locale
+         * @return {string}                     Returns translation
+         */
         res.locals.glNumber = function (input, params) {
-            var output = input;
+            var params = {}, locale = lang, output = input;
+            if (arguments.length == 3) {
+                params = arguments[1];
+                locale = arguments[2];
+            } else if (arguments.length == 2) {
+                if (typeof arguments[1] == 'object')
+                    params = arguments[1];
+                else
+                    locale = arguments[1];
+            } else if (arguments.length != 1) {
+                throw new Error('Invalid parameters to glNumber');
+            }
+
+            try {
+                globalize.locale(locale);
+            } catch (err) {
+                logger.warn('globalize.locale', err);
+            }
+
             try {
                 output = globalize.formatNumber(input, params);
             } catch (err) {
@@ -81,8 +156,36 @@ module.exports = function (app) {
             }
             return output;
         };
-        res.locals.glCurrency = function (input, currency, params) {
-            var output = input;
+
+        /**
+         * Globalize formatNumber wrapper
+         *
+         * @param {string} input                Translation key
+         * @param {string} currency             Currency name
+         * @param {object} [params]             Parameters
+         * @param {string} [localeOverride]     Use non-default locale
+         * @return {string}                     Returns translation
+         */
+        res.locals.glCurrency = function (input, currency) {
+            var params = {}, locale = lang, output = input;
+            if (arguments.length == 4) {
+                params = arguments[2];
+                locale = arguments[3];
+            } else if (arguments.length == 3) {
+                if (typeof arguments[2] == 'object')
+                    params = arguments[2];
+                else
+                    locale = arguments[2];
+            } else if (arguments.length != 2) {
+                throw new Error('Invalid parameters to glCurrency');
+            }
+
+            try {
+                globalize.locale(locale);
+            } catch (err) {
+                logger.warn('globalize.locale', err);
+            }
+
             try {
                 output = globalize.formatCurrency(input, currency, params);
             } catch (err) {
