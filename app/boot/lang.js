@@ -53,23 +53,14 @@ module.exports = function (app) {
          * Globalize formatDate wrapper
          *
          * @param {string} input                Translation key
-         * @param {object} [params]             Parameters
-         * @param {string} [localeOverride]     Use non-default locale
+         * @param {object} params               Parameters
+         * @param {string} [locale]             Use non-default locale
          * @return {string}                     Returns translation
          */
-        res.locals.glDate = function (input, params) {
-            var params = {}, locale = lang, output = input;
-            if (arguments.length == 3) {
-                params = arguments[1];
-                locale = arguments[2];
-            } else if (arguments.length == 2) {
-                if (typeof arguments[1] == 'object')
-                    params = arguments[1];
-                else
-                    locale = arguments[1];
-            } else if (arguments.length != 1) {
-                throw new Error('Invalid parameters to glDate');
-            }
+        res.locals.glDate = function (input, params, locale) {
+            if (!locale)
+                locale = lang;
+            var output = input;
 
             try {
                 globalize.locale(locale);
@@ -90,7 +81,7 @@ module.exports = function (app) {
          *
          * @param {string} input                Translation key
          * @param {object} [params]             Parameters
-         * @param {string} [localeOverride]     Use non-default locale
+         * @param {string} [locale]             Use non-default locale
          * @return {string}                     Returns translation
          */
         res.locals.glMessage = function (input) {
@@ -126,7 +117,7 @@ module.exports = function (app) {
          *
          * @param {string} input                Translation key
          * @param {object} [params]             Parameters
-         * @param {string} [localeOverride]     Use non-default locale
+         * @param {string} [locale]             Use non-default locale
          * @return {string}                     Returns translation
          */
         res.locals.glNumber = function (input, params) {
@@ -163,7 +154,7 @@ module.exports = function (app) {
          * @param {string} input                Translation key
          * @param {string} currency             Currency name
          * @param {object} [params]             Parameters
-         * @param {string} [localeOverride]     Use non-default locale
+         * @param {string} [locale]             Use non-default locale
          * @return {string}                     Returns translation
          */
         res.locals.glCurrency = function (input, currency) {
