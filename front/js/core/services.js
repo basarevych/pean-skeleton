@@ -10,8 +10,8 @@ var services = angular.module('services', [
 ]);
 
 services.factory('AppControl',
-    [ '$window', '$rootScope', '$state', '$stateParams', '$timeout', '$http', '$cookies', 'globalizeWrapper', 'ProfileApi',
-    function ($window, $rootScope, $state, $stateParams, $timeout, $http, $cookies, globalizeWrapper, ProfileApi) {
+    [ '$window', '$rootScope', '$state', '$stateParams', '$timeout', '$http', '$cookies', 'globalizeWrapper', 'SocketServer', 'ProfileApi',
+    function ($window, $rootScope, $state, $stateParams, $timeout, $http, $cookies, globalizeWrapper, SocketServer, ProfileApi) {
         var error = null;
         var token = null;
         var tokenStorageKey = 'Token-' + $window['config']['project'];
@@ -89,6 +89,7 @@ services.factory('AppControl',
             setToken: function (newToken) {
                 token = newToken;
                 localStorage.setItem(tokenStorageKey, token);
+                SocketServer.getSocket().emit('token', token);
                 $http.defaults.headers.common['Authorization'] = 'Bearer ' + token;
                 $.ajaxSetup({
                     headers: { 'Authorization': 'Bearer ' + token },
@@ -153,7 +154,10 @@ services.factory('AppControl',
                             return $window.location.reload();
                         }
 
-                        if (!initialized) {
+                        if (initialized) {
+                            if (globalizeWrapper.getLocale() != profile.locale.current)
+                                globalizeWrapper.setLocale(profile.locale.current);
+                        } else {
                             if (data.locale.available.indexOf(locale) == -1)
                                 $cookies.remove('locale');
 
@@ -165,9 +169,6 @@ services.factory('AppControl',
                             });
                             globalizeWrapper.loadLocales(locales);
                         }
-
-                        if (done)
-                            done();
                     });
             },
             init: function () {

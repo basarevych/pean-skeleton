@@ -129,10 +129,7 @@ app.run(
             LoginForm()
                 .then(function (data) {
                     AppControl.setToken(data.token);
-                    AppControl.loadProfile(function () {
-                        SocketServer.getSocket().emit('token', data.token);
-                        $state.go($state.current.name, $stateParams, { reload: true });
-                    });
+                    AppControl.loadProfile();
                 });
         };
 

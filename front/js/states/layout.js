@@ -15,9 +15,7 @@ module.controller("LayoutCtrl",
         $scope.changeProfile = function () {
             ProfileForm($scope.appControl.getProfile())
                 .then(function () {
-                    $scope.appControl.loadProfile(function () {
-                        $state.go($state.current.name, $stateParams, { reload: true });
-                    });
+                    $scope.appControl.loadProfile();
                 });
         };
 
