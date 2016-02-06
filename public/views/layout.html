@@ -54,26 +54,19 @@
                     <ul class="uib-dropdown-menu" role="menu">
                         <li ng-repeat="item in locale.available">
                             <a href="javascript:void(0)" ng-click="setLocale(item)">
-                                <span class="glyphicon glyphicon-ok" ng-class="{ invisible: item != locale.cookie }"></span>
+                                <img ng-src="img/flags/{{ item.substring(0, 2) }}.gif">
                                 {{ item | glMessage }}
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="javascript:void(0)" ng-click="setLocale(null)">
-                                <span class="glyphicon glyphicon-ok" ng-class="{ invisible: locale.cookie }"></span>
-                                {{ 'AUTODETECT_BUTTON' | glMessage }}
                             </a>
                         </li>
                     </ul>
                 </li>
                 <li class="btn navbar-btn" ng-click="login()" ng-show="appControl.getProfile().user_id === null"
-                    ng-class="{ 'btn-primary': socket.getConnected(), 'btn-danger': !socket.getConnected() }">
+                    ng-class="{ 'btn-primary': socketServer.getConnected(), 'btn-danger': !socketServer.getConnected() }">
                     {{ 'SIGN_IN_MENU' | glMessage }}
                 </li>
                 <li class="btn-group" uib-dropdown ng-hide="appControl.getProfile().user_id === null">
                     <button type="button" class="btn btn-default navbar-btn uib-dropdown-toggle" uib-dropdown-toggle
-                        ng-class="{ 'btn-primary': socket.getConnected(), 'btn-danger': !socket.getConnected() }">
+                        ng-class="{ 'btn-primary': socketServer.getConnected(), 'btn-danger': !socketServer.getConnected() }">
                         <span class="glyphicon glyphicon-user"></span>
                         {{ appControl.getProfile().name || appControl.getProfile().email }}
                         <span class="caret"></span>

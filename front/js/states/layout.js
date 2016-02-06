@@ -3,33 +3,27 @@
 var module = angular.module('state.layout', []);
 
 module.controller("LayoutCtrl",
-    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'ProfileForm', 'SocketServer',
-    function ($scope, $state, $stateParams, $cookies, $window, ProfileForm, SocketServer) {
+    [ '$scope', '$state', '$stateParams', '$cookies', '$window', 'globalizeWrapper', 'ProfileForm',
+    function ($scope, $state, $stateParams, $cookies, $window, globalizeWrapper, ProfileForm) {
         $scope.locale = $scope.appControl.getProfile().locale;
-        $scope.locale.cookie = $cookies.get('locale');
-        $scope.socket = SocketServer;
 
         $scope.setLocale = function (locale) {
-            if (locale === null)
-                $cookies.remove('locale');
-            else
-                $cookies.put('locale', locale, { path: '/', expires: moment().add(1, 'year').toDate() });
-
-            $scope.appControl.loadProfile(function () { $window.location.reload() });
+            $cookies.put('locale', locale, { path: '/', expires: moment().add(1, 'year').toDate() });
+            globalizeWrapper.setLocale(locale);
         };
 
         $scope.changeProfile = function () {
             ProfileForm($scope.appControl.getProfile())
                 .then(function () {
-                    $scope.appControl.loadProfile();
+                    $scope.appControl.loadProfile(function () {
+                        $state.go($state.current.name, $stateParams, { reload: true });
+                    });
                 });
         };
 
         $scope.logout = function () {
             $scope.appControl.removeToken();
-            $scope.appControl.loadProfile(function () {
-                $state.go($state.current.name, $stateParams, { reload: true });
-            });
+            $window.location.reload();
         };
     } ]
 );

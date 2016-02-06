@@ -119,6 +119,7 @@ app.run(
         PNotify.prototype.options.styling = "bootstrap3";
 
         $rootScope.appControl = AppControl;
+        $rootScope.socketServer = SocketServer;
         $rootScope.$state = $state;
         $rootScope.$stateParams = $stateParams;
         $rootScope.pageTitle = 'Loading...',
@@ -142,7 +143,6 @@ app.run(
             $timeout(function () { $rootScope.initialized = true; }, 101);
         });
 
-        SocketServer.init();
         AppControl.init();
     } ]
 );

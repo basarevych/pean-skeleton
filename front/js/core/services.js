@@ -29,12 +29,11 @@ services.factory('AppControl',
 
         var initialized = false;
         var savedState = null;
-        var profileLoaded = false;
-        var globalizeLoaded = false;
 
-        function sendInitBroadcast() {
-            if (!profileLoaded || !globalizeLoaded)
-                return;
+        $rootScope.$on('GlobalizeLocaleChanged', function() {
+            profile.locale.current = globalizeWrapper.getLocale();
+            if (initialized)
+                return $state.go($state.current.name, $stateParams, { reload: true });
 
             initialized = true;
             $rootScope.$broadcast('AppInitialized');
@@ -56,11 +55,6 @@ services.factory('AppControl',
 
             if (reload !== null)
                 $timeout(reload);
-        };
-
-        $rootScope.$on('GlobalizeLocaleChanged', function() {
-            globalizeLoaded = true;
-            sendInitBroadcast();
         });
         $rootScope.$on('$stateChangeStart', function(event, toState, toStateParams) {
             if (!initialized) {
@@ -153,24 +147,25 @@ services.factory('AppControl',
                 var me = this;
                 ProfileApi.read()
                     .then(function (data) {
-                        if (!angular.equals(profile, data)) {
-                            if (!angular.equals(profile.locale, data.locale)) {
-                                globalizeLoaded = false;
-                                var locales = [data.locale.current.substr(0, 2)];
-                                data.locale.available.forEach(function (locale) {
-                                    var code = locale.substr(0, 2);
-                                    if (locales.indexOf(code) == -1)
-                                        locales.push(code);
-                                });
-                                globalizeWrapper.loadLocales(locales);
-                            }
-                            profile = data;
+                        profile = data;
+                        if (!profile.user_id && me.hasToken()) {
+                            me.removeToken();
+                            return $window.location.reload();
                         }
 
-                        if (!profile.user_id && me.hasToken())
-                            me.removeToken();
+                        if (!initialized) {
+                            if (data.locale.available.indexOf(locale) == -1)
+                                $cookies.remove('locale');
 
-                        profileLoaded = true;
+                            var locales = [ data.locale.current.substr(0, 2) ];
+                            data.locale.available.forEach(function (locale) {
+                                var code = locale.substr(0, 2);
+                                if (locales.indexOf(code) == -1)
+                                    locales.push(code);
+                            });
+                            globalizeWrapper.loadLocales(locales);
+                        }
+
                         if (done)
                             done();
                     });
@@ -185,7 +180,7 @@ services.factory('AppControl',
                 if (storedToken !== null)
                     this.setToken(storedToken);
 
-                this.loadProfile(sendInitBroadcast);
+                this.loadProfile();
             },
         };
     } ]
@@ -221,18 +216,17 @@ services.factory('SocketServer',
             });
         }
 
+        socket = io.connect();
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+        socket.on('notification', onNotification);
+
         return {
             getConnected: function () {
                 return connected;
             },
             getSocket: function () {
                 return socket;
-            },
-            init: function () {
-                socket = io.connect();
-                socket.on('connect', onConnect);
-                socket.on('disconnect', onDisconnect);
-                socket.on('notification', onNotification);
             },
         };
     } ]
