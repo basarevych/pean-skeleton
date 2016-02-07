@@ -89,7 +89,7 @@ module.exports = function () {
                 var token = null;
                 var encryptedData = null;
 
-                userRepo.findByEmail(loginForm.getValue('email'))
+                return userRepo.findByEmail(loginForm.getValue('email'))
                     .then(function (users) {
                         user = users.length && users[0];
                         if (!user || !user.checkPassword(loginForm.getValue('password'))) {
@@ -107,7 +107,7 @@ module.exports = function () {
                         token.setIpAddress(req.connection.remoteAddress);
                         token.setCreatedAt(moment());
                         token.setUpdatedAt(moment());
-                        tokenRepo.save(token)
+                        return tokenRepo.save(token)
                             .then(function (tokenId) {
                                 if (!tokenId) {
                                     res.json({
@@ -123,13 +123,7 @@ module.exports = function () {
                                     success: true,
                                     token: encryptedData,
                                 });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'POST /v1/auth/token failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/auth/token failed', err);
                     });
             })
             .catch(function (err) {

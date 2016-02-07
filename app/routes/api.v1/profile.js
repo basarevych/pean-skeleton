@@ -137,12 +137,9 @@ module.exports = function () {
                     req.user.setPassword(UserModel.encryptPassword(profileForm.getValue('new_password')));
 
                 var userRepo = locator.get('user-repository');
-                userRepo.save(req.user)
+                return userRepo.save(req.user)
                     .then(function () {
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'PUT /v1/profile failed', err);
                     });
             })
             .catch(function (err) {

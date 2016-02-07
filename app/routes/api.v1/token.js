@@ -140,7 +140,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var tokenRepo = locator.get('token-repository');
-                tokenRepo.find(tokenId)
+                return tokenRepo.find(tokenId)
                     .then(function (tokens) {
                         var token = tokens.length && tokens[0];
                         if (!token)
@@ -154,9 +154,6 @@ module.exports = function () {
                             updated_at: token.getUpdatedAt().unix(),
                             payload: token.getPayload(),
                         });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/token/' + tokenId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -176,7 +173,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var tokenRepo = locator.get('token-repository');
-                tokenRepo.findAll()
+                return tokenRepo.findAll()
                     .then(function (tokens) {
                         var result = [];
                         tokens.forEach(function (token) {
@@ -190,9 +187,6 @@ module.exports = function () {
                             });
                         });
                         res.json(result);
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/token failed', err);
                     });
             })
             .catch(function (err) {
@@ -216,7 +210,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var tokenRepo = locator.get('token-repository');
-                tokenRepo.find(tokenId)
+                return tokenRepo.find(tokenId)
                     .then(function (tokens) {
                         var token = tokens.length && tokens[0];
                         if (!token)
@@ -229,9 +223,6 @@ module.exports = function () {
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/token/' + tokenId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -251,15 +242,12 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var tokenRepo = locator.get('token-repository');
-                tokenRepo.deleteAll()
+                return tokenRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/token failed', err);
                     });
             })
             .catch(function (err) {

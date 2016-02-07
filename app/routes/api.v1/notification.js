@@ -72,12 +72,9 @@ module.exports = function () {
                     promise = jobRepo.save(job)
                 }
 
-                promise
+                return promise
                     .then(function (id) {
                         res.json({ success: id !== null });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/notification failed', err);
                     });
             })
             .catch(function (err) {

@@ -242,12 +242,9 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var field = req.body._field;
-                roleForm.validateField(field, req, res)
+                return roleForm.validateField(field, req, res)
                     .then(function (success) {
                         res.json({ success: success, errors: roleForm.getErrors(field) });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/role/validate failed', err);
                     });
             })
             .catch(function (err) {
@@ -272,7 +269,7 @@ module.exports = function () {
 
                 var roleRepo = locator.get('role-repository');
                 var roleTranslationRepo = locator.get('role-translation-repository');
-                q.all([ roleRepo.find(roleId), roleTranslationRepo.findByRoleId(roleId) ])
+                return q.all([ roleRepo.find(roleId), roleTranslationRepo.findByRoleId(roleId) ])
                     .then(function (result) {
                         var roles = result[0];
                         var translations = result[1];
@@ -294,9 +291,6 @@ module.exports = function () {
                             handle: role.getHandle(),
                             translations: roleTranslations,
                         });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/role/' + roleId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -317,7 +311,7 @@ module.exports = function () {
 
                 var roleRepo = locator.get('role-repository');
                 var roleTranslationRepo = locator.get('role-translation-repository');
-                q.all([ roleRepo.findAll(), roleTranslationRepo.findAll() ])
+                return q.all([ roleRepo.findAll(), roleTranslationRepo.findAll() ])
                     .then(function (result) {
                         var roles = result[0];
                         var translations = result[1];
@@ -345,9 +339,6 @@ module.exports = function () {
                             });
                         }
                         res.json(result);
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/role failed', err);
                     });
             })
             .catch(function (err) {
@@ -367,7 +358,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'create';
-                roleForm.validateAll(req, res)
+                return roleForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -383,7 +374,7 @@ module.exports = function () {
 
                         var roleRepo = locator.get('role-repository');
                         var roleTranslationRepo = locator.get('role-translation-repository');
-                        roleRepo.save(role)
+                        return roleRepo.save(role)
                             .then(function (roleId) {
                                 if (roleId === null)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
@@ -397,7 +388,7 @@ module.exports = function () {
                                     promises.push(roleTranslationRepo.save(translation));
                                 });
 
-                                q.all(promises)
+                                return q.all(promises)
                                     .then(function (result) {
                                         var success = false;
                                         result.every(function (translationId) {
@@ -405,17 +396,8 @@ module.exports = function () {
                                             return success;
                                         });
                                         res.json({ success: success, id: roleId });
-                                    })
-                                    .catch(function (err) {
-                                        app.abort(res, 500, 'POST /v1/role failed', err);
                                     });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'POST /v1/role failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/role failed', err);
                     });
             })
             .catch(function (err) {
@@ -439,7 +421,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'edit';
-                roleForm.validateAll(req, res)
+                return roleForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -454,7 +436,7 @@ module.exports = function () {
 
                         var roleRepo = locator.get('role-repository');
                         var roleTranslationRepo = locator.get('role-translation-repository');
-                        q.all([ roleRepo.find(roleId), roleTranslationRepo.findByRoleId(roleId) ])
+                        return q.all([ roleRepo.find(roleId), roleTranslationRepo.findByRoleId(roleId) ])
                             .then(function (result) {
                                 var roles = result[0];
                                 var existingTranslations = result[1];
@@ -467,7 +449,7 @@ module.exports = function () {
                                 if (roleForm.getValue('handle').length)
                                     role.setHandle(roleForm.getValue('handle'));
 
-                                roleRepo.save(role)
+                                return roleRepo.save(role)
                                     .then(function (roleId) {
                                         if (roleId === null)
                                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
@@ -493,7 +475,7 @@ module.exports = function () {
                                             promises.push(roleTranslationRepo.save(foundTranslation));
                                         });
 
-                                        q.all(promises)
+                                        return q.all(promises)
                                             .then(function (result) {
                                                 var success = false;
                                                 result.every(function (translationId) {
@@ -501,21 +483,9 @@ module.exports = function () {
                                                     return success;
                                                 });
                                                 res.json({ success: success });
-                                            })
-                                            .catch(function (err) {
-                                                app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
                                             });
-                                    })
-                                    .catch(function (err) {
-                                        app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
                                     });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'PUT /v1/role/' + userId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -539,25 +509,19 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var roleRepo = locator.get('role-repository');
-                roleRepo.find(roleId)
+                return roleRepo.find(roleId)
                     .then(function (roles) {
                         var role = roles.length && roles[0];
                         if (!role)
                             return app.abort(res, 404, "Role " + roleId + " not found");
 
-                        roleRepo.delete(role)
+                        return roleRepo.delete(role)
                             .then(function (count) {
                                 if (count == 0)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/role/' + roleId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -577,15 +541,12 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var roleRepo = locator.get('role-repository');
-                roleRepo.deleteAll()
+                return roleRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/role failed', err);
                     });
             })
             .catch(function (err) {

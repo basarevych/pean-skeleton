@@ -269,12 +269,9 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var field = req.body._field;
-                userForm.validateField(field, req, res)
+                return userForm.validateField(field, req, res)
                     .then(function (success) {
                         res.json({ success: success, errors: userForm.getErrors(field) });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/user/validate failed', err);
                     });
             })
             .catch(function (err) {
@@ -310,7 +307,7 @@ module.exports = function () {
                         break;
                 }
 
-                promise
+                return promise
                     .then(function (users) {
                         var result = [];
                         var promises = [];
@@ -324,7 +321,7 @@ module.exports = function () {
                             promises.push(roleRepo.findByUserId(user.getId()));
                         });
 
-                        q.all(promises)
+                        return q.all(promises)
                             .then(function (userRoles) {
                                 for (var i = 0; i < userRoles.length; i++) {
                                     var roleIds = [];
@@ -334,13 +331,7 @@ module.exports = function () {
                                     result[i]['roles'] = roleIds;
                                 }
                                 res.json(result);
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'POST /v1/user/search failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/user/search failed', err);
                     });
             })
             .catch(function (err) {
@@ -365,13 +356,13 @@ module.exports = function () {
 
                 var userRepo = locator.get('user-repository');
                 var roleRepo = locator.get('role-repository');
-                userRepo.find(userId)
+                return userRepo.find(userId)
                     .then(function (users) {
                         var user = users.length && users[0];
                         if (!user)
                             return app.abort(res, 404, "User " + userId + " not found");
 
-                        roleRepo.findByUserId(userId)
+                        return roleRepo.findByUserId(userId)
                             .then(function (roles) {
                                 var roleIds = [];
                                 roles.forEach(function (role) {
@@ -384,13 +375,7 @@ module.exports = function () {
                                     created_at: user.getCreatedAt().unix(),
                                     roles: roleIds,
                                 });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/user/' + userId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -411,7 +396,7 @@ module.exports = function () {
 
                 var userRepo = locator.get('user-repository');
                 var roleRepo = locator.get('role-repository');
-                userRepo.findAll()
+                return userRepo.findAll()
                     .then(function (users) {
                         var result = [];
                         var promises = [];
@@ -425,7 +410,7 @@ module.exports = function () {
                             promises.push(roleRepo.findByUserId(user.getId()));
                         });
 
-                        q.all(promises)
+                        return q.all(promises)
                             .then(function (userRoles) {
                                 for (var i = 0; i < userRoles.length; i++) {
                                     var roleIds = [];
@@ -435,13 +420,7 @@ module.exports = function () {
                                     result[i]['roles'] = roleIds;
                                 }
                                 res.json(result);
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'GET /v1/user failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/user failed', err);
                     });
             })
             .catch(function (err) {
@@ -461,7 +440,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'create';
-                userForm.validateAll(req, res)
+                return userForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -479,7 +458,7 @@ module.exports = function () {
 
                         var userRepo = locator.get('user-repository');
                         var roleRepo = locator.get('role-repository');
-                        q.all([ userRepo.save(user), roleRepo.findAll() ])
+                        return q.all([ userRepo.save(user), roleRepo.findAll() ])
                             .then(function (result) {
                                 var userId = result[0];
                                 var allRoles = result[1];
@@ -492,20 +471,11 @@ module.exports = function () {
                                         promises.push(userRepo.addRole(user, role));
                                 });
 
-                                q.all(promises)
+                                return q.all(promises)
                                     .then(function () {
                                         res.json({ success: true, id: userId });
-                                    })
-                                    .catch(function (err) {
-                                        app.abort(res, 500, 'POST /v1/user failed', err);
                                     });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'POST /v1/user failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/user failed', err);
                     });
             })
             .catch(function (err) {
@@ -529,7 +499,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 req.body._form_type = 'edit';
-                userForm.validateAll(req, res)
+                return userForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -541,7 +511,7 @@ module.exports = function () {
 
                         var userRepo = locator.get('user-repository');
                         var roleRepo = locator.get('role-repository');
-                        userRepo.find(userId)
+                        return userRepo.find(userId)
                             .then(function (users) {
                                 var user = users.length && users[0];
                                 if (!user)
@@ -553,7 +523,7 @@ module.exports = function () {
                                 if (userForm.getValue('password').length)
                                     user.setPassword(UserModel.encryptPassword(userForm.getValue('password')));
 
-                                q.all([ userRepo.save(user), roleRepo.findAll() ])
+                                return q.all([ userRepo.save(user), roleRepo.findAll() ])
                                     .then(function (result) {
                                         var userId = result[0];
                                         var allRoles = result[1];
@@ -568,24 +538,12 @@ module.exports = function () {
                                                 promises.push(userRepo.addRole(user, role));
                                         });
 
-                                        q.all(promises)
+                                        return q.all(promises)
                                             .then(function () {
                                                 res.json({ success: true });
-                                            })
-                                            .catch(function (err) {
-                                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
                                             });
-                                    })
-                                    .catch(function (err) {
-                                        app.abort(res, 500, 'PUT /v1/user' + userId + ' failed', err);
                                     });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -609,29 +567,20 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var userRepo = locator.get('user-repository');
-                userRepo.find(userId)
+                return userRepo.find(userId)
                     .then(function (users) {
                         var user = users.length && users[0];
                         if (!user)
                             return app.abort(res, 404, "User " + userId + " not found");
 
-                        userRepo.delete(user)
+                        return userRepo.delete(user)
                             .then(function (count) {
                                 if (count == 0)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
                     });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
             });
     });
 
@@ -647,15 +596,12 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var userRepo = locator.get('user-repository');
-                userRepo.deleteAll()
+                return userRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/user failed', err);
                     });
             })
             .catch(function (err) {

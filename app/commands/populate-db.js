@@ -128,14 +128,10 @@ module.exports = function (argv, rl) {
                                 }
 
                                 user.setPassword(UserModel.encryptPassword(password));
-                                userRepo.save(user)
+                                return userRepo.save(user)
                                     .then(function () {
                                         userRepo.addRole(user, adminRole);
                                         rl.write("==> Done\n");
-                                        done();
-                                    })
-                                    .catch(function (err) {
-                                        logger.error('populate-db.run() failed', err);
                                         done();
                                     });
                             })

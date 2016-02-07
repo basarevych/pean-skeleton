@@ -268,12 +268,9 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var field = req.body._field;
-                jobForm.validateField(field, req, res)
+                return jobForm.validateField(field, req, res)
                     .then(function (success) {
                         res.json({ success: success, errors: jobForm.getErrors(field) });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/job/validate failed', err);
                     });
             })
             .catch(function (err) {
@@ -315,7 +312,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var jobRepo = locator.get('job-repository');
-                jobRepo.find(jobId)
+                return jobRepo.find(jobId)
                     .then(function (jobs) {
                         var job = jobs.length && jobs[0];
                         if (!job)
@@ -332,9 +329,6 @@ module.exports = function () {
                                 input_data: job.getInputData(),
                                 output_data: job.getOutputData(),
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/job/' + jobId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -354,7 +348,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var jobRepo = locator.get('job-repository');
-                jobRepo.findAll()
+                return jobRepo.findAll()
                     .then(function (jobs) {
                         var result = [];
                         jobs.forEach(function (job) {
@@ -371,9 +365,6 @@ module.exports = function () {
                             });
                         });
                         res.json(result);
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/job failed', err);
                     });
             })
             .catch(function (err) {
@@ -392,7 +383,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                jobForm.validateAll(req, res)
+                return jobForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -413,19 +404,13 @@ module.exports = function () {
                         job.setOutputData({});
 
                         var jobRepo = locator.get('job-repository');
-                        jobRepo.save(job)
+                        return jobRepo.save(job)
                             .then(function (jobId) {
                                 if (jobId === null)
                                     res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                 else
                                     res.json({ success: true, id: jobId });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'POST /v1/job failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/job failed', err);
                     });
             })
             .catch(function (err) {
@@ -448,7 +433,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                jobForm.validateAll(req, res)
+                return jobForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -459,7 +444,7 @@ module.exports = function () {
                         }
 
                         var jobRepo = locator.get('job-repository');
-                        jobRepo.find(jobId)
+                        return jobRepo.find(jobId)
                             .then(function (jobs) {
                                 var job = jobs.length && jobs[0];
                                 if (!job)
@@ -473,23 +458,14 @@ module.exports = function () {
                                 job.setInputData(jobForm.getValue('input_data').length ? JSON.parse(jobForm.getValue('input_data')) : {});
 
                                 var jobRepo = locator.get('job-repository');
-                                jobRepo.save(job)
+                                return jobRepo.save(job)
                                     .then(function (jobId) {
                                         if (jobId === null)
                                             res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                         else
                                             res.json({ success: true });
-                                    })
-                                    .catch(function (err) {
-                                        app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
                                     });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -513,25 +489,19 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var jobRepo = locator.get('job-repository');
-                jobRepo.find(jobId)
+                return jobRepo.find(jobId)
                     .then(function (jobs) {
                         var job = jobs.length && jobs[0];
                         if (!job)
                             return app.abort(res, 404, "Job " + jobId + " not found");
 
-                        jobRepo.delete(job)
+                        return jobRepo.delete(job)
                             .then(function (count) {
                                 if (count == 0)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -551,15 +521,12 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var jobRepo = locator.get('job-repository');
-                jobRepo.deleteAll()
+                return jobRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/job failed', err);
                     });
             })
             .catch(function (err) {

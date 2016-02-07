@@ -171,12 +171,9 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var field = req.body._field;
-                permissionForm.validateField(field, req, res)
+                return permissionForm.validateField(field, req, res)
                     .then(function (success) {
                         res.json({ success: success, errors: permissionForm.getErrors(field) });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/permission/validate failed', err);
                     });
             })
             .catch(function (err) {
@@ -200,7 +197,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var permissionRepo = locator.get('permission-repository');
-                permissionRepo.find(permissionId)
+                return permissionRepo.find(permissionId)
                     .then(function (permissions) {
                         var permission = permissions.length && permissions[0];
                         if (!permission)
@@ -212,9 +209,6 @@ module.exports = function () {
                             resource: permission.getResource(),
                             action: permission.getAction(),
                         });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/permission/' + permissionId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -234,7 +228,7 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var permissionRepo = locator.get('permission-repository');
-                permissionRepo.findAll()
+                return permissionRepo.findAll()
                     .then(function (permissions) {
                         var result = [];
                         permissions.forEach(function (permission) {
@@ -246,9 +240,6 @@ module.exports = function () {
                             });
                         });
                         res.json(result);
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'GET /v1/permission failed', err);
                     });
             })
             .catch(function (err) {
@@ -267,7 +258,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                permissionForm.validateAll(req, res)
+                return permissionForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -283,19 +274,13 @@ module.exports = function () {
                         permission.setAction(permissionForm.getValue('action').length ? permissionForm.getValue('action') : null);
 
                         var permissionRepo = locator.get('permission-repository');
-                        permissionRepo.save(permission)
+                        return permissionRepo.save(permission)
                             .then(function (permissionId) {
                                 if (permissionId === null)
                                     res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                 else
                                     res.json({ success: true, id: permissionId });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'POST /v1/permission failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'POST /v1/permission failed', err);
                     });
             })
             .catch(function (err) {
@@ -318,7 +303,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                permissionForm.validateAll(req, res)
+                return permissionForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -329,7 +314,7 @@ module.exports = function () {
                         }
 
                         var permissionRepo = locator.get('permission-repository');
-                        permissionRepo.find(permissionId)
+                        return permissionRepo.find(permissionId)
                             .then(function (permissions) {
                                 var permission = permissions.length && permissions[0];
                                 if (!permission)
@@ -339,23 +324,14 @@ module.exports = function () {
                                 permission.setResource(permissionForm.getValue('resource').length ? permissionForm.getValue('resource') : null);
                                 permission.setAction(permissionForm.getValue('action').length ? permissionForm.getValue('action') : null);
 
-                                permissionRepo.save(permission)
+                                return permissionRepo.save(permission)
                                     .then(function (permissionId) {
                                         if (permissionId === null)
                                             res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
                                         else
                                             res.json({ success: true });
-                                    })
-                                    .catch(function (err) {
-                                        app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
                                     });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -379,25 +355,19 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var permissionRepo = locator.get('permission-repository');
-                permissionRepo.find(permissionId)
+                return permissionRepo.find(permissionId)
                     .then(function (permissions) {
                         var permission = permissions.length && permissions[0];
                         if (!permission)
                             return app.abort(res, 404, "Permission " + permissionId + " not found");
 
-                        permissionRepo.delete(permission)
+                        return permissionRepo.delete(permission)
                             .then(function (count) {
                                 if (count == 0)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
-                            })
-                            .catch(function (err) {
-                                app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed', err);
                             });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/permission/' + permissionId + ' failed', err);
                     });
             })
             .catch(function (err) {
@@ -417,15 +387,12 @@ module.exports = function () {
                     return app.abort(res, 403, "ACL denied");
 
                 var permissionRepo = locator.get('permission-repository');
-                permissionRepo.deleteAll()
+                return permissionRepo.deleteAll()
                     .then(function (count) {
                         if (count == 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
-                    })
-                    .catch(function (err) {
-                        app.abort(res, 500, 'DELETE /v1/permission failed', err);
                     });
             })
             .catch(function (err) {
