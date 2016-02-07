@@ -581,6 +581,9 @@ module.exports = function () {
                                 res.json({ success: true });
                             });
                     });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
             });
     });
 
