@@ -21,5 +21,5 @@ The database
 2. Populate the database
 
   ```shell
-  > ./bin/console populate-db
+  > ./bin/cmd populate-db
   ```
