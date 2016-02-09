@@ -7,6 +7,10 @@
 module.exports = function (app) {
     return {
         services: {
+            "file": {
+                path: "app/services/file.js",
+                instantiate: true,
+            },
             "acl": {
                 path: "app/services/acl.js",
                 instantiate: true,
