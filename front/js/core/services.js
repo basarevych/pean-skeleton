@@ -157,6 +157,8 @@ services.factory('AppControl',
                         if (initialized) {
                             if (globalizeWrapper.getLocale() != profile.locale.current)
                                 globalizeWrapper.setLocale(profile.locale.current);
+                            else if ($state.current.name.length)
+                                $state.go($state.current.name, $stateParams, { reload: true });
                         } else {
                             if (data.locale.available.indexOf(locale) == -1)
                                 $cookies.remove('locale');
