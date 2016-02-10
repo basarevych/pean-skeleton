@@ -64,7 +64,6 @@ describe('Node notify job', function () {
             },
         });
 
-        var savedJob;
         locator.register('job-repository', {
             save: function (model) {
                 expect(model.getStatus()).toBe('success');
