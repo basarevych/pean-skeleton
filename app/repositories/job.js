@@ -7,6 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var moment = require('moment-timezone');
+var emailjs = require('emailjs/email')
 var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var JobModel = locator.get('job-model');
@@ -125,6 +126,7 @@ JobRepository.prototype.findAll = function () {
  * @return {object}         Returns promise resolving to job ID
  */
 JobRepository.prototype.save = function (job) {
+    var config = locator.get('config');
     var logger = locator.get('logger');
     var defer = q.defer();
     var me = this;
@@ -193,8 +195,59 @@ JobRepository.prototype.save = function (job) {
             else
                 id = job.getId();
 
+            function resolve(id) {
+                if (job.getStatus() != 'failure' || !config['error']['job_failure']['enabled']) {
+                    defer.resolve(id);
+                    return;
+                }
+
+                var server  = emailjs.server.connect({ host: "127.0.0.1" });
+
+                var data = {
+                    name: job.getName(),
+                    queue: job.getQueue(),
+                    status: job.getStatus(),
+                    created_at: job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
+                    scheduled_for: job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
+                    valid_until: job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
+                    input_data: JSON.stringify(job.getInputData(), null, '    '),
+                    output_data: JSON.stringify(job.getOutputData(), null, '    '),
+                };
+
+                var app = locator.get('app');
+                app.render(
+                    'email/job-failure-text',
+                    data,
+                    function (err, text) {
+                        if (err)
+                            return;
+
+                        app.render(
+                            'email/job-failure-html',
+                            data,
+                            function (err, html) {
+                                if (err)
+                                    return;
+
+                                server.send({
+                                    text: text,
+                                    from: config['error']['job_failure']['from'],
+                                    to: config['error']['job_failure']['to'],
+                                    subject: config['error']['job_failure']['subject'],
+                                    attachment: [
+                                      { data: html, alternative: true },
+                                    ],
+                                });
+
+                                defer.resolve(id);
+                            }
+                        );
+                    }
+                );
+            }
+
             if (job.getStatus() != 'created') {
-                defer.resolve(id);
+                resolve(id);
                 return;
             }
 
@@ -207,7 +260,7 @@ JobRepository.prototype.save = function (job) {
                 }
 
                 redis.quit();
-                defer.resolve(id);
+                resolve(id);
             });
         });
     });

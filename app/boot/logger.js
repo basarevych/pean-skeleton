@@ -10,14 +10,15 @@ var emailjs = require('emailjs/email')
 var path = require('path')
 
 module.exports = function (app) {
+    var config = locator.get('config');
     var server  = emailjs.server.connect({ host: "127.0.0.1" });
 
     var original = logger.error;
     logger.error = function () {
-        if (process.env.REPORT_ERROR_TO) { // send the error via email
+        if (config['error']['logger_error']['enabled']) { // send the error via email
             var errors = arguments
             app.render(
-                'email/error-report-text',
+                'email/logger-error-text',
                 {
                     errors: errors
                 },
@@ -26,7 +27,7 @@ module.exports = function (app) {
                         return;
 
                     app.render(
-                        'email/error-report-html',
+                        'email/logger-error-html',
                         {
                             errors: errors
                         },
@@ -36,9 +37,9 @@ module.exports = function (app) {
 
                             server.send({
                                 text: text,
-                                from: process.env.REPORT_ERROR_FROM,
-                                to: process.env.REPORT_ERROR_TO,
-                                subject: process.env.REPORT_ERROR_SUBJECT,
+                                from: config['error']['logger_error']['from'],
+                                to: config['error']['logger_error']['to'],
+                                subject: config['error']['logger_error']['subject'],
                                 attachment: [
                                   { data: html, alternative: true },
                                 ],
