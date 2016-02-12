@@ -43,7 +43,8 @@ db.connect(function (err) {
                 process.env.HTTPS_HOST,
                 process.env.HTTPS_PORT,
                 process.env.HTTPS_KEY,
-                process.env.HTTPS_CERT
+                process.env.HTTPS_CERT,
+                process.env.HTTPS_CA
             );
             console.log("=> HTTPS server started, " + process.env.HTTPS_HOST + ':' + process.env.HTTPS_PORT);
         }

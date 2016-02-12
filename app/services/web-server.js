@@ -81,14 +81,19 @@ WebServer.prototype.startHttp = function (host, port) {
  * @param {string} host
  * @param {integer} port
  */
-WebServer.prototype.startHttps = function (host, port, key, cert) {
+WebServer.prototype.startHttps = function (host, port, key, cert, ca) {
     var me = this;
     var app = locator.get('app');
 
-    var keyFile = fs.readFileSync(key);
-    var certFile = fs.readFileSync(cert);
+    var options = {
+        key: fs.readFileSync(key),
+        cert: fs.readFileSync(cert),
+    };
 
-    var server = https.createServer({ key: keyFile, cert: certFile }, app);
+    if (ca)
+        options['ca'] = fs.readFileSync(ca);
+
+    var server = https.createServer(options, app);
     server.on('error', function (error) { me.onError(error); });
     server.listen(port, host);
     this.setHttpsServer(server);
