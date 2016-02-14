@@ -7,8 +7,16 @@
 module.exports = function (app) {
     return {
         services: {
-            "file": {
-                path: "app/services/file.js",
+            "filer": {
+                path: "app/services/filer.js",
+                instantiate: true,
+            },
+            "rester": {
+                path: "app/services/rester.js",
+                instantiate: true,
+            },
+            "spawner": {
+                path: "app/services/spawner.js",
                 instantiate: true,
             },
             "acl": {

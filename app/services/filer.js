@@ -13,7 +13,7 @@ var fs = require('fs-ext');
  *
  * @constructor
  */
-function File() {
+function Filer() {
 }
 
 /**
@@ -22,7 +22,7 @@ function File() {
  * @param {integer} fd      File descriptor
  * @return {object}         Returns promise resolving to file contents
  */
-File.prototype.read = function (fd) {
+Filer.prototype.read = function (fd) {
     var defer = q.defer();
 
     fs.fstat(fd, function (err, stats) {
@@ -58,7 +58,7 @@ File.prototype.read = function (fd) {
  * @param {string} contents     New contents of the file
  * @return {object}             Returns promise resolving to true on success
  */
-File.prototype.write = function (fd, contents) {
+Filer.prototype.write = function (fd, contents) {
     var defer = q.defer();
 
     var buffer = new Buffer(contents);
@@ -86,7 +86,7 @@ File.prototype.write = function (fd, contents) {
  * @param {string} defaultContents      Contents to return on failure to open the file
  * @return {object}                     Returns promise resolving to file contents
  */
-File.prototype.lockRead = function (filename, defaultContents) {
+Filer.prototype.lockRead = function (filename, defaultContents) {
     var me = this;
     var defer = q.defer();
 
@@ -130,7 +130,7 @@ File.prototype.lockRead = function (filename, defaultContents) {
  * @param {string} contents     New file contents
  * @return {object}             Returns promise resolving to true on success
  */
-File.prototype.lockWrite = function (filename, contents) {
+Filer.prototype.lockWrite = function (filename, contents) {
     var me = this;
     var defer = q.defer();
 
@@ -167,4 +167,4 @@ File.prototype.lockWrite = function (filename, contents) {
     return defer.promise;
 };
 
-module.exports = File;
+module.exports = Filer;
