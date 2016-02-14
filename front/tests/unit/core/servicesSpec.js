@@ -7,17 +7,36 @@ describe('Service', function() {
         var AppControl, $httpBackend;
 
         var fakeLocale = {
-            current: 'en_US',
-            fallback: 'ru_RU',
-            available: [ 'en_US', 'ru_RU' ],
+            current: 'en',
+            fallback: 'ru',
+            available: [ 'en', 'ru' ],
         };
+        var cldrBasePath = 'bower_components/cldr-data';
+        var l10nBasePath = 'tests/l10n';
+        var mainResources = [
+            'currencies.json',
+            'ca-gregorian.json',
+            'timeZoneNames.json',
+            'numbers.json'
+        ];
+        var supplementalResources = [
+            'currencyData.json',
+            'likelySubtags.json',
+            'plurals.json',
+            'timeData.json',
+            'weekData.json'
+        ];
+
 
         beforeEach(function (){
             window['config'] = { apiUrl: '/mock-api' };
+            fakeLocale.current = 'en';
 
             angular.mock.module('services', function (globalizeWrapperProvider) {
-                globalizeWrapperProvider.setMainResources([]);
-                globalizeWrapperProvider.setSupplementalResources([]);
+                globalizeWrapperProvider.setCldrBasePath(cldrBasePath);
+                globalizeWrapperProvider.setL10nBasePath(l10nBasePath);
+                globalizeWrapperProvider.setMainResources(mainResources);
+                globalizeWrapperProvider.setSupplementalResources(supplementalResources);
             });
         });
 
@@ -79,13 +98,24 @@ describe('Service', function() {
             $httpBackend.expectGET('/mock-api/profile')
                 .respond({
                     locale: fakeLocale,
-                    userId: null,
+                    user_id: null,
                     login: 'anonymous',
                     roles: [ 'role1' ],
                 });
 
-            $httpBackend.expectGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-                .respond({ });
+            fakeLocale.available.forEach(function (locale) {
+                for (var i = 0; i < mainResources.length; i++) {
+                    var file = cldrBasePath + '/main/' + locale + '/' + mainResources[i];
+                    $httpBackend.expectGET(file).respond(readJSON(file));
+                }
+                var file = l10nBasePath + '/' + locale + '.json';
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            });
+
+            for (var i = 0; i < supplementalResources.length; i++) {
+                var file = cldrBasePath + '/supplemental/' + supplementalResources[i];
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            }
 
             var publicState = {};
             var privateAllowedState = {
@@ -135,14 +165,25 @@ describe('Service', function() {
             $httpBackend.whenGET('/mock-api/profile')
                 .respond({
                     locale: fakeLocale,
-                    userId: null,
+                    user_id: null,
                     name: 'anonymous',
                     email: null,
                     roles: [ 'role1' ],
                 });
 
-            $httpBackend.whenGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-                .respond({ });
+            fakeLocale.available.forEach(function (locale) {
+                for (var i = 0; i < mainResources.length; i++) {
+                    var file = cldrBasePath + '/main/' + locale + '/' + mainResources[i];
+                    $httpBackend.expectGET(file).respond(readJSON(file));
+                }
+                var file = l10nBasePath + '/' + locale + '.json';
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            });
+
+            for (var i = 0; i < supplementalResources.length; i++) {
+                var file = cldrBasePath + '/supplemental/' + supplementalResources[i];
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            }
 
             var result;
             spyOn($cookies, 'get').and.callFake(function() { return result; });
@@ -163,35 +204,29 @@ describe('Service', function() {
             $httpBackend.whenGET('/mock-api/profile')
                 .respond({
                     locale: fakeLocale,
-                    userId: null,
+                    user_id: null,
                     name: 'anonymous',
                     email: null,
                     roles: [ 'role1' ],
                 });
-            $httpBackend.whenGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-                .respond({ });
+
+            ['ru', 'en'].forEach(function (locale) {
+                for (var i = 0; i < mainResources.length; i++) {
+                    var file = cldrBasePath + '/main/' + locale + '/' + mainResources[i];
+                    $httpBackend.expectGET(file).respond(readJSON(file));
+                }
+                var file = l10nBasePath + '/' + locale + '.json';
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            });
+
+            for (var i = 0; i < supplementalResources.length; i++) {
+                var file = cldrBasePath + '/supplemental/' + supplementalResources[i];
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            }
 
             AppControl.loadProfile();
             $httpBackend.flush();
             expect(globalizeWrapper.getLocale()).toBe(fakeLocale.current.substr(0, 2));
-        }));
-
-        it('loadProfile() runs done()', inject(function ($state, $stateParams) {
-            $httpBackend.whenGET('/mock-api/profile')
-                .respond({
-                    locale: fakeLocale,
-                    userId: null,
-                    name: 'anonymous',
-                    email: null,
-                    roles: [ 'role1' ],
-                });
-            $httpBackend.whenGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-                .respond({ });
-
-            var called = false;
-            AppControl.loadProfile(function () { called = true; })
-            $httpBackend.flush();
-            expect(called).toBeTruthy();
         }));
 
         it('init() requires config var', function () {
@@ -205,13 +240,11 @@ describe('Service', function() {
             $httpBackend.expectGET('/mock-api/profile')
                 .respond({
                     locale: fakeLocale,
-                    userId: null,
+                    user_id: null,
                     name: 'anonymous',
                     email: null,
                     roles: [ 'role1' ],
                 });
-            $httpBackend.expectGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-                .respond({ });
 
             var tokenKey = null;
             spyOn(localStorage, 'getItem').and.callFake(function (key) {
@@ -231,13 +264,25 @@ describe('Service', function() {
             $httpBackend.expectGET('/mock-api/profile')
                 .respond({
                     locale: fakeLocale,
-                    userId: null,
+                    user_id: null,
                     name: 'anonymous',
                     email: null,
                     roles: [ 'role1' ],
                 });
-            $httpBackend.expectGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-                .respond({ });
+
+            fakeLocale.available.forEach(function (locale) {
+                for (var i = 0; i < mainResources.length; i++) {
+                    var file = cldrBasePath + '/main/' + locale + '/' + mainResources[i];
+                    $httpBackend.expectGET(file).respond(readJSON(file));
+                }
+                var file = l10nBasePath + '/' + locale + '.json';
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            });
+
+            for (var i = 0; i < supplementalResources.length; i++) {
+                var file = cldrBasePath + '/supplemental/' + supplementalResources[i];
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            }
 
             var broadcastSpy = spyOn($rootScope, '$broadcast').and.callThrough();
             var stateSpy = spyOn($state, 'go').and.returnValue(true);

@@ -60,7 +60,9 @@ Validator.prototype.getErrors = function (field) {
  * Field parser callback which sets field value and errors
  *
  * @callback fieldParser
- * @param {object} data         Form values as an object
+ * @param {object} req          Express.js request object
+ * @param {object} res          Express.js response object
+ * @param {*} [id]              ID of the object being validated
  * @return {object}             Returns object { value: 'some value', errors: [ 'an error' ] }
  */
 
@@ -80,14 +82,15 @@ Validator.prototype.addParser = function (field, parser) {
 /**
  * Validate single field
  *
- * @param {string} field        Field name
  * @param {object} req          Express.js request object
  * @param {object} res          Express.js response object
+ * @param {string} field        Field name
+ * @param {*} [id]              ID of the object being validated
  * @return {object}             Returns promise resolving to validation result
  */
-Validator.prototype.validateField = function(field, req, res) {
+Validator.prototype.validateField = function(req, res, field, id) {
     this.reset();
-    return this._validate(field, req, res);
+    return this._validate(req, res, field, id);
 };
 
 /**
@@ -95,9 +98,10 @@ Validator.prototype.validateField = function(field, req, res) {
  *
  * @param {object} req          Express.js request object
  * @param {object} res          Express.js response object
+ * @param {*} [id]              ID of the object being validated
  * @return {object}             Returns promise resolving to validation result
  */
-Validator.prototype.validateAll = function (req, res) {
+Validator.prototype.validateAll = function (req, res, id) {
     var me = this;
     var defer = q.defer();
 
@@ -105,7 +109,7 @@ Validator.prototype.validateAll = function (req, res) {
 
     var promises = [];
     this.fields.forEach(function (field) {
-        promises.push(me._validate(field, req, res));
+        promises.push(me._validate(req, res, field, id));
     });
 
     q.all(promises)
@@ -125,12 +129,13 @@ Validator.prototype.validateAll = function (req, res) {
 /**
  * Do actual validation on a field
  *
- * @param {string} field        Field name
  * @param {object} req          Express.js request object
  * @param {object} res          Express.js response object
+ * @param {string} field        Field name
+ * @param {*} [id]              ID of the object being validated
  * @return {object}             Returns promise resolving to validation result
  */
-Validator.prototype._validate = function (field, req, res) {
+Validator.prototype._validate = function (req, res, field, id) {
     var me = this;
     var defer = q.defer();
 
@@ -141,7 +146,7 @@ Validator.prototype._validate = function (field, req, res) {
         return defer.promise;
     }
 
-    this.parsers[field](req, res)
+    this.parsers[field](req, res, id)
         .then(function (result) {
             me.values[field] = result.value;
             me.errors[field] = result.errors;

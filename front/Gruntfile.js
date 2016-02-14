@@ -195,12 +195,15 @@ module.exports = function(grunt) {
                     files: [
                         '<%= concat.vendorjs.dest %>',
                         'bower_components/angular-mocks/angular-mocks.js',
+                        'bower_components/karma-read-json/karma-read-json.js',
                         '<%= concat.appjs.dest %>',
                         'tests/unit/**/*.js',
+                        { pattern: 'bower_components/cldr-data/**/*.json', included: false, served: true },
+                        { pattern: 'tests/l10n/*.json', included: false, served: true },
                     ],
                     proxies: {
-                        '/locales/': 'dist/locales/'
-                    },
+                        '/base/': '/'
+                    }
                 }
             }
         },

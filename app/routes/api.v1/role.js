@@ -24,7 +24,7 @@ module.exports = function () {
     var roleForm = new ValidatorService();
     roleForm.addParser(
         'parent_id',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -44,23 +44,27 @@ module.exports = function () {
     );
     roleForm.addParser(
         'handle',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
             var value = validator.trim(req.body.handle);
             var errors = [];
 
-            if (req.body._form_type == 'create') {
-                if (!validator.isLength(value, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-            }
+            if (!validator.isLength(value, 1))
+                errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
 
             if (value.length) {
                 var roleRepo = locator.get('role-repository');
                 roleRepo.findByHandle(value)
                     .then(function (roles) {
-                        if (roles.length)
+                        var exists = roles.some(function (role) {
+                            if (role.getId() == id)
+                                return false;
+                            return true;
+                        });
+
+                        if (exists)
                             errors.push(glMessage('VALIDATOR_RECORD_EXISTS'));
 
                         defer.resolve({ value: value, errors: errors });
@@ -77,7 +81,7 @@ module.exports = function () {
     );
     roleForm.addParser(
         'translations',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -241,8 +245,9 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                var id = req.body._id;
                 var field = req.body._field;
-                return roleForm.validateField(field, req, res)
+                return roleForm.validateField(req, res, field, id)
                     .then(function (success) {
                         res.json({ success: success, errors: roleForm.getErrors(field) });
                     });
@@ -357,7 +362,6 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                req.body._form_type = 'create';
                 return roleForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
@@ -420,8 +424,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                req.body._form_type = 'edit';
-                return roleForm.validateAll(req, res)
+                return roleForm.validateAll(req, res, roleId)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -446,8 +449,7 @@ module.exports = function () {
                                     return app.abort(res, 404, "Role " + roleId + " not found");
 
                                 role.setParentId(roleForm.getValue('parent_id') ? parseInt(roleForm.getValue('parent_id')) : null);
-                                if (roleForm.getValue('handle').length)
-                                    role.setHandle(roleForm.getValue('handle'));
+                                role.setHandle(roleForm.getValue('handle'));
 
                                 return roleRepo.save(role)
                                     .then(function (roleId) {

@@ -21,6 +21,7 @@
     "pnotify": "~2.1.0",
     "highlightjs": "~8.9.1",
     "angular-highlightjs": "~0.5.1",
-    "angular-ui-tree": "~2.11.0"
+    "angular-ui-tree": "~2.11.0",
+    "karma-read-json": "~1.1.0"
   }
 }

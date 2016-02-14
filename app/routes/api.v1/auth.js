@@ -21,7 +21,7 @@ module.exports = function () {
     var loginForm = new ValidatorService();
     loginForm.addParser(
         'email',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -39,7 +39,7 @@ module.exports = function () {
     );
     loginForm.addParser(
         'password',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -59,7 +59,7 @@ module.exports = function () {
     // Validate login field route
     router.post('/validate', function (req, res) {
         var field = req.body._field;
-        loginForm.validateField(field, req, res)
+        loginForm.validateField(req, res, field)
             .then(function (success) {
                 res.json({ success: success, errors: loginForm.getErrors(field) });
             })

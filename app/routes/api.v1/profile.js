@@ -19,7 +19,7 @@ module.exports = function () {
     var profileForm = new ValidatorService();
     profileForm.addParser(
         'name',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -32,7 +32,7 @@ module.exports = function () {
     );
     profileForm.addParser(
         'new_password',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -48,7 +48,7 @@ module.exports = function () {
     );
     profileForm.addParser(
         'retyped_password',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -72,7 +72,7 @@ module.exports = function () {
             return app.abort(res, 401, "Not logged in");
 
         var field = req.body._field
-        profileForm.validateField(field, req, res)
+        profileForm.validateField(req, res, field)
             .then(function (success) {
                 res.json({ success: success, errors: profileForm.getErrors(field) });
             })

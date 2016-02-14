@@ -22,7 +22,7 @@ module.exports = function () {
     var permissionForm = new ValidatorService();
     permissionForm.addParser(
         'role_id',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -40,7 +40,7 @@ module.exports = function () {
     );
     permissionForm.addParser(
         'resource',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -53,7 +53,7 @@ module.exports = function () {
     );
     permissionForm.addParser(
         'action',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -170,8 +170,9 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                var id = req.body._id;
                 var field = req.body._field;
-                return permissionForm.validateField(field, req, res)
+                return permissionForm.validateField(req, res, id)
                     .then(function (success) {
                         res.json({ success: success, errors: permissionForm.getErrors(field) });
                     });
@@ -303,7 +304,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                return permissionForm.validateAll(req, res)
+                return permissionForm.validateAll(req, res, permissionId)
                     .then(function (success) {
                         if (!success) {
                             return res.json({

@@ -89,7 +89,11 @@ services.factory('AppControl',
             setToken: function (newToken) {
                 token = newToken;
                 localStorage.setItem(tokenStorageKey, token);
-                SocketServer.getSocket().emit('token', token);
+
+                var socket = SocketServer.getSocket();
+                if (socket.emit)
+                    socket.emit('token', token);
+
                 $http.defaults.headers.common['Authorization'] = 'Bearer ' + token;
                 $.ajaxSetup({
                     headers: { 'Authorization': 'Bearer ' + token },
@@ -138,7 +142,7 @@ services.factory('AppControl',
             getProfile: function () {
                 return profile;
             },
-            loadProfile: function (done) {
+            loadProfile: function () {
                 var locale = $cookies.get('locale');
                 if (typeof locale == 'undefined')
                     $http.defaults.headers.common['Accept-Language'] = undefined;

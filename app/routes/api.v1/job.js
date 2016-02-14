@@ -24,7 +24,7 @@ module.exports = function () {
     var jobForm = new ValidatorService();
     jobForm.addParser(
         'name',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -40,7 +40,7 @@ module.exports = function () {
     );
     jobForm.addParser(
         'queue',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -53,7 +53,7 @@ module.exports = function () {
     );
     jobForm.addParser(
         'status',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -69,7 +69,7 @@ module.exports = function () {
     );
     jobForm.addParser(
         'scheduled_for',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -85,7 +85,7 @@ module.exports = function () {
     );
     jobForm.addParser(
         'valid_until',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -101,7 +101,7 @@ module.exports = function () {
     );
     jobForm.addParser(
         'input_data',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -267,8 +267,9 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                var id = req.body._id;
                 var field = req.body._field;
-                return jobForm.validateField(field, req, res)
+                return jobForm.validateField(req, res, field, id)
                     .then(function (success) {
                         res.json({ success: success, errors: jobForm.getErrors(field) });
                     });
@@ -433,7 +434,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                return jobForm.validateAll(req, res)
+                return jobForm.validateAll(req, res, jobId)
                     .then(function (success) {
                         if (!success) {
                             return res.json({

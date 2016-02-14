@@ -22,7 +22,7 @@ module.exports = function () {
     var userForm = new ValidatorService();
     userForm.addParser(
         'name',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -35,28 +35,29 @@ module.exports = function () {
     );
     userForm.addParser(
         'email',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
             var value = validator.trim(req.body.email);
             var errors = [];
 
-            if (req.body._form_type == 'create') {
-                if (!validator.isLength(value, 1))
-                    errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-                else if (!validator.isEmail(value))
-                    errors.push(glMessage('VALIDATOR_EMAIL'));
-            } else {
-                if (value.length && !validator.isEmail(value))
-                    errors.push(glMessage('VALIDATOR_EMAIL'));
-            }
+            if (!validator.isLength(value, 1))
+                errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
+            else if (!validator.isEmail(value))
+                errors.push(glMessage('VALIDATOR_EMAIL'));
 
             if (value.length) {
                 var userRepo = locator.get('user-repository');
                 userRepo.findByEmail(value)
                     .then(function (users) {
-                        if (users.length)
+                        var exists = users.some(function (user) {
+                            if (user.getId() == id)
+                                return false;
+                            return true;
+                        });
+
+                        if (exists)
                             errors.push(glMessage('VALIDATOR_RECORD_EXISTS'));
 
                         defer.resolve({ value: value, errors: errors });
@@ -74,19 +75,19 @@ module.exports = function () {
     );
     userForm.addParser(
         'password',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
             var value = validator.trim(req.body.password);
             var errors = [];
 
-            if (req.body._form_type == 'create') {
+            if (!id) { // create
                 if (!value.length)
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                 else if (!validator.isLength(value, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
-            } else {
+            } else { // update
                 if (value.length && !validator.isLength(value, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
             }
@@ -97,7 +98,7 @@ module.exports = function () {
     );
     userForm.addParser(
         'retyped_password',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -105,14 +106,14 @@ module.exports = function () {
             var value = validator.trim(req.body.retyped_password);
             var errors = [];
 
-            if (req.body._form_type == 'create') {
+            if (!id) { // create
                 if (!value.length)
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                 else if (!validator.isLength(value, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                 else if (value != otherValue)
                     errors.push(glMessage('VALIDATOR_INPUT_MISMATCH'));
-            } else {
+            } else { // update
                 if (value.length && !validator.isLength(value, 6))
                     errors.push(glMessage('VALIDATOR_MIN_LENGTH', { min: 6 }));
                 else if ((value.length || otherValue.length) && value != otherValue) {
@@ -126,7 +127,7 @@ module.exports = function () {
     );
     userForm.addParser(
         'roles',
-        function (req, res) {
+        function (req, res, id) {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
@@ -268,8 +269,9 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
+                var id = req.body._id;
                 var field = req.body._field;
-                return userForm.validateField(field, req, res)
+                return userForm.validateField(req, res, field, id)
                     .then(function (success) {
                         res.json({ success: success, errors: userForm.getErrors(field) });
                     });
@@ -439,7 +441,6 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                req.body._form_type = 'create';
                 return userForm.validateAll(req, res)
                     .then(function (success) {
                         if (!success) {
@@ -498,8 +499,7 @@ module.exports = function () {
                 if (!isAllowed)
                     return app.abort(res, 403, "ACL denied");
 
-                req.body._form_type = 'edit';
-                return userForm.validateAll(req, res)
+                return userForm.validateAll(req, res, userId)
                     .then(function (success) {
                         if (!success) {
                             return res.json({
@@ -518,8 +518,7 @@ module.exports = function () {
                                     return app.abort(res, 404, "User " + userId + " not found");
 
                                 user.setName(userForm.getValue('name').length ? userForm.getValue('name') : null);
-                                if (userForm.getValue('email').length)
-                                    user.setEmail(userForm.getValue('email'));
+                                user.setEmail(userForm.getValue('email'));
                                 if (userForm.getValue('password').length)
                                     user.setPassword(UserModel.encryptPassword(userForm.getValue('password')));
 

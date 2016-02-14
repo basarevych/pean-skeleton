@@ -19,7 +19,7 @@
                 <div class="col-sm-8">
                     <div class="input-group">
                         <input type="text" readonly="readonly" class="form-control" ng-model="model.original_handle" focus-on="model.handle.focus" on-key-enter="model.parent_id.focus = true"
-                               ng-disabled="processing" autofocus="autofocus">
+                               ng-disabled="processing">
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default" ng-click="model.changeHandle(); resetValidation('handle')">
                                 {{ 'CHANGE_BUTTON' | glMessage }}
@@ -70,7 +70,7 @@
                         <label ng-class="{ 'text-primary': node.disabled }">
                             <input type="radio" ng-show="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
                                    ng-change="resetValidation('parent_id'); validate('parent_id')"
-                                   focus-on="model.parent_id.focus" on-key-enter="model.translations.focus = true" ng-disabled="node.disabled">
+                                   focus-on="model.parent_id.focus" on-key-enter="model.translations.focus = true" ng-disabled="node.disabled" autofocus="autofocus">
                             <input type="radio" ng-hide="node.focus" ng-model="model.parent_id.value" ng-value="node.id"
                                    ng-change="resetValidation('parent_id'); validate('parent_id')"
                                    on-key-enter="model.translations.focus = true" ng-disabled="node.disabled">

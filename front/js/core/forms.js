@@ -224,12 +224,7 @@ forms.factory('CreateRoleForm',
                             title_focus: false,
                         };
                     },
-                    validator: function () {
-                        return function (params) {
-                            params['_form_type'] = 'create';
-                            return RoleApi.validate(params);
-                        };
-                    },
+                    validator: function () { return RoleApi.validate; },
                     submitter: function () { return RoleApi.create; },
                 }
             }).result;
@@ -250,8 +245,8 @@ forms.factory('EditRoleForm',
                     model: function () {
                         return {
                             id: { value: role.id, focus: false, required: false },
-                            parent_id: { tree: roles, value: role.parent_id, focus: false, required: true },
-                            handle: { value: '', focus: true, required: true },
+                            parent_id: { tree: roles, value: role.parent_id, focus: true, required: true },
+                            handle: { value: role.handle, focus: false, required: true },
                             translations: { selected: locale.current, value: role.translations, focus: false, required: false },
                             locale: locale,
                             title_focus: false,
@@ -259,18 +254,17 @@ forms.factory('EditRoleForm',
                             original_handle: role.handle,
                             changeHandle: function () {
                                 this.handle_changed = true;
-                                this.handle.value = this.original_handle;
                                 this.handle.focus = true;
                             },
                             cancelHandle: function () {
                                 this.handle_changed = false;
-                                this.handle.value = "";
+                                this.handle.value = this.original_handle;
                             },
                         };
                     },
                     validator: function () {
                         return function (params) {
-                            params['_form_type'] = 'edit';
+                            params['_id'] = role.id;
                             return RoleApi.validate(params);
                         };
                     },
@@ -322,7 +316,12 @@ forms.factory('EditPermissionForm',
                             locale: AppControl.getProfile().locale,
                         };
                     },
-                    validator: function () { return PermissionApi.validate; },
+                    validator: function () {
+                        return function (params) {
+                            params['_id'] = role.id;
+                            return PermissionApi.validate(params);
+                        };
+                    },
                     submitter: function () { return PermissionApi.update; },
                 }
             }).result;
@@ -373,12 +372,7 @@ forms.factory('CreateUserForm',
                             },
                         };
                     },
-                    validator: function () {
-                        return function (params) {
-                            params['_form_type'] = 'create';
-                            return UserApi.validate(params);
-                        };
-                    },
+                    validator: function () { return UserApi.validate },
                     submitter: function () { return UserApi.create; },
                 }
             }).result;
@@ -398,7 +392,7 @@ forms.factory('EditUserForm',
                         return {
                             id: { value: user.id, focus: false, required: false },
                             name: { value: user.name, focus: true, required: false },
-                            email: { value: '', focus: false, required: true },
+                            email: { value: user.email, focus: false, required: true },
                             password: { value: '', focus: false, required: false },
                             retyped_password: { value: '', focus: false, required: false },
                             roles: { tree: roles, value: user.roles, focus: false, required: false },
@@ -432,18 +426,17 @@ forms.factory('EditUserForm',
                             original_email: user.email,
                             changeEmail: function () {
                                 this.email_changed = true;
-                                this.email.value = this.original_email;
                                 this.email.focus = true;
                             },
                             cancelEmail: function () {
                                 this.email_changed = false;
-                                this.email.value = "";
+                                this.email.value = this.original_email;
                             },
                         };
                     },
                     validator: function () {
                         return function (params) {
-                            params['_form_type'] = 'edit';
+                            params['_id'] = user.id;
                             return UserApi.validate(params);
                         };
                     },
@@ -539,6 +532,7 @@ forms.factory('EditJobForm',
                     },
                     validator: function () {
                         return function (params) {
+                            params['_id'] = job.id;
                             if (params['scheduled_for'].trim().length)
                                 params['scheduled_for'] = moment(params['scheduled_for']).unix();
                             if (params['valid_until'].trim().length)

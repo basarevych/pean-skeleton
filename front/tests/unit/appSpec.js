@@ -13,12 +13,28 @@ describe('Application', function() {
         default: 'ru',
         available: [ 'en', 'ru' ],
     };
+    var cldrBasePath = 'bower_components/cldr-data';
+    var l10nBasePath = 'tests/l10n';
+    var mainResources = [
+        'currencies.json',
+        'ca-gregorian.json',
+        'timeZoneNames.json',
+        'numbers.json'
+    ];
+    var supplementalResources = [
+        'currencyData.json',
+        'likelySubtags.json',
+        'plurals.json',
+        'timeData.json',
+        'weekData.json'
+    ];
 
     beforeEach(function (){
         angular.mock.module('app', function (globalizeWrapperProvider) {
-            globalizeWrapperProvider.setL10nBasePath('l10n');
-            globalizeWrapperProvider.setMainResources([]);
-            globalizeWrapperProvider.setSupplementalResources([]);
+            globalizeWrapperProvider.setCldrBasePath(cldrBasePath);
+            globalizeWrapperProvider.setL10nBasePath(l10nBasePath);
+            globalizeWrapperProvider.setMainResources(mainResources);
+            globalizeWrapperProvider.setSupplementalResources(supplementalResources);
         });
     });
 
@@ -36,8 +52,19 @@ describe('Application', function() {
                 roles: [ 'role1' ],
             });
 
-        $httpBackend.expectGET('l10n/' + fakeLocale.current.substr(0, 2) + '.json')
-            .respond({ });
+        fakeLocale.available.forEach(function (locale) {
+            for (var i = 0; i < mainResources.length; i++) {
+                var file = cldrBasePath + '/main/' + locale + '/' + mainResources[i];
+                $httpBackend.expectGET(file).respond(readJSON(file));
+            }
+            var file = l10nBasePath + '/' + locale + '.json';
+            $httpBackend.expectGET(file).respond(readJSON(file));
+        });
+
+        for (var i = 0; i < supplementalResources.length; i++) {
+            var file = cldrBasePath + '/supplemental/' + supplementalResources[i];
+            $httpBackend.expectGET(file).respond(readJSON(file));
+        }
 
         $httpBackend.flush();
     }));
