@@ -172,7 +172,7 @@ module.exports = function () {
 
                 var id = req.body._id;
                 var field = req.body._field;
-                return permissionForm.validateField(req, res, id)
+                return permissionForm.validateField(req, res, field, id)
                     .then(function (success) {
                         res.json({ success: success, errors: permissionForm.getErrors(field) });
                     });

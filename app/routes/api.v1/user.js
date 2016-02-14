@@ -42,31 +42,32 @@ module.exports = function () {
             var value = validator.trim(req.body.email);
             var errors = [];
 
-            if (!validator.isLength(value, 1))
+            if (!validator.isLength(value, 1)) {
                 errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-            else if (!validator.isEmail(value))
-                errors.push(glMessage('VALIDATOR_EMAIL'));
+            } else {
+                if (!validator.isEmail(value)) {
+                    errors.push(glMessage('VALIDATOR_EMAIL'));
+                } else {
+                    var userRepo = locator.get('user-repository');
+                    userRepo.findByEmail(value)
+                        .then(function (users) {
+                            var exists = users.some(function (user) {
+                                if (user.getId() == id)
+                                    return false;
+                                return true;
+                            });
 
-            if (value.length) {
-                var userRepo = locator.get('user-repository');
-                userRepo.findByEmail(value)
-                    .then(function (users) {
-                        var exists = users.some(function (user) {
-                            if (user.getId() == id)
-                                return false;
-                            return true;
+                            if (exists)
+                                errors.push(glMessage('VALIDATOR_RECORD_EXISTS'));
+
+                            defer.resolve({ value: value, errors: errors });
+                        })
+                        .catch(function (err) {
+                            defer.reject(err);
                         });
 
-                        if (exists)
-                            errors.push(glMessage('VALIDATOR_RECORD_EXISTS'));
-
-                        defer.resolve({ value: value, errors: errors });
-                    })
-                    .catch(function (err) {
-                        defer.reject(err);
-                    });
-
-                return defer.promise;
+                    return defer.promise;
+                }
             }
 
             defer.resolve({ value: value, errors: errors });

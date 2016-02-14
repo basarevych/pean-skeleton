@@ -51,10 +51,9 @@ module.exports = function () {
             var value = validator.trim(req.body.handle);
             var errors = [];
 
-            if (!validator.isLength(value, 1))
+            if (!validator.isLength(value, 1)) {
                 errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-
-            if (value.length) {
+            } else {
                 var roleRepo = locator.get('role-repository');
                 roleRepo.findByHandle(value)
                     .then(function (roles) {
