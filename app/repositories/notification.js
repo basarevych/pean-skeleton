@@ -71,7 +71,7 @@ NotificationRepository.prototype.find = function (id) {
  * Save notification model
  *
  * @param {object} notification The notification to save
- * @return {object}             Returns promise resolving to notification ID
+ * @return {object}             Returns promise resolving to notification ID or null on failure
  */
 NotificationRepository.prototype.save = function (notification) {
     var logger = locator.get('logger');

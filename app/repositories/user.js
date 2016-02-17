@@ -326,7 +326,7 @@ UserRepository.prototype.searchByEmail = function (search, limit) {
  * Save user model
  *
  * @param {object} user     The user to save
- * @return {object}         Returns promise resolving to user ID
+ * @return {object}         Returns promise resolving to user ID or null on failure
  */
 UserRepository.prototype.save = function (user) {
     var logger = locator.get('logger');

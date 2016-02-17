@@ -227,7 +227,7 @@ RoleTranslationRepository.prototype.findAll = function () {
  * Save translation model
  *
  * @param {object} translation  The translation to save
- * @return {object}             Returns promise resolving to translation ID
+ * @return {object}             Returns promise resolving to translation ID or null on failure
  */
 RoleTranslationRepository.prototype.save = function (translation) {
     var logger = locator.get('logger');

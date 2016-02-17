@@ -174,7 +174,7 @@ TokenRepository.prototype.findAll = function () {
  * Save token model
  *
  * @param {object} token   The token to save
- * @return {object}         Returns promise resolving to token ID
+ * @return {object}         Returns promise resolving to token ID or null on failure
  */
 TokenRepository.prototype.save = function (token) {
     var logger = locator.get('logger');

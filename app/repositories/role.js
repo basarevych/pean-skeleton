@@ -223,7 +223,7 @@ RoleRepository.prototype.findAll = function () {
  * Save role model
  *
  * @param {object} role     The role to save
- * @return {object}         Returns promise resolving to role ID
+ * @return {object}         Returns promise resolving to role ID or null on failure
  */
 RoleRepository.prototype.save = function (role) {
     var logger = locator.get('logger');

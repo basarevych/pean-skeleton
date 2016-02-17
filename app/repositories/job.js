@@ -123,7 +123,7 @@ JobRepository.prototype.findAll = function () {
  * Save job model
  *
  * @param {object} job      The job to save
- * @return {object}         Returns promise resolving to job ID
+ * @return {object}         Returns promise resolving to job ID or null on failure
  */
 JobRepository.prototype.save = function (job) {
     var config = locator.get('config');

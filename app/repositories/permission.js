@@ -251,7 +251,7 @@ PermissionRepository.prototype.findAll = function () {
  * Save permission model
  *
  * @param {object} permission   The permission to save
- * @return {object}             Returns promise resolving to permission ID
+ * @return {object}             Returns promise resolving to permission ID or null on failure
  */
 PermissionRepository.prototype.save = function (permission) {
     var logger = locator.get('logger');
