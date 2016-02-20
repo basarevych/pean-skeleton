@@ -124,7 +124,7 @@ Filer.prototype.lockRead = function (filename, defaultContents) {
 };
 
 /**
- * Lock a file (exclusive) and write to it
+ * Lock a file (exclusively) and write to it
  *
  * @param {string} filename     File path and name
  * @param {string} contents     New file contents
@@ -147,6 +147,65 @@ Filer.prototype.lockWrite = function (filename, contents) {
             return defer.reject(err);
 
         me.write(fd, contents)
+            .then(function () {
+                fs.flock(fd, 'un', function (err) {
+                    if (err) {
+                        fs.closeSync(fd);
+                        return defer.reject(err);
+                    }
+
+                    fs.closeSync(fd);
+                    defer.resolve(true);
+                });
+            })
+            .catch(function (err) {
+                fs.closeSync(fd);
+                defer.reject(err);
+            });
+    });
+
+    return defer.promise;
+};
+
+/**
+ * Updater callback
+ *
+ * @callback Filer~updater
+ * @param {string} contents     Previous file contents
+ * @return {object}             Returns promise resolving to new file contents
+ */
+
+/**
+ * Lock a file (exclusively) and update it
+ *
+ * @param {string} filename     File path and name
+ * @param {Filer~updater} cb    Updater callback
+ * @return {object}             Returns promise resolving to true on success
+ */
+Filer.prototype.lockUpdate = function (filename, cb) {
+    var me = this;
+    var defer = q.defer();
+
+    var fd;
+    try {
+        fd = fs.openSync(filename, 'a+');
+    } catch (err) {
+        defer.reject(err);
+        return defer.promise;
+    }
+
+    fs.flock(fd, 'ex', function (err) {
+        if (err)
+            return defer.reject(err);
+
+        me.read(fd)
+            .then(function (contents) {
+                return cb(contents)
+            })
+            .then(function (newContents) {
+                fs.ftruncateSync(fd, 0);
+                return me.write(fd, newContents)
+            })
             .then(function () {
                 fs.flock(fd, 'un', function (err) {
                     if (err) {
