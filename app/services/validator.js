@@ -59,7 +59,7 @@ Validator.prototype.getErrors = function (field) {
 /**
  * Field parser callback which sets field value and errors
  *
- * @callback fieldParser
+ * @callback Validator~fieldParser
  * @param {object} req          Express.js request object
  * @param {object} res          Express.js response object
  * @param {*} [id]              ID of the object being validated
@@ -69,8 +69,8 @@ Validator.prototype.getErrors = function (field) {
 /**
  * Create form field by assigning its parser
  *
- * @param {string} field        Field name
- * @param {fieldParser} parser  Field parser
+ * @param {string} field                    Field name
+ * @param {Validator~fieldParser} parser    Field parser
  */
 Validator.prototype.addParser = function (field, parser) {
     if (this.fields.indexOf(field) == -1)
