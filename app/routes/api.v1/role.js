@@ -39,6 +39,7 @@ module.exports = function () {
                 } else if (!validator.isInt(value)) {
                     errors.push(glMessage('VALIDATOR_NOT_INT'));
                 } else {
+                    value = parseInt(value);
                     var roleRepo = locator.get('role-repository');
                     roleRepo.find(value)
                         .then(function (roles) {
