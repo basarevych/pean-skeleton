@@ -9,6 +9,7 @@ var express = require('express');
 var validator = require('validator');
 var moment = require('moment-timezone');
 var q = require('q');
+var clone = require('clone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
 var ValidatorService = locator.get('validator-service');
@@ -137,8 +138,33 @@ module.exports = function () {
             var value = req.body.roles;
             var errors = [];
 
-            if (typeof value != 'object' || !Array.isArray(value))
+            if (typeof value != 'object' || !Array.isArray(value)) {
                 errors.push(glMessage('VALIDATOR_NOT_ARRAY'));
+            } else {
+                var toCheck = clone(value);
+                function checkRoles() {
+                    var role = toCheck.shift();
+                    if (!role)
+                        return defer.resolve({ value: value, errors: errors });
+
+                    var roleRepo = locator.get('role-repository');
+                    roleRepo.find(role)
+                        .then(function (roles) {
+                            if (roles.length == 0) {
+                                errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
+                                return defer.resolve({ value: value, errors: errors });
+                            }
+
+                            checkRoles();
+                        })
+                        .catch(function (err) {
+                            defer.reject(err);
+                        });
+                }
+                checkRoles();
+
+                return defer.promise;
+            }
 
             defer.resolve({ value: value, errors: errors });
             return defer.promise;

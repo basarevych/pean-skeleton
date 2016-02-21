@@ -6,6 +6,7 @@ var q = require('q');
 var moment = require('moment-timezone');
 var app = require('../../../app.js');
 var UserModel = require('../../../models/user');
+var RoleModel = require('../../../models/role');
 var PermissionModel = require('../../../models/permission');
 
 describe('/v1/permission route', function () {
@@ -216,9 +217,18 @@ describe('/v1/permission route', function () {
     });
 
     it('runs CREATE', function (done) {
-        var savedModel;
+        var searchedRoleId, savedModel;
+        var role = new RoleModel({ id: 42 });
 
         locator.register('user', authUser);
+        locator.register('role-repository', {
+            find: function (id) {
+                searchedRoleId = id;
+                var defer = q.defer();
+                defer.resolve([ role ]);
+                return defer.promise;
+            },
+        });
         locator.register('permission-repository', {
             save: function (model) {
                 savedModel = model;
@@ -241,6 +251,7 @@ describe('/v1/permission route', function () {
                 expect(aclQueried).toBeTruthy();
                 expect(res.body.success).toBeTruthy();
                 expect(res.body.id).toBe(42);
+                expect(searchedRoleId).toBe(42);
                 expect(savedModel.getRoleId()).toBe(42);
                 expect(savedModel.getResource()).toBe('res');
                 expect(savedModel.getAction()).toBe('act');

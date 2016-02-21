@@ -368,7 +368,7 @@ describe('/v1/user route', function () {
     });
 
     it('runs CREATE', function (done) {
-        var savedModel, addedUser, addedRole;
+        var searchedRoleId, savedModel, addedUser, addedRole;
 
         var role = new RoleModel({
             id: 9000,
@@ -398,6 +398,12 @@ describe('/v1/user route', function () {
             },
         });
         locator.register('role-repository', {
+            find: function (id) {
+                searchedRoleId = id;
+                var defer = q.defer();
+                defer.resolve([ role ]);
+                return defer.promise;
+            },
             findAll: function () {
                 var defer = q.defer();
                 defer.resolve([ role ]);
@@ -420,6 +426,7 @@ describe('/v1/user route', function () {
                 expect(aclQueried).toBeTruthy();
                 expect(res.body.success).toBeTruthy();
                 expect(res.body.id).toBe(42);
+                expect(searchedRoleId).toBe(9000);
                 expect(savedModel.getName()).toBe('foo');
                 expect(savedModel.getEmail()).toBe('bar@example.com');
                 expect(savedModel.checkPassword('passwd')).toBeTruthy();
@@ -437,7 +444,7 @@ describe('/v1/user route', function () {
     });
 
     it('runs UPDATE', function (done) {
-        var searchedId, savedModel, addedUser, addedRole, removedUser, removedRole;
+        var searchedId, searchedRoleId, savedModel, addedUser, addedRole, removedUser, removedRole;
         var user = new UserModel({ id: 42 });
         var role1 = new RoleModel({
             id: 9000,
@@ -449,7 +456,6 @@ describe('/v1/user route', function () {
             parent_id: null,
             handle: 'bar',
         });
-
 
         locator.register('user', authUser);
         locator.register('user-repository', {
@@ -486,6 +492,12 @@ describe('/v1/user route', function () {
             },
         });
         locator.register('role-repository', {
+            find: function (id) {
+                searchedRoleId = id;
+                var defer = q.defer();
+                defer.resolve([ role1 ]);
+                return defer.promise;
+            },
             findAll: function () {
                 var defer = q.defer();
                 defer.resolve([ role1, role2 ]);
@@ -509,6 +521,7 @@ describe('/v1/user route', function () {
                 expect(aclQueried).toBeTruthy();
                 expect(searchedId).toBe(1);
                 expect(res.body.success).toBeTruthy();
+                expect(searchedRoleId).toBe(9000);
                 expect(savedModel.getName()).toBe('foo');
                 expect(savedModel.getEmail()).toBe('bar@example.com');
                 expect(savedModel.checkPassword('passwd')).toBeTruthy();

@@ -31,10 +31,25 @@ module.exports = function () {
             var value = validator.trim(req.body.role_id);
             var errors = [];
 
-            if (!validator.isLength(value, 1))
+            if (!validator.isLength(value, 1)) {
                 errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
-            else if (!validator.isInt(value))
+            } else if (!validator.isInt(value)) {
                 errors.push(glMessage('VALIDATOR_NOT_INT'));
+            } else {
+                value = parseInt(value);
+                var roleRepo = locator.get('role-repository');
+                roleRepo.find(value)
+                    .then(function (roles) {
+                        if (roles.length == 0)
+                            errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
+                        defer.resolve({ value: value, errors: errors });
+                    })
+                    .catch(function (err) {
+                        defer.reject(err);
+                    });
+
+                return defer.promise;
+            }
 
             defer.resolve({ value: value, errors: errors });
             return defer.promise;
