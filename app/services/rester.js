@@ -97,7 +97,7 @@ Rester.prototype.put = function (url, data) {
  * @param {string} url          URL
  * @return {object}             Returns promise resolving to object { response: {}, body: {} }
  */
-Rester.prototype.get = function (url) {
+Rester.prototype.delete = function (url) {
     return this.request('DELETE', url);
 };
 
