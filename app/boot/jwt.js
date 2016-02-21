@@ -57,7 +57,7 @@ module.exports = function (app) {
                                 return;
                             }
 
-                            userRepo.find(token.getUserId())
+                            return userRepo.find(token.getUserId())
                                 .then(function (users) {
                                     var user = users.length && users[0];
                                     if (user)
@@ -65,9 +65,6 @@ module.exports = function (app) {
 
                                     req.token = token;
 
-                                    next();
-                                })
-                                .catch(function () {
                                     next();
                                 });
                         })
