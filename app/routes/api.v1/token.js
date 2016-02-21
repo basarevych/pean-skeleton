@@ -16,6 +16,10 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    /**
+     * GET routes
+     */
+
     // Token list table route
     router.get('/table', function (req, res) {
         var userId = parseInt(req.query.user_id, 10);
@@ -193,6 +197,10 @@ module.exports = function () {
                 app.abort(res, 500, 'GET /v1/token failed', err);
             });
     });
+
+    /**
+     * DELETE routes
+     */
 
     // Delete particular token route
     router.delete('/:tokenId', function (req, res) {

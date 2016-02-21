@@ -16,6 +16,10 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
+    /**
+     * POST routes
+     */
+
     // Create notification route
     router.post('/', function (req, res) {
         if (!req.user)

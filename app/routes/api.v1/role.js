@@ -20,7 +20,9 @@ module.exports = function () {
     var app = locator.get('app');
     var config = locator.get('config');
 
-    // Role form validator
+    /**
+     * Role form validator
+     */
     var roleForm = new ValidatorService();
     roleForm.addParser(
         'parent_id',
@@ -139,6 +141,10 @@ module.exports = function () {
         return foundRoles;
     }
 
+    /**
+     * GET routes
+     */
+
     // Role list table route
     router.get('/table', function (req, res) {
         if (!req.user)
@@ -230,29 +236,6 @@ module.exports = function () {
             })
             .catch(function (err) {
                 app.abort(res, 500, 'GET /v1/role/table failed', err);
-            });
-    });
-
-    // Validate role field route
-    router.post('/validate', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        var acl = locator.get('acl');
-        acl.isAllowed(req.user, 'role', 'read')
-            .then(function (isAllowed) {
-                if (!isAllowed)
-                    return app.abort(res, 403, "ACL denied");
-
-                var id = req.body._id;
-                var field = req.body._field;
-                return roleForm.validateField(req, res, field, id)
-                    .then(function (success) {
-                        res.json({ success: success, errors: roleForm.getErrors(field) });
-                    });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/role/validate failed', err);
             });
     });
 
@@ -350,6 +333,33 @@ module.exports = function () {
             });
     });
 
+    /**
+     * POST routes
+     */
+
+    // Validate role field route
+    router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'role', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var id = req.body._id;
+                var field = req.body._field;
+                return roleForm.validateField(req, res, field, id)
+                    .then(function (success) {
+                        res.json({ success: success, errors: roleForm.getErrors(field) });
+                    });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'POST /v1/role/validate failed', err);
+            });
+    });
+
     // Create role route
     router.post('/', function (req, res) {
         if (!req.user)
@@ -407,6 +417,10 @@ module.exports = function () {
                 app.abort(res, 500, 'POST /v1/role failed', err);
             });
     });
+
+    /**
+     * PUT routes
+     */
 
     // Update role route
     router.put('/:roleId', function (req, res) {
@@ -493,6 +507,10 @@ module.exports = function () {
                 app.abort(res, 500, 'PUT /v1/role/' + roleId + ' failed', err);
             });
     });
+
+    /**
+     * DELETE routes
+     */
 
     // Delete particular role route
     router.delete('/:roleId', function (req, res) {

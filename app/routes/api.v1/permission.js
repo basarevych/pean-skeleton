@@ -18,7 +18,9 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
-    // Permission form validator
+    /**
+     * Permission form validator
+     */
     var permissionForm = new ValidatorService();
     permissionForm.addParser(
         'role_id',
@@ -64,6 +66,10 @@ module.exports = function () {
             return defer.promise;
         }
     );
+
+    /**
+     * GET routes
+     */
 
     // Permission list table route
     router.get('/table', function (req, res) {
@@ -159,29 +165,6 @@ module.exports = function () {
             });
     });
 
-    // Validate permission field route
-    router.post('/validate', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        var acl = locator.get('acl');
-        acl.isAllowed(req.user, 'permission', 'read')
-            .then(function (isAllowed) {
-                if (!isAllowed)
-                    return app.abort(res, 403, "ACL denied");
-
-                var id = req.body._id;
-                var field = req.body._field;
-                return permissionForm.validateField(req, res, field, id)
-                    .then(function (success) {
-                        res.json({ success: success, errors: permissionForm.getErrors(field) });
-                    });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/permission/validate failed', err);
-            });
-    });
-
     // Get particular permission route
     router.get('/:permissionId', function (req, res) {
         var permissionId = parseInt(req.params.permissionId, 10);
@@ -248,6 +231,33 @@ module.exports = function () {
             });
     });
 
+    /**
+     * POST routes
+     */
+
+    // Validate permission field route
+    router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'permission', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var id = req.body._id;
+                var field = req.body._field;
+                return permissionForm.validateField(req, res, field, id)
+                    .then(function (success) {
+                        res.json({ success: success, errors: permissionForm.getErrors(field) });
+                    });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'POST /v1/permission/validate failed', err);
+            });
+    });
+
     // Create permission route
     router.post('/', function (req, res) {
         if (!req.user)
@@ -288,6 +298,10 @@ module.exports = function () {
                 app.abort(res, 500, 'POST /v1/permission failed', err);
             });
     });
+
+    /**
+     * PUT routes
+     */
 
     // Update perimission route
     router.put('/:permissionId', function (req, res) {
@@ -339,6 +353,10 @@ module.exports = function () {
                 app.abort(res, 500, 'PUT /v1/permission/' + permissionId + ' failed', err);
             });
     });
+
+    /**
+     * DELETE routes
+     */
 
     // Delete particular permission route
     router.delete('/:permissionId', function (req, res) {

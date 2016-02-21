@@ -15,7 +15,9 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
-    // Profile form validator
+    /**
+     * Profile form validator
+     */
     var profileForm = new ValidatorService();
     profileForm.addParser(
         'name',
@@ -66,20 +68,9 @@ module.exports = function () {
         }
     );
 
-    // Validate profile field route
-    router.post('/validate', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        var field = req.body._field
-        profileForm.validateField(req, res, field)
-            .then(function (success) {
-                res.json({ success: success, errors: profileForm.getErrors(field) });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/profile/validate failed', err);
-            });
-    });
+    /**
+     * GET routes
+     */
 
     // Get profile route
     router.get('/', function (req, res) {
@@ -116,6 +107,29 @@ module.exports = function () {
                 app.abort(res, 500, 'GET /v1/profile failed', err);
             });
     });
+
+    /**
+     * POST routes
+     */
+
+    // Validate profile field route
+    router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var field = req.body._field
+        profileForm.validateField(req, res, field)
+            .then(function (success) {
+                res.json({ success: success, errors: profileForm.getErrors(field) });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'POST /v1/profile/validate failed', err);
+            });
+    });
+
+    /**
+     * PUT routes
+     */
 
     // Update profile route
     router.put('/', function (req, res) {

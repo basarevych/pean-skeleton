@@ -20,7 +20,9 @@ module.exports = function () {
     var app = locator.get('app');
     var config = locator.get('config');
 
-    // Job form validator
+    /**
+     * Job form validator
+     */
     var jobForm = new ValidatorService();
     jobForm.addParser(
         'name',
@@ -119,6 +121,10 @@ module.exports = function () {
             return defer.promise;
         }
     );
+
+    /**
+     * GET routes
+     */
 
     // Job list table route
     router.get('/table', function (req, res) {
@@ -256,29 +262,6 @@ module.exports = function () {
             });
     });
 
-    // Validate job field route
-    router.post('/validate', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        var acl = locator.get('acl');
-        acl.isAllowed(req.user, 'job', 'read')
-            .then(function (isAllowed) {
-                if (!isAllowed)
-                    return app.abort(res, 403, "ACL denied");
-
-                var id = req.body._id;
-                var field = req.body._field;
-                return jobForm.validateField(req, res, field, id)
-                    .then(function (success) {
-                        res.json({ success: success, errors: jobForm.getErrors(field) });
-                    });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/job/validate failed', err);
-            });
-    });
-
     // Route for list of job statuses
     router.get('/statuses', function (req, res) {
         if (!req.user)
@@ -373,6 +356,33 @@ module.exports = function () {
             });
     });
 
+    /**
+     * POST routes
+     */
+
+    // Validate job field route
+    router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'job', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var id = req.body._id;
+                var field = req.body._field;
+                return jobForm.validateField(req, res, field, id)
+                    .then(function (success) {
+                        res.json({ success: success, errors: jobForm.getErrors(field) });
+                    });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'POST /v1/job/validate failed', err);
+            });
+    });
+
     // Create job route
     router.post('/', function (req, res) {
         if (!req.user)
@@ -418,6 +428,10 @@ module.exports = function () {
                 app.abort(res, 500, 'POST /v1/job failed', err);
             });
     });
+
+    /**
+     * PUT routes
+     */
 
     // Update job route
     router.put('/:jobId', function (req, res) {
@@ -473,6 +487,10 @@ module.exports = function () {
                 app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
             });
     });
+
+    /**
+     * DELETE routes
+     */
 
     // Delete particular job route
     router.delete('/:jobId', function (req, res) {

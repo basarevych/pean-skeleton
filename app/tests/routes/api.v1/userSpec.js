@@ -114,17 +114,7 @@ describe('/v1/user route', function () {
     });
 
     it('validates email', function (done) {
-        var searchedEmail;
-
         locator.register('user', authUser);
-        locator.register('user-repository', {
-            findByEmail: function (email) {
-                searchedEmail = email;
-                var defer = q.defer();
-                defer.resolve([]);
-                return defer.promise;
-            },
-        });
 
         request(app)
             .post('/v1/user/validate')
@@ -133,7 +123,6 @@ describe('/v1/user route', function () {
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
-                expect(searchedEmail).toBe('foo');
                 expect(res.body.success).toBeFalsy();
             })
             .expect(200, done);

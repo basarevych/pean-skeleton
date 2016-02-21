@@ -17,7 +17,9 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
-    // Login form validator
+    /**
+     * Login form validator
+     */
     var loginForm = new ValidatorService();
     loginForm.addParser(
         'email',
@@ -55,6 +57,10 @@ module.exports = function () {
             return defer.promise;
         }
     );
+
+    /**
+     * POST routes
+     */
 
     // Validate login field route
     router.post('/validate', function (req, res) {

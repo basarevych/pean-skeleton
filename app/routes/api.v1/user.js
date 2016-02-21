@@ -18,7 +18,9 @@ module.exports = function () {
     var router = express.Router();
     var app = locator.get('app');
 
-    // User form validator
+    /**
+     * User form validator
+     */
     var userForm = new ValidatorService();
     userForm.addParser(
         'name',
@@ -143,6 +145,10 @@ module.exports = function () {
         }
     );
 
+    /**
+     * GET routes
+     */
+
     // User list table route
     router.get('/table', function (req, res) {
         if (!req.user)
@@ -259,89 +265,6 @@ module.exports = function () {
             });
     });
 
-    // Validate user field route
-    router.post('/validate', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        var acl = locator.get('acl');
-        acl.isAllowed(req.user, 'user', 'read')
-            .then(function (isAllowed) {
-                if (!isAllowed)
-                    return app.abort(res, 403, "ACL denied");
-
-                var id = req.body._id;
-                var field = req.body._field;
-                return userForm.validateField(req, res, field, id)
-                    .then(function (success) {
-                        res.json({ success: success, errors: userForm.getErrors(field) });
-                    });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/user/validate failed', err);
-            });
-    });
-
-    // Find a user by some critera route
-    router.post('/search', function (req, res) {
-        if (!req.user)
-            return app.abort(res, 401, "Not logged in");
-
-        var criteria = req.body.criteria;
-        if (!criteria || ['email'].indexOf(criteria) == -1)     // Currently only by email
-            return app.abort(res, 400, "Invalid criteria");
-
-        var limit = req.body.limit;
-        if (!limit || !validator.isInt(limit))
-            return app.abort(res, 400, "Invalid limit");
-
-        var acl = locator.get('acl');
-        acl.isAllowed(req.user, 'user', 'read')
-            .then(function (isAllowed) {
-                if (!isAllowed)
-                    return app.abort(res, 403, "ACL denied");
-
-                var promise;
-                var userRepo = locator.get('user-repository');
-                var roleRepo = locator.get('role-repository');
-                switch (criteria) {
-                    case 'email':
-                        promise = userRepo.searchByEmail(req.body.search, limit);
-                        break;
-                }
-
-                return promise
-                    .then(function (users) {
-                        var result = [];
-                        var promises = [];
-                        users.forEach(function (user) {
-                            result.push({
-                                id: user.getId(),
-                                name: user.getName(),
-                                email: user.getEmail(),
-                                created_at: user.getCreatedAt().unix(),
-                            });
-                            promises.push(roleRepo.findByUserId(user.getId()));
-                        });
-
-                        return q.all(promises)
-                            .then(function (userRoles) {
-                                for (var i = 0; i < userRoles.length; i++) {
-                                    var roleIds = [];
-                                    userRoles[i].forEach(function (role) {
-                                        roleIds.push(role.getId());
-                                    });
-                                    result[i]['roles'] = roleIds;
-                                }
-                                res.json(result);
-                            });
-                    });
-            })
-            .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/user/search failed', err);
-            });
-    });
-
     // Get particular user route
     router.get('/:userId', function (req, res) {
         var userId = parseInt(req.params.userId, 10);
@@ -431,6 +354,93 @@ module.exports = function () {
             });
     });
 
+    /**
+     * POST routes
+     */
+
+    // Validate user field route
+    router.post('/validate', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'user', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var id = req.body._id;
+                var field = req.body._field;
+                return userForm.validateField(req, res, field, id)
+                    .then(function (success) {
+                        res.json({ success: success, errors: userForm.getErrors(field) });
+                    });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'POST /v1/user/validate failed', err);
+            });
+    });
+
+    // Find a user by some critera route
+    router.post('/search', function (req, res) {
+        if (!req.user)
+            return app.abort(res, 401, "Not logged in");
+
+        var criteria = req.body.criteria;
+        if (!criteria || ['email'].indexOf(criteria) == -1)     // Currently only by email
+            return app.abort(res, 400, "Invalid criteria");
+
+        var limit = req.body.limit;
+        if (!limit || !validator.isInt(limit))
+            return app.abort(res, 400, "Invalid limit");
+
+        var acl = locator.get('acl');
+        acl.isAllowed(req.user, 'user', 'read')
+            .then(function (isAllowed) {
+                if (!isAllowed)
+                    return app.abort(res, 403, "ACL denied");
+
+                var promise;
+                var userRepo = locator.get('user-repository');
+                var roleRepo = locator.get('role-repository');
+                switch (criteria) {
+                    case 'email':
+                        promise = userRepo.searchByEmail(req.body.search, limit);
+                        break;
+                }
+
+                return promise
+                    .then(function (users) {
+                        var result = [];
+                        var promises = [];
+                        users.forEach(function (user) {
+                            result.push({
+                                id: user.getId(),
+                                name: user.getName(),
+                                email: user.getEmail(),
+                                created_at: user.getCreatedAt().unix(),
+                            });
+                            promises.push(roleRepo.findByUserId(user.getId()));
+                        });
+
+                        return q.all(promises)
+                            .then(function (userRoles) {
+                                for (var i = 0; i < userRoles.length; i++) {
+                                    var roleIds = [];
+                                    userRoles[i].forEach(function (role) {
+                                        roleIds.push(role.getId());
+                                    });
+                                    result[i]['roles'] = roleIds;
+                                }
+                                res.json(result);
+                            });
+                    });
+            })
+            .catch(function (err) {
+                app.abort(res, 500, 'POST /v1/user/search failed', err);
+            });
+    });
+
     // Create user route
     router.post('/', function (req, res) {
         if (!req.user)
@@ -484,6 +494,10 @@ module.exports = function () {
                 app.abort(res, 500, 'POST /v1/user failed', err);
             });
     });
+
+    /**
+     * PUT routes
+     */
 
     // Update user route
     router.put('/:userId', function (req, res) {
@@ -550,6 +564,10 @@ module.exports = function () {
                 app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
             });
     });
+
+    /**
+     * DELETE routes
+     */
 
     // Delete particular user route
     router.delete('/:userId', function (req, res) {
