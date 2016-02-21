@@ -36,13 +36,13 @@ Rester.prototype.request = function (method, url, data) {
     };
 
     if (process.env.CLIENT_CERT)
-        options['cert'] = fs.readFileSync(process.env.CLIENT_CERT),
+        options['cert'] = fs.readFileSync(process.env.CLIENT_CERT);
 
     if (process.env.CLIENT_KEY)
-        options['key'] = fs.readFileSync(process.env.CLIENT_KEY),
+        options['key'] = fs.readFileSync(process.env.CLIENT_KEY);
 
     if (process.env.CLIENT_CA)
-        options['ca'] = fs.readFileSync(process.env.CLIENT_CA),
+        options['ca'] = fs.readFileSync(process.env.CLIENT_CA);
 
     request(
         options,
