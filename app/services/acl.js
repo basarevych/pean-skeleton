@@ -50,17 +50,14 @@ Acl.prototype.isAllowed = function (user, resource, action) {
                 if (role.getParentId())
                     loadRolePermissions(role.getParentId());
 
-                permissionRepo.findByRoleId(role.getId())
+                return permissionRepo.findByRoleId(role.getId())
                     .then(function (permissions) {
                         permissions.forEach(function (permission) { allPermissions.push(permission); });
                         roleDefer.resolve();
-                    })
-                    .catch(function (err) {
-                        roleDefer.reject('Acl.loadRolePermissions() - permissionRepo.findByRoleId', err);
                     });
             })
             .catch(function (err) {
-                roleDefer.reject('Acl.loadRolePermissions() - roleRepo.find', err);
+                roleDefer.reject(err);
             });
     }
 
@@ -68,7 +65,7 @@ Acl.prototype.isAllowed = function (user, resource, action) {
         .then(function (roles) {
             roles.forEach(function (role) { loadRolePermissions(role.getId()) });
 
-            q.all(loadPromises)
+            return q.all(loadPromises)
                 .then(function () {
                     var allowed = allPermissions.some(function (permission) {
                         var resourceAllowed = false;
@@ -86,13 +83,10 @@ Acl.prototype.isAllowed = function (user, resource, action) {
                         return resourceAllowed && actionAllowed;
                     });
                     defer.resolve(allowed);
-                })
-                .catch(function (err) {
-                    defer.reject('Acl.isAllowed() - loadPromises', err);
                 });
         })
         .catch(function (err) {
-            defer.reject('Acl.isAllowed() - roleRepo.findByUserId', err);
+            defer.reject(err);
         });
 
     return defer.promise;
