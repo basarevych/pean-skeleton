@@ -35,11 +35,12 @@ Acl.prototype.isAllowed = function (user, resource, action) {
     var permissionRepo = locator.get('permission-repository');
 
     var allPermissions = [];
-    var loadPromises = [];
-
     function loadRolePermissions(roleId) {
         var roleDefer = q.defer();
-        loadPromises.push(roleDefer.promise);
+        if (!roleId) {
+            roleDefer.resolve();
+            return roleDefer.promise;
+        }
 
         roleRepo.find(roleId)
             .then(function (roles) {
@@ -47,23 +48,26 @@ Acl.prototype.isAllowed = function (user, resource, action) {
                 if (!role)
                     return roleDefer.reject('Role not found: ' + roleId);
 
-                if (role.getParentId())
-                    loadRolePermissions(role.getParentId());
-
-                return permissionRepo.findByRoleId(role.getId())
-                    .then(function (permissions) {
-                        permissions.forEach(function (permission) { allPermissions.push(permission); });
-                        roleDefer.resolve();
+                return loadRolePermissions(role.getParentId())
+                    .then(function () {
+                        return permissionRepo.findByRoleId(role.getId())
+                            .then(function (permissions) {
+                                permissions.forEach(function (permission) { allPermissions.push(permission); });
+                                roleDefer.resolve();
+                            });
                     });
             })
             .catch(function (err) {
                 roleDefer.reject(err);
             });
+
+        return roleDefer.promise;
     }
 
     roleRepo.findByUserId(user.getId())
         .then(function (roles) {
-            roles.forEach(function (role) { loadRolePermissions(role.getId()) });
+            var loadPromises = [];
+            roles.forEach(function (role) { loadPromises.push(loadRolePermissions(role.getId())) });
 
             return q.all(loadPromises)
                 .then(function () {
