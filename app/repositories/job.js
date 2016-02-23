@@ -195,73 +195,26 @@ JobRepository.prototype.save = function (job) {
             else
                 id = job.getId();
 
-            function resolve(id) {
-                if ((job.getStatus() != 'failure' && job.getStatus() != 'expired') || !config['error']['job_failure']['enabled']) {
-                    defer.resolve(id);
-                    return;
-                }
-
-                var server  = emailjs.server.connect({ host: "127.0.0.1" });
-
-                var data = {
-                    name: job.getName(),
-                    queue: job.getQueue(),
-                    status: job.getStatus(),
-                    created_at: job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
-                    scheduled_for: job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
-                    valid_until: job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
-                    input_data: JSON.stringify(job.getInputData(), null, '    '),
-                    output_data: JSON.stringify(job.getOutputData(), null, '    '),
-                };
-
-                var app = locator.get('app');
-                app.render(
-                    'email/job-failure-text',
-                    data,
-                    function (err, text) {
-                        if (err)
-                            return;
-
-                        app.render(
-                            'email/job-failure-html',
-                            data,
-                            function (err, html) {
-                                if (err)
-                                    return;
-
-                                server.send({
-                                    text: text,
-                                    from: config['error']['job_failure']['from'],
-                                    to: config['error']['job_failure']['to'],
-                                    subject: config['error']['job_failure']['subject'],
-                                    attachment: [
-                                      { data: html, alternative: true },
-                                    ],
-                                });
-
-                                defer.resolve(id);
-                            }
-                        );
+            me._sendFailureEmail(job)
+                .catch(function (err) {
+                    logger.error('JobRepository._sendFailureEmail', err);
+                })
+                .finally(function () {
+                    if (job.getStatus() != 'created') {
+                        defer.resolve(id);
+                        return;
                     }
-                );
-            }
 
-            if (job.getStatus() != 'created') {
-                resolve(id);
-                return;
-            }
+                    var redis = me.getRedis();
+                    redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {
+                        redis.quit();
 
-            var redis = me.getRedis();
-            redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {
-                if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.save() - publish', err);
-                    process.exit(1);
-                }
+                        if (err)
+                            logger.error('JobRepository.save() - publish', err);
 
-                redis.quit();
-                resolve(id);
-            });
+                        defer.resolve(id);
+                    });
+                });
         });
     });
 
@@ -321,6 +274,8 @@ JobRepository.prototype.processNewJobs = function () {
                         var jobDefer = q.defer();
 
                         if (now.isAfter(job.getValidUntil())) {
+                            job.setStatus('expired');
+
                             db.query(
                                 "UPDATE jobs "
                               + "   SET status = $1 "
@@ -333,7 +288,14 @@ JobRepository.prototype.processNewJobs = function () {
                                         process.exit(1);
                                     }
                                     returnValue.expired.push(job);
-                                    jobDefer.resolve();
+
+                                    me._sendFailureEmail(job)
+                                        .catch(function (err) {
+                                            logger.error('JobRepository._sendFailureEmail', err);
+                                        })
+                                        .finally(function () {
+                                            jobDefer.resolve();
+                                        });
                                 }
                             );
                             promises.push(jobDefer.promise);
@@ -341,6 +303,8 @@ JobRepository.prototype.processNewJobs = function () {
                         }
 
                         if (job.getQueue() == null) {
+                            job.setStatus('started');
+
                             db.query(
                                 "UPDATE jobs "
                               + "   SET status = $1 "
@@ -700,6 +664,72 @@ JobRepository.prototype.deleteAll = function () {
             }
         );
     });
+
+    return defer.promise;
+};
+
+/**
+ * Send failure email, does nothing if job hasn't failed or email notification is disabled
+ *
+ * @param {object} job          Job model
+ * @return {object}             Returns promise resolving on send operation success
+ */
+JobRepository.prototype._sendFailureEmail = function resolve(job) {
+    var config = locator.get('config');
+    var defer = q.defer();
+
+    if ((job.getStatus() != 'failure' && job.getStatus() != 'expired') || !config['error']['job_failure']['enabled']) {
+        defer.resolve();
+        return defer.promise;
+    }
+
+    var server  = emailjs.server.connect({ host: "127.0.0.1" });
+
+    var data = {
+        name: job.getName(),
+        queue: job.getQueue(),
+        status: job.getStatus(),
+        created_at: job.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
+        scheduled_for: job.getScheduledFor().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
+        valid_until: job.getValidUntil().tz('UTC').format(BaseModel.DATETIME_FORMAT) + ' (UTC)',
+        input_data: JSON.stringify(job.getInputData(), null, '    '),
+        output_data: JSON.stringify(job.getOutputData(), null, '    '),
+    };
+
+    var app = locator.get('app');
+    app.render(
+        'email/job-failure-text',
+        data,
+        function (err, text) {
+            if (err) {
+                defer.reject(err);
+                return;
+            }
+
+            app.render(
+                'email/job-failure-html',
+                data,
+                function (err, html) {
+                    if (err) {
+                        defer.reject(err);
+                        return;
+                    }
+
+                    server.send({
+                        text: text,
+                        from: config['error']['job_failure']['from'],
+                        to: config['error']['job_failure']['to'],
+                        subject: config['error']['job_failure']['subject'],
+                        attachment: [
+                          { data: html, alternative: true },
+                        ],
+                    });
+
+                    defer.resolve();
+                }
+            );
+        }
+    );
 
     return defer.promise;
 };

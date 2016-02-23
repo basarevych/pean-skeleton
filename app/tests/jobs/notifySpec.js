@@ -15,6 +15,8 @@ describe('Notify job', function () {
 
     beforeEach(function () {
         config = locator.get('config');
+        config['error']['job_failure']['enabled'] = false;
+        locator.register('config', config);
 
         locator.register('logger', {
             log: function () {},
