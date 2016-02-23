@@ -1,8 +1,5 @@
 'use strict'
 
-process.env.PROJECT = 'node';
-delete require.cache[require.resolve('../../app.js')];
-
 var locator = require('node-service-locator');
 var request = require('supertest');
 var q = require('q');
@@ -12,12 +9,11 @@ var Job = require('../../jobs/notify');
 var JobModel = require('../../models/job');
 var NotificationModel = require('../../models/notification');
 
-describe('Node notify job', function () {
+describe('Notify job', function () {
     var config;
     var model;
 
     beforeEach(function () {
-        process.env.PROJECT = 'node';
         config = locator.get('config');
 
         locator.register('logger', {

@@ -196,7 +196,7 @@ JobRepository.prototype.save = function (job) {
                 id = job.getId();
 
             function resolve(id) {
-                if (job.getStatus() != 'failure' || !config['error']['job_failure']['enabled']) {
+                if ((job.getStatus() != 'failure' && job.getStatus() != 'expired') || !config['error']['job_failure']['enabled']) {
                     defer.resolve(id);
                     return;
                 }

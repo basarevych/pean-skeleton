@@ -207,7 +207,7 @@ module.exports = function () {
                     if (row['scheduled_for'])
                         row['scheduled_for'] = row['scheduled_for'].unix();
 
-                    if (row['valid_until']) {
+                    if (row['valid_until'])
                         row['valid_until'] = row['valid_until'].unix();
 
                     return row;
