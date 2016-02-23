@@ -97,6 +97,7 @@ module.exports = function () {
                 adapter.setFrom("tokens");
                 adapter.setWhere("user_id = $1");
                 adapter.setParams([ userId ]);
+                adapter.setDbTimezone('UTC');
                 table.setAdapter(adapter);
 
                 switch (req.query.query) {

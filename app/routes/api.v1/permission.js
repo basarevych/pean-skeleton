@@ -149,6 +149,7 @@ module.exports = function () {
                 adapter.setFrom("dt_permissions");
                 adapter.setWhere("");
                 adapter.setParams([ ]);
+                adapter.setDbTimezone('UTC');
                 table.setAdapter(adapter);
 
                 switch (req.query.query) {
