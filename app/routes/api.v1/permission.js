@@ -133,13 +133,11 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    var result = row;
+                    row['role'] = validator.escape(row['role']);
+                    row['resource'] = validator.escape(row['resource']);
+                    row['action'] = validator.escape(row['action']);
 
-                    result['role'] = validator.escape(row['role']);
-                    result['resource'] = validator.escape(row['resource']);
-                    result['action'] = validator.escape(row['action']);
-
-                    return result;
+                    return row;
                 });
 
                 var permissionRepo = locator.get('permission-repository');

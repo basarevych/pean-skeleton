@@ -207,13 +207,11 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    var result = row;
+                    row['parent'] = validator.escape(row['parent']);
+                    row['handle'] = validator.escape(row['handle']);
+                    row['title'] = validator.escape(row['title']).replace("\\n", '<br>');
 
-                    result['parent'] = validator.escape(row['parent']);
-                    result['handle'] = validator.escape(row['handle']);
-                    result['title'] = validator.escape(row['title']).replace("\\n", '<br>');
-
-                    return result;
+                    return row;
                 });
 
                 var roleRepo = locator.get('role-repository');

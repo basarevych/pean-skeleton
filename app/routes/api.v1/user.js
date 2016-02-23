@@ -238,19 +238,14 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    var result = row;
+                    row['name'] = validator.escape(row['name']);
+                    row['email'] = validator.escape(row['email']);
+                    row['roles'] = validator.escape(row['roles']);
 
-                    result['name'] = validator.escape(row['name']);
-                    result['email'] = validator.escape(row['email']);
-                    result['roles'] = validator.escape(row['roles']);
+                    if (row['created_at'])
+                        row['created_at'] = row['created_at'].unix();
 
-                    if (row['created_at']) {
-                        var utc = moment(row['created_at']); // db field is in UTC
-                        var m = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC');
-                        result['created_at'] = m.unix();
-                    }
-
-                    return result;
+                    return row;
                 });
 
                 var userRepo = locator.get('user-repository');

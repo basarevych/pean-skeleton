@@ -71,23 +71,15 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    var result = row;
+                    row['ip_address'] = validator.escape(row['ip_address']);
 
-                    result['ip_address'] = validator.escape(row['ip_address']);
+                    if (row['created_at'])
+                        row['created_at'] = row['created_at'].unix();
 
-                    if (row['created_at']) {
-                        var utc = moment(row['created_at']); // db field is in UTC
-                        var m = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC');
-                        result['created_at'] = m.unix();
-                    }
+                    if (row['updated_at'])
+                        row['updated_at'] = row['updated_at'].unix();
 
-                    if (row['updated_at']) {
-                        var utc = moment(row['updated_at']); // db field is in UTC
-                        var m = moment.tz(utc.format('YYYY-MM-DD HH:mm:ss'), 'UTC');
-                        result['updated_at'] = m.unix();
-                    }
-
-                    return result;
+                    return row;
                 });
 
                 var tokenRepo = locator.get('token-repository');
