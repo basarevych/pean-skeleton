@@ -6,6 +6,11 @@ each error in errors
         | * #{error.stack}
         = "\n"
         = "\n"
+    else if error.length
+        each sub in error
+            | * #{sub}
+            = "\n"
+            = "\n"
     else
         | * #{error}
         = "\n"

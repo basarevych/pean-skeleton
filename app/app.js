@@ -30,6 +30,10 @@ var app = module.exports = express();
 require('./boot/init.js')(app);         // initialize the app
 require('./boot/logger.js')(app);       // logger
 
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
 // Return if this is a console command
 if (process.env.CONSOLE) return;
 
@@ -38,10 +42,6 @@ var trustProxy = process.env.TRUST_PROXY;
 if (trustProxy === 'true')
     trustProxy = true;
 app.set('trust proxy', typeof trustProxy == 'undefined' ? false : trustProxy);
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
 
 // middleware
 if (process.env.NODE_ENV != 'test') app.use(morgan('dev'));
