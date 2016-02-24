@@ -5,6 +5,9 @@ div.letter
             pre= error.stack
         else if error.length
             each sub in error
-                pre= sub
+                if sub.stack
+                    pre= sub.stack
+                else
+                    pre= sub
         else
             pre= error

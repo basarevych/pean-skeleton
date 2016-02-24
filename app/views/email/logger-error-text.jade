@@ -8,9 +8,14 @@ each error in errors
         = "\n"
     else if error.length
         each sub in error
-            | * #{sub}
-            = "\n"
-            = "\n"
+            if sub.stack
+                | * #{sub.stack}
+                = "\n"
+                = "\n"
+            else
+                | * #{sub}
+                = "\n"
+                = "\n"
     else
         | * #{error}
         = "\n"
