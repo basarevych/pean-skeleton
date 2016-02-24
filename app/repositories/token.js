@@ -33,19 +33,10 @@ TokenRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    id = parseInt(id, 10);
-    if (isNaN(id)) {
-        defer.reject('TokenRepository.find() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.find() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.find() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -54,9 +45,8 @@ TokenRepository.prototype.find = function (id) {
             [ id ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('TokenRepository.find() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'TokenRepository.find() - select', err ]);
                 }
 
                 db.end();
@@ -85,19 +75,10 @@ TokenRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    userId = parseInt(userId, 10);
-    if (isNaN(userId)) {
-        defer.reject('TokenRepository.findByUserId() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.findByUserId() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.findByUserId() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -106,9 +87,8 @@ TokenRepository.prototype.findByUserId = function (userId) {
             [ userId ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('TokenRepository.findByUserId() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'TokenRepository.findByUserId() - select', err ]);
                 }
 
                 db.end();
@@ -138,20 +118,16 @@ TokenRepository.prototype.findAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.findAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.findAll() - pg connect', err ]);
 
         db.query(
             "SELECT * "
           + "  FROM tokens ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('TokenRepository.findAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'TokenRepository.findAll() - select', err ]);
                 }
 
                 db.end();
@@ -201,11 +177,8 @@ TokenRepository.prototype.save = function (token) {
                 token.getId(),
             ],
             function (err, result) {
-                if (err) {
-                    updateDefer.reject();
-                    logger.error('TokenRepository.save() - pg query', err);
-                    process.exit(1);
-                }
+                if (err)
+                    return updateDefer.reject([ 'TokenRepository.save() - update query', err ]);
 
                 token.dirty(false);
                 updateDefer.resolve(token.getId());
@@ -216,11 +189,8 @@ TokenRepository.prototype.save = function (token) {
     }
 
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.save() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.save() - pg connect', err ]);
 
         var query, params = [];
         if (token.getId()) {
@@ -230,12 +200,15 @@ TokenRepository.prototype.save = function (token) {
                     token.dirty(false);
                     defer.resolve(tokenId);
                 })
+                .catch(function (err) {
+                    db.end();
+                    defer.reject(err);
+                });
         } else {
             db.query("BEGIN TRANSACTION", [], function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('UserRepository.save() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'UserRepository.save() - begin transaction', err ]);
                 }
 
                 db.query(
@@ -252,9 +225,8 @@ TokenRepository.prototype.save = function (token) {
                     ],
                     function (err, result) {
                         if (err) {
-                            defer.reject();
-                            logger.error('TokenRepository.save() - pg query', err);
-                            process.exit(1);
+                            db.end();
+                            return defer.reject([ 'TokenRepository.save() - insert', err ]);
                         }
 
                         token.setId(result.rows[0]['id']);
@@ -267,15 +239,18 @@ TokenRepository.prototype.save = function (token) {
                             .then(function (tokenId) {
                                 db.query("COMMIT TRANSACTION", [], function (err, result) {
                                     if (err) {
-                                        defer.reject();
-                                        logger.error('UserRepository.save() - pg query', err);
-                                        process.exit(1);
+                                        db.end();
+                                        return defer.reject([ 'UserRepository.save() - commit transaction', err ]);
                                     }
 
                                     db.end();
                                     token.dirty(false);
                                     defer.resolve(tokenId);
                                 });
+                            })
+                            .catch(function (err) {
+                                db.end();
+                                defer.reject(err);
                             });
                     }
                 );
@@ -296,18 +271,10 @@ TokenRepository.prototype.delete = function (token) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    if (!token.getId()) {
-        defer.resolve(0);
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.delete() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.delete() - pg connect', err ]);
 
         db.query(
             "DELETE "
@@ -316,9 +283,8 @@ TokenRepository.prototype.delete = function (token) {
             [ token.getId() ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('TokenRepository.delete() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'TokenRepository.delete() - delete', err ]);
                 }
 
                 db.end();
@@ -347,11 +313,8 @@ TokenRepository.prototype.deleteExpired = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.deleteExpired() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.deleteExpired() - pg connect', err ]);
 
         db.query(
             "DELETE "
@@ -362,9 +325,8 @@ TokenRepository.prototype.deleteExpired = function () {
             ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('TokenRepository.deleteExpired() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'TokenRepository.deleteExpired() - delete', err ]);
                 }
 
                 db.end();
@@ -388,24 +350,19 @@ TokenRepository.prototype.deleteAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('TokenRepository.deleteAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'TokenRepository.deleteAll() - pg connect', err ]);
 
         db.query(
             "DELETE "
           + "  FROM tokens ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('TokenRepository.deleteAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'TokenRepository.deleteAll() - delete', err ]);
                 }
 
                 db.end();
-
                 defer.resolve(result.rowCount);
             }
         );

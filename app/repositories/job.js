@@ -34,19 +34,10 @@ JobRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    id = parseInt(id, 10);
-    if (isNaN(id)) {
-        defer.reject('JobRepository.find() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.find() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.find() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -55,9 +46,8 @@ JobRepository.prototype.find = function (id) {
             [ id ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.find() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'JobRepository.find() - select query', err ]);
                 }
 
                 db.end();
@@ -87,20 +77,16 @@ JobRepository.prototype.findAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.findAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.findAll() - pg connect', err ]);
 
         db.query(
             "SELECT * "
           + "  FROM jobs ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.findAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'JobRepository.findAll() - select query', err ]);
                 }
 
                 db.end();
@@ -133,11 +119,8 @@ JobRepository.prototype.save = function (job) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.save() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.save() - pg connect', err ]);
 
         var query, params = [];
         if (job.getId()) {
@@ -181,9 +164,8 @@ JobRepository.prototype.save = function (job) {
 
         db.query(query, params, function (err, result) {
             if (err) {
-                defer.reject();
-                logger.error('JobRepository.save() - pg query', err);
-                process.exit(1);
+                db.end();
+                return defer.reject([ 'JobRepository.save() - main query', err ]);
             }
 
             db.end();
@@ -196,9 +178,6 @@ JobRepository.prototype.save = function (job) {
                 id = job.getId();
 
             me._sendFailureEmail(job)
-                .catch(function (err) {
-                    logger.error('JobRepository._sendFailureEmail', err);
-                })
                 .finally(function () {
                     if (job.getStatus() != 'created') {
                         defer.resolve(id);
@@ -208,10 +187,6 @@ JobRepository.prototype.save = function (job) {
                     var redis = me.getRedis();
                     redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {
                         redis.quit();
-
-                        if (err)
-                            logger.error('JobRepository.save() - publish', err);
-
                         defer.resolve(id);
                     });
                 });
@@ -238,20 +213,16 @@ JobRepository.prototype.processNewJobs = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.processNewJobs() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.processNewJobs() - pg connect', err ]);
 
         var now = moment();
         var returnValue = { expired: [], started: [] };
 
         db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
-                defer.reject();
-                logger.error('JobRepository.processNewJobs() - pg query', err);
-                process.exit(1);
+                db.end();
+                return defer.reject([ 'JobRepository.processNewJobs() - begin transaction', err ]);
             }
 
             db.query(
@@ -262,9 +233,8 @@ JobRepository.prototype.processNewJobs = function () {
                 [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
                 function (err, result) {
                     if (err) {
-                        defer.reject();
-                        logger.error('JobRepository.processNewJobs() - pg query', err);
-                        process.exit(1);
+                        db.end();
+                        return defer.reject([ 'JobRepository.processNewJobs() - select created', err ]);
                     }
 
                     var promises = [];
@@ -282,17 +252,12 @@ JobRepository.prototype.processNewJobs = function () {
                               + " WHERE id = $2 ",
                                 [ 'expired', job.getId() ],
                                 function (err, result) {
-                                    if (err) {
-                                        defer.reject();
-                                        logger.error('JobRepository.processNewJobs() - pg query', err);
-                                        process.exit(1);
-                                    }
+                                    if (err)
+                                        return jobDefer.reject([ 'JobRepository.processNewJobs() - update expired', err ]);
+
                                     returnValue.expired.push(job);
 
                                     me._sendFailureEmail(job)
-                                        .catch(function (err) {
-                                            logger.error('JobRepository._sendFailureEmail', err);
-                                        })
                                         .finally(function () {
                                             jobDefer.resolve();
                                         });
@@ -311,11 +276,9 @@ JobRepository.prototype.processNewJobs = function () {
                               + " WHERE id = $2 ",
                                 [ 'started', job.getId() ],
                                 function (err, result) {
-                                    if (err) {
-                                        defer.reject();
-                                        logger.error('JobRepository.processNewJobs() - pg query', err);
-                                        process.exit(1);
-                                    }
+                                    if (err)
+                                        return jobDefer.reject([ 'JobRepository.processNewJobs() - update started', err ]);
+
                                     returnValue.started.push(job);
                                     jobDefer.resolve();
                                 }
@@ -343,11 +306,8 @@ JobRepository.prototype.processNewJobs = function () {
                           + "   WHERE status = $1 AND queue = $2 ",
                             [ 'started', job.getQueue() ],
                             function (err, result) {
-                                if (err) {
-                                    defer.reject();
-                                    logger.error('JobRepository.processNewJobs() - pg query', err);
-                                    process.exit(1);
-                                }
+                                if (err)
+                                    return queuedDefer.reject([ 'JobRepository.processNewJobs() - select started in queue', err ]);
 
                                 if (result.rows.length > 0) {
                                     processQueue();
@@ -360,11 +320,9 @@ JobRepository.prototype.processNewJobs = function () {
                                   + " WHERE id = $2 ",
                                     [ 'started', job.getId() ],
                                     function (err, result) {
-                                        if (err) {
-                                            defer.reject();
-                                            logger.error('JobRepository.processNewJobs() - pg query', err);
-                                            process.exit(1);
-                                        }
+                                        if (err)
+                                            return queuedDefer.reject([ 'JobRepository.processNewJobs() - update started in queue', err ]);
+
                                         returnValue.started.push(job);
                                         processQueue();
                                     }
@@ -378,20 +336,18 @@ JobRepository.prototype.processNewJobs = function () {
                     q.all(promises)
                         .then(function (result) {
                             db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                if (err) {
-                                    defer.reject();
-                                    logger.error('JobRepository.processNewJobs() - pg query', err);
-                                    process.exit(1);
-                                }
+                                if (err)
+                                    return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
 
                                 db.end();
                                 defer.resolve(returnValue);
                             });
                         })
                         .catch(function (err) {
-                            defer.reject();
-                            logger.error('JobRepository.processNewJobs() - q all', err);
-                            process.exit(1);
+                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                db.end();
+                                defer.reject(err);
+                            });
                         });
                 }
             );
@@ -415,11 +371,8 @@ JobRepository.prototype.restartInterrupted = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.restartInterrupted() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.restartInterrupted() - pg connect', err ]);
 
         db.query(
             "UPDATE jobs "
@@ -428,9 +381,8 @@ JobRepository.prototype.restartInterrupted = function () {
             [ 'created', 'started' ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.restartInterrupted() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'JobRepository.restartInterrupted() - set started back to created', err ]);
                 }
 
                 db.end();
@@ -457,11 +409,8 @@ JobRepository.prototype.postponeJob = function (job) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.postponeJob() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.postponeJob() - pg connect', err ]);
 
         db.query(
             "UPDATE jobs "
@@ -475,9 +424,8 @@ JobRepository.prototype.postponeJob = function (job) {
             ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.postponeJob() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'JobRepository.postponeJob() - postpone job', err ]);
                 }
 
                 db.end();
@@ -502,17 +450,13 @@ JobRepository.prototype.postponeQueue = function (queue) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.postponeQueue() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.postponeQueue() - pg connect', err ]);
 
         db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
-                defer.reject();
-                logger.error('JobRepository.postponeQueue() - pg query', err);
-                process.exit(1);
+                db.end();
+                return defer.reject([ 'JobRepository.postponeQueue() - begin transation', err ]);
             }
 
             db.query(
@@ -523,9 +467,8 @@ JobRepository.prototype.postponeQueue = function (queue) {
                 [ queue, 'created', 'started' ],
                 function (err, result) {
                     if (err) {
-                        defer.reject();
-                        logger.error('JobRepository.postponeQueue() - pg query', err);
-                        process.exit(1);
+                        db.end();
+                        return defer.reject([ 'JobRepository.postponeQueue() - select jobs in queue', err ]);
                     }
 
                     var count = result.rowCount;
@@ -547,11 +490,8 @@ JobRepository.prototype.postponeQueue = function (queue) {
                                 job.getId(),
                             ],
                             function (err, result) {
-                                if (err) {
-                                    defer.reject();
-                                    logger.error('JobRepository.postponeQueue() - pg query', err);
-                                    process.exit(1);
-                                }
+                                if (err)
+                                    return jobDefer.reject([ 'JobRepository.postponeQueue() - postpone job', err ]);
 
                                 jobDefer.resolve();
                             }
@@ -562,9 +502,8 @@ JobRepository.prototype.postponeQueue = function (queue) {
                         .then(function () {
                             db.query("COMMIT TRANSACTION", [], function (err, result) {
                                 if (err) {
-                                    defer.reject();
-                                    logger.error('JobRepository.postponeQueue() - pg query', err);
-                                    process.exit(1);
+                                    db.end();
+                                    return defer.reject([ 'JobRepository.postponeQueue() - commit transaction', err ]);
                                 }
 
                                 db.end();
@@ -572,9 +511,10 @@ JobRepository.prototype.postponeQueue = function (queue) {
                             });
                         })
                         .catch(function (err) {
-                            defer.reject();
-                            logger.error('JobRepository.postponeQueue() - q all', err);
-                            process.exit(1);
+                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                db.end();
+                                defer.reject(err);
+                            });
                         });
                 }
             );
@@ -594,18 +534,10 @@ JobRepository.prototype.delete = function (job) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    if (!job.getId()) {
-        defer.resolve(0);
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.delete() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.delete() - pg connect', err ]);
 
         db.query(
             "DELETE "
@@ -614,9 +546,8 @@ JobRepository.prototype.delete = function (job) {
             [ job.getId() ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.delete() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'JobRepository.delete() - delete', err ]);
                 }
 
                 db.end();
@@ -642,24 +573,19 @@ JobRepository.prototype.deleteAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('JobRepository.deleteAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'JobRepository.deleteAll() - pg connect', err ]);
 
         db.query(
             "DELETE "
           + "  FROM jobs ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('JobRepository.deleteAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'JobRepository.deleteAll() - delete', err ]);
                 }
 
                 db.end();
-
                 defer.resolve(result.rowCount);
             }
         );

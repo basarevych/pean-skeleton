@@ -33,19 +33,10 @@ RoleTranslationRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    id = parseInt(id, 10);
-    if (isNaN(id)) {
-        defer.reject('RoleTranslationRepository.find() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.find() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.find() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -54,9 +45,8 @@ RoleTranslationRepository.prototype.find = function (id) {
             [ id ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleTranslationRepository.find() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.find() - select', err ]);
                 }
 
                 db.end();
@@ -85,19 +75,10 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    roleId = parseInt(roleId, 10);
-    if (isNaN(roleId)) {
-        defer.reject('RoleTranslationRepository.findByRoleId() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.findByRoleId() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.findByRoleId() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -106,9 +87,8 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
             [ roleId ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleTranslationRepository.findByRoleId() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.findByRoleId() - select', err ]);
                 }
 
                 db.end();
@@ -138,19 +118,10 @@ RoleTranslationRepository.prototype.findByRoleIdAndLocale = function (roleId, lo
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    roleId = parseInt(roleId, 10);
-    if (isNaN(roleId)) {
-        defer.reject('RoleTranslationRepository.findByRoleIdAndLocale() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.findByRoleIdAndLocale() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -159,9 +130,8 @@ RoleTranslationRepository.prototype.findByRoleIdAndLocale = function (roleId, lo
             [ roleId, locale ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleTranslationRepository.findByRoleIdAndLocale() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.findByRoleIdAndLocale() - select', err ]);
                 }
 
                 db.end();
@@ -191,20 +161,16 @@ RoleTranslationRepository.prototype.findAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.findAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.findAll() - pg connect', err ]);
 
         db.query(
             "  SELECT * "
           + "    FROM role_translations ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleTranslationRepository.findAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.findAll() - select', err ]);
                 }
 
                 db.end();
@@ -235,17 +201,13 @@ RoleTranslationRepository.prototype.save = function (translation) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.save() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.save() - pg connect', err ]);
 
         db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
-                defer.reject();
-                logger.error('RoleTranslationRepository.save() - pg query', err);
-                process.exit(1);
+                db.end();
+                return defer.reject([ 'RoleTranslationRepository.save() - begin transaction', err ]);
             }
 
             var query = "SELECT id "
@@ -267,17 +229,15 @@ RoleTranslationRepository.prototype.save = function (translation) {
                 params,
                 function (err, result) {
                     if (err) {
-                        defer.reject();
-                        logger.error('RoleTranslationRepository.save() - pg query', err);
-                        process.exit(1);
+                        db.end();
+                        return defer.reject([ 'RoleTranslationRepository.save() - main query', err ]);
                     }
 
                     if (result.rows.length) {
                         db.query("ROLLBACK TRANSACTION", [], function (err, result) {
                             if (err) {
-                                defer.reject();
-                                logger.error('RoleTranslationRepository.save() - pg query', err);
-                                process.exit(1);
+                                db.end();
+                                return defer.reject([ 'RoleTranslationRepository.save() - rollback transaction', err ]);
                             }
 
                             db.end();
@@ -312,9 +272,8 @@ RoleTranslationRepository.prototype.save = function (translation) {
 
                     db.query(query, params, function (err, result) {
                         if (err) {
-                            defer.reject();
-                            logger.error('RoleTranslationRepository.save() - pg query', err);
-                            process.exit(1);
+                            db.end();
+                            return defer.reject([ 'RoleTranslationRepository.save() - main query', err ]);
                         }
 
                         var id = result.rows.length && result.rows[0]['id'];
@@ -325,9 +284,8 @@ RoleTranslationRepository.prototype.save = function (translation) {
 
                         db.query("COMMIT TRANSACTION", [], function (err, result) {
                             if (err) {
-                                defer.reject();
-                                logger.error('RoleTranslationRepository.save() - pg query', err);
-                                process.exit(1);
+                                db.end();
+                                return defer.reject([ 'RoleTranslationRepository.save() - commit transaction', err ]);
                             }
 
                             db.end();
@@ -353,18 +311,10 @@ RoleTranslationRepository.prototype.delete = function (translation) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    if (!translation.getId()) {
-        defer.resolve(0);
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.delete() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.delete() - pg connect', err ]);
 
         db.query(
             "DELETE "
@@ -373,9 +323,8 @@ RoleTranslationRepository.prototype.delete = function (translation) {
             [ translation.getId() ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleTranslationRepository.delete() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.delete() - delete', err ]);
                 }
 
                 db.end();
@@ -401,24 +350,19 @@ RoleTranslationRepository.prototype.deleteAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleTranslationRepository.deleteAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleTranslationRepository.deleteAll() - pg connect', err ]);
 
         db.query(
             "DELETE "
           + "  FROM role_translations ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleTranslationRepository.deleteAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.deleteAll() - delete', err ]);
                 }
 
                 db.end();
-
                 defer.resolve(result.rowCount);
             }
         );

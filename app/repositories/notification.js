@@ -36,9 +36,8 @@ NotificationRepository.prototype.find = function (id) {
     var redis = this.getRedis();
     redis.hgetall(process.env.PROJECT + ":notification:" + id, function (err, reply) {
         if (err) {
-            defer.reject();
-            logger.error('NotificationRepository.find() - hgetall', err);
-            process.exit(1);
+            redis.quit();
+            return defer.reject([ 'NotificationRepository.find() - get notification', err ]);
         }
 
         redis.quit();
@@ -94,23 +93,20 @@ NotificationRepository.prototype.save = function (notification) {
     var redis = this.getRedis();
     redis.hmset(name, value, function (err, reply) {
         if (err) {
-            defer.reject();
-            logger.error('NotificationRepository.save() - hmset', err);
-            process.exit(1);
+            redis.quit();
+            return defer.reject([ 'NotificationRepository.save() - save notification', err ]);
         }
 
         redis.expire(name, 60, function (err, reply) {
             if (err) {
-                defer.reject();
-                logger.error('NotificationRepository.save() - expire', err);
-                process.exit(1);
+                redis.quit();
+                return defer.reject([ 'NotificationRepository.save() - expire', err ]);
             }
 
             redis.publish(process.env.PROJECT + ":notifications", notification.getId(), function (err, reply) {
                 if (err) {
-                    defer.reject();
-                    logger.error('NotificationRepository.save() - publish', err);
-                    process.exit(1);
+                    redis.quit();
+                    return defer.reject([ 'NotificationRepository.save() - publish', err ]);
                 }
 
                 redis.quit();

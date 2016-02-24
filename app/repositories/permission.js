@@ -33,19 +33,10 @@ PermissionRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    id = parseInt(id, 10);
-    if (isNaN(id)) {
-        defer.reject('PermissionRepository.find() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.find() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.find() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -54,9 +45,8 @@ PermissionRepository.prototype.find = function (id) {
             [ id ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('PermissionRepository.find() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'PermissionRepository.find() - select', err ]);
                 }
 
                 db.end();
@@ -85,19 +75,10 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    roleId = parseInt(roleId, 10);
-    if (isNaN(roleId)) {
-        defer.reject('PermissionRepository.findByRoleId() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.findByRoleId() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.findByRoleId() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -106,9 +87,8 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
             [ roleId ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('PermissionRepository.findByRoleId() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'PermissionRepository.findByRoleId() - select', err ]);
                 }
 
                 db.end();
@@ -142,12 +122,6 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
     var ands = [], params = [];
 
     if (roleId) {
-        roleId = parseInt(roleId, 10);
-        if (isNaN(roleId)) {
-            defer.reject('PermissionRepository.findByParams() - invalid parameters');
-            return defer.promise;
-        }
-
         ands.push(" role_id = $" + (params.length + 1) + " ");
         params.push(roleId);
     } else {
@@ -170,11 +144,8 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.findByParams() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.findByParams() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -183,9 +154,8 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
             params,
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('PermissionRepository.findByParams() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'PermissionRepository.findByParams() - select', err ]);
                 }
 
                 db.end();
@@ -215,20 +185,16 @@ PermissionRepository.prototype.findAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.findAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.findAll() - pg connect', err ]);
 
         db.query(
             "  SELECT * "
           + "    FROM permissions ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('PermissionRepository.findAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'PermissionRepository.findAll() - select', err ]);
                 }
 
                 db.end();
@@ -259,11 +225,8 @@ PermissionRepository.prototype.save = function (permission) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.save() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.save() - pg connect', err ]);
 
         var query, params = [];
         if (permission.getId()) {
@@ -292,9 +255,8 @@ PermissionRepository.prototype.save = function (permission) {
 
         db.query(query, params, function (err, result) {
             if (err) {
-                defer.reject();
-                logger.error('PermissionRepository.save() - pg query', err);
-                process.exit(1);
+                db.end();
+                return defer.reject([ 'PermissionRepository.save() - main query', err ]);
             }
 
             db.end();
@@ -323,18 +285,10 @@ PermissionRepository.prototype.delete = function (permission) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    if (!permission.getId()) {
-        defer.resolve(0);
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.delete() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.delete() - pg connect', err ]);
 
         db.query(
             "DELETE "
@@ -343,9 +297,8 @@ PermissionRepository.prototype.delete = function (permission) {
             [ permission.getId() ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('PermissionRepository.delete() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'PermissionRepository.delete() - delete', err ]);
                 }
 
                 db.end();
@@ -371,24 +324,19 @@ PermissionRepository.prototype.deleteAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('PermissionRepository.deleteAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'PermissionRepository.deleteAll() - pg connect', err ]);
 
         db.query(
             "DELETE "
           + "  FROM permissions ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('PermissionRepository.deleteAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'PermissionRepository.deleteAll() - delete', err ]);
                 }
 
                 db.end();
-
                 defer.resolve(result.rowCount);
             }
         );

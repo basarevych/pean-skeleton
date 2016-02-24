@@ -33,19 +33,10 @@ RoleRepository.prototype.find = function (id) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    id = parseInt(id, 10);
-    if (isNaN(id)) {
-        defer.reject('RoleRepository.find() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.find() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.find() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -54,9 +45,8 @@ RoleRepository.prototype.find = function (id) {
             [ id ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleRepository.find() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleRepository.find() - select', err ]);
                 }
 
                 db.end();
@@ -87,11 +77,8 @@ RoleRepository.prototype.findByHandle = function (handle) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.findByHandle() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.findByHandle() - pg connect', err ]);
 
         db.query(
             "SELECT * "
@@ -100,9 +87,8 @@ RoleRepository.prototype.findByHandle = function (handle) {
             [ handle ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleRepository.findByHandle() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleRepository.findByHandle() - select', err ]);
                 }
 
                 db.end();
@@ -131,19 +117,10 @@ RoleRepository.prototype.findByUserId = function (userId) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    userId = parseInt(userId, 10);
-    if (isNaN(userId)) {
-        defer.reject('RoleRepository.findByUserId() - invalid parameters');
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.findByUserId() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.findByUserId() - pg connect', err ]);
 
         db.query(
             "    SELECT r.* "
@@ -154,9 +131,8 @@ RoleRepository.prototype.findByUserId = function (userId) {
             [ userId ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleRepository.findByUserId() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleRepository.findByUserId() - select', err ]);
                 }
 
                 db.end();
@@ -186,11 +162,8 @@ RoleRepository.prototype.findAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.findAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.findAll() - pg connect', err ]);
 
         db.query(
             "  SELECT * "
@@ -198,9 +171,8 @@ RoleRepository.prototype.findAll = function () {
           + "ORDER BY handle ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleRepository.findAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleRepository.findAll() - select', err ]);
                 }
 
                 db.end();
@@ -231,17 +203,13 @@ RoleRepository.prototype.save = function (role) {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.save() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.save() - pg connect', err ]);
 
         db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
-                defer.reject();
-                logger.error('RoleRepository.save() - pg query', err);
-                process.exit(1);
+                db.end();
+                return defer.reject([ 'RoleRepository.save() - begin transaction', err ]);
             }
 
             var query = "SELECT handle "
@@ -261,17 +229,15 @@ RoleRepository.prototype.save = function (role) {
                 params,
                 function (err, result) {
                     if (err) {
-                        defer.reject();
-                        logger.error('RoleRepository.save() - pg query', err);
-                        process.exit(1);
+                        db.end();
+                        return defer.reject([ 'RoleRepository.save() - collision check', err ]);
                     }
 
                     if (result.rows.length) {
                         db.query("ROLLBACK TRANSACTION", [], function (err, result) {
                             if (err) {
-                                defer.reject();
-                                logger.error('RoleRepository.save() - pg query', err);
-                                process.exit(1);
+                                db.end();
+                                return defer.reject([ 'RoleRepository.save() - rollback transaction', err ]);
                             }
 
                             db.end();
@@ -303,9 +269,8 @@ RoleRepository.prototype.save = function (role) {
 
                     db.query(query, params, function (err, result) {
                         if (err) {
-                            defer.reject();
-                            logger.error('RoleRepository.save() - pg query', err);
-                            process.exit(1);
+                            db.end();
+                            return defer.reject([ 'RoleRepository.save() - main query', err ]);
                         }
 
                         var id = result.rows.length && result.rows[0]['id'];
@@ -316,9 +281,8 @@ RoleRepository.prototype.save = function (role) {
 
                         db.query("COMMIT TRANSACTION", [], function (err, result) {
                             if (err) {
-                                defer.reject();
-                                logger.error('RoleRepository.save() - pg query', err);
-                                process.exit(1);
+                                db.end();
+                                return defer.reject([ 'RoleRepository.save() - commit transaction', err ]);
                             }
 
                             db.end();
@@ -344,18 +308,10 @@ RoleRepository.prototype.delete = function (role) {
     var logger = locator.get('logger');
     var defer = q.defer();
 
-    if (!role.getId()) {
-        defer.resolve(0);
-        return defer.promise;
-    }
-
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.delete() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.delete() - pg connect', err ]);
 
         db.query(
             "DELETE "
@@ -364,9 +320,8 @@ RoleRepository.prototype.delete = function (role) {
             [ role.getId() ],
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleRepository.delete() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleRepository.delete() - delete', err ]);
                 }
 
                 db.end();
@@ -392,24 +347,19 @@ RoleRepository.prototype.deleteAll = function () {
 
     var db = this.getPostgres();
     db.connect(function (err) {
-        if (err) {
-            defer.reject();
-            logger.error('RoleRepository.deleteAll() - pg connect', err);
-            process.exit(1);
-        }
+        if (err)
+            return defer.reject([ 'RoleRepository.deleteAll() - pg connect', err ]);
 
         db.query(
             "DELETE "
           + "  FROM roles ",
             function (err, result) {
                 if (err) {
-                    defer.reject();
-                    logger.error('RoleRepository.deleteAll() - pg query', err);
-                    process.exit(1);
+                    db.end();
+                    return defer.reject([ 'RoleRepository.deleteAll() - delete', err ]);
                 }
 
                 db.end();
-
                 defer.resolve(result.rowCount);
             }
         );
