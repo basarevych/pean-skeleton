@@ -81,7 +81,6 @@
         "SCHEDULED_FOR_LABEL": "Scheduled for",
         "VALID_UNTIL_LABEL": "Valid until",
         "INPUT_DATA_LABEL": "Input data",
-        "OUTPUT_DATA_LABEL": "Output data",
 
         "NEW_PASSWORD_NOTICE": "Leave blank if you do not want to change it",
         "LANGUAGE_FILL_NOTICE": "Please select a language and fill the fields bellow",
