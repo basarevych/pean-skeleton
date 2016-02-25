@@ -60,7 +60,7 @@ CREATE TABLE "users" (
 CREATE TABLE "tokens" (
     "id" serial NOT NULL,
     "user_id" int NOT NULL,
-    "payload" json NOT NULL,
+    "payload" jsonb NOT NULL,
     "ip_address" character varying(255) NULL,
     "created_at" timestamp NOT NULL,
     "updated_at" timestamp NOT NULL,
@@ -93,8 +93,8 @@ CREATE TABLE "jobs" (
     "created_at" timestamp NOT NULL,
     "scheduled_for" timestamp NOT NULL,
     "valid_until" timestamp NOT NULL,
-    "input_data" json NOT NULL,
-    "output_data" json NOT NULL,
+    "input_data" jsonb NOT NULL,
+    "output_data" jsonb NOT NULL,
     CONSTRAINT "jobs_pk" PRIMARY KEY("id")
 );
 
