@@ -3,8 +3,8 @@
 var module = angular.module('state.job-list', []);
 
 module.controller("JobListCtrl",
-    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'JobApi', 'CreateJobForm', 'EditJobForm', 'InfoDialog',
-    function ($scope, $window, $filter, $q, dynamicTable, JobApi, CreateJobForm, EditJobForm, InfoDialog) {
+    [ '$scope', '$window', '$filter', '$q', 'dynamicTable', 'JobApi', 'CreateJobForm', 'EditJobForm', 'JobOutputForm', 'InfoDialog',
+    function ($scope, $window, $filter, $q, dynamicTable, JobApi, CreateJobForm, EditJobForm, JobOutputForm, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 
@@ -54,6 +54,14 @@ module.controller("JobListCtrl",
                         .then(function () {
                             $scope.tableCtrl.plugin.refresh();
                         });
+                });
+        };
+
+        $scope.viewOutput = function () {
+            var sel = $scope.tableCtrl.plugin.getSelected();
+            JobApi.read({ id: sel[0] })
+                .then(function (data) {
+                    JobOutputForm(JSON.stringify(data.output_data, undefined, 4));
                 });
         };
 

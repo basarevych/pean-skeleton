@@ -21,6 +21,10 @@
                             {{ 'JOB_EDIT_BUTTON' | glMessage }}
                         </button>
                         <hr>
+                        <button class="btn btn-default" ng-click="viewOutput()" ng-disabled="!hasSingleSelection">
+                            {{ 'JOB_VIEW_OUTPUT_BUTTON' | glMessage }}
+                        </button>
+                        <hr>
                         <button class="btn btn-default" ng-click="deleteJob()" ng-disabled="!hasSelection">
                             {{ 'JOB_DELETE_BUTTON' | glMessage }}
                         </button>
