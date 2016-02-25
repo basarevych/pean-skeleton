@@ -17,5 +17,11 @@ block content
                     each error in errors
                         if error.stack
                             pre= error.stack
+                        else if error.length
+                            each sub in error
+                                if sub.stack
+                                    pre= sub.stack
+                                else
+                                    pre= sub
                         else
                             pre= error
