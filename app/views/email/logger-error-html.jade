@@ -3,7 +3,7 @@ div.letter
     each error in errors
         if error.stack
             pre= error.stack
-        else if error.length
+        else if Array.isArray(error)
             each sub in error
                 if sub.stack
                     pre= sub.stack

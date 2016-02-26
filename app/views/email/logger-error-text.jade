@@ -6,7 +6,7 @@ each error in errors
         | * #{error.stack}
         = "\n"
         = "\n"
-    else if error.length
+    else if Array.isArray(error)
         each sub in error
             if sub.stack
                 | * #{sub.stack}

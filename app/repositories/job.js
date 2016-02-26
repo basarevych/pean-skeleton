@@ -610,6 +610,7 @@ JobRepository.prototype._sendFailureEmail = function resolve(job) {
     var server  = emailjs.server.connect({ host: "127.0.0.1" });
 
     var data = {
+        id: job.getId(),
         name: job.getName(),
         queue: job.getQueue(),
         status: job.getStatus(),
