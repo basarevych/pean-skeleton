@@ -55,13 +55,16 @@ WorkerServer.prototype.start = function () {
             var subscriber = jobRepo.getRedis();
             subscriber.on("message", function (channel, message) {
                 switch (channel) {
-                    case process.env.PROJECT + ":jobs":     // New job posted notification
-                        me.cancelTimer();
+                    case process.env.PROJECT + ":jobs:created":
+                    case process.env.PROJECT + ":jobs:success":
+                    case process.env.PROJECT + ":jobs:failure":
                         me.work();
                         break;
                 }
             });
-            subscriber.subscribe(process.env.PROJECT + ":jobs");
+            subscriber.subscribe(process.env.PROJECT + ":jobs:created");
+            subscriber.subscribe(process.env.PROJECT + ":jobs:success");
+            subscriber.subscribe(process.env.PROJECT + ":jobs:failure");
 
             me.work();
         })
@@ -76,6 +79,8 @@ WorkerServer.prototype.start = function () {
 WorkerServer.prototype.work = function () {
     var me = this;
     var logger = locator.get('logger');
+
+    this.cancelTimer();
 
     var jobRepo = locator.get('job-repository');
     jobRepo.processNewJobs()

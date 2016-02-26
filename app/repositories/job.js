@@ -179,13 +179,11 @@ JobRepository.prototype.save = function (job) {
 
             me._sendFailureEmail(job)
                 .finally(function () {
-                    if (job.getStatus() != 'created') {
-                        defer.resolve(id);
-                        return;
-                    }
-
                     var redis = me.getRedis();
-                    redis.publish(process.env.PROJECT + ":jobs", id, function (err, reply) {
+                    redis.publish(process.env.PROJECT + ":jobs:" + job.getStatus(), id, function (err, reply) {
+                        if (err)
+                            logger.error('JobRepository.save() - redis publish', err);
+
                         redis.quit();
                         defer.resolve(id);
                     });
