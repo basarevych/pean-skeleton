@@ -114,8 +114,8 @@ app.config(
 );
 
 app.run(
-    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'SocketServer', 'LoginForm',
-    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, SocketServer, LoginForm) {
+    [ '$rootScope', '$window', '$state', '$stateParams', '$filter', '$timeout', 'AppControl', 'SocketServer',
+    function ($rootScope, $window, $state, $stateParams, $filter, $timeout, AppControl, SocketServer) {
         PNotify.prototype.options.styling = "bootstrap3";
 
         $rootScope.appControl = AppControl;
@@ -124,14 +124,6 @@ app.run(
         $rootScope.$stateParams = $stateParams;
         $rootScope.pageTitle = 'Loading...',
         $rootScope.initialized = false;
-
-        $rootScope.login = function () {
-            LoginForm()
-                .then(function (data) {
-                    AppControl.setToken(data.token);
-                    AppControl.loadProfile();
-                });
-        };
 
         $rootScope.$on('$stateChangeSuccess', function (event, toState) {
             $rootScope.pageTitle = $filter('glMessage')(toState.title);
