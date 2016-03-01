@@ -38,50 +38,71 @@ forms.factory('InfoDialog',
     } ]
 );
 
-forms.factory('ValidationCtrl',
+forms.factory('FormHelper',
     [ '$timeout', '$filter',
     function ($timeout, $filter) {
+        return {
+            setFocus: function ($scope) {
+                for (var key in $scope.model) {
+                    if (!angular.isObject($scope.model[key]) || !angular.isDefined($scope.model[key].focus))
+                        continue;
+                    var errors = $scope.validation.errors[key];
+                    if (angular.isObject(errors) && errors.length) {
+                        $scope.model[key].focus = true;
+                        return;
+                    }
+                }
+
+                for (var key in $scope.model) {
+                    if (!angular.isObject($scope.model[key]) || !angular.isDefined($scope.model[key].focus))
+                        continue;
+                    $scope.model[key].focus = true;
+                    break;
+                }
+            },
+            hasFieldErrors: function ($scope, field) {
+                return (
+                    angular.isArray($scope.validation.errors[field])
+                        && $scope.validation.errors[field].length
+                );
+            },
+            clearFieldErrors: function ($scope, field) {
+                $scope.validation.messages = [];
+                $scope.validation.errors[field] = [];
+            },
+            setFieldErrors: function ($scope, data, field) {
+                if (this.hasFieldErrors($scope, field))
+                    this.clearFieldErrors($scope, field);
+                $scope.validation.errors[field] = data.errors;
+            },
+            clearErrors: function ($scope) {
+                $scope.validation.messages = [];
+                $scope.validation.errors = {};
+            },
+            setErrors: function ($scope, data) {
+                if (angular.isArray(data.messages))
+                    $scope.validation.messages = data.messages;
+
+                if (data.success || !angular.isObject(data.errors))
+                    this.clearErrors($scope);
+                else
+                    $scope.validation.errors = data.errors;
+            },
+        };
+    } ]
+);
+
+forms.factory('ValidationCtrl',
+    [ '$timeout', '$filter', 'FormHelper',
+    function ($timeout, $filter, FormHelper) {
         return [ '$scope', '$uibModalInstance', 'model', 'validator', 'submitter',
             function ($scope, $uibModalInstance, model, validator, submitter) {
                 $scope.model = model;
                 $scope.validation = { messages: [], errors: {} }; 
                 $scope.processing = false;
 
-                var resetFocus = function () {
-                    var errorFound = false;
-                    $.each($scope.model, function (key, value) {
-                        var errors = $scope.validation.errors[key];
-                        if (angular.isDefined(errors) && errors.length) {
-                            $scope.model[key].focus = true;
-                            errorFound = true;
-                            return false;
-                        }
-                    });
-
-                    if (!errorFound) {
-                        $.each($scope.model, function (key, value) {
-                            if (angular.isObject($scope.model[key]) && angular.isDefined($scope.model[key]['focus'])) {
-                                $scope.model[key].focus = true;
-                                return false;
-                            }
-                        });
-                    }
-                };
-
                 $scope.resetValidation = function (name) {
-                    if (angular.isDefined(name)) {
-                        $scope.validation.errors[name] = undefined;
-                    } else {
-                        $scope.validation.messages = [];
-                        $scope.validation.errors = {};
-                    }
-                };
-
-                $scope.setValidationError = function (name, error) {
-                    if (angular.isUndefined($scope.validation.errors[name]))
-                        $scope.validation.errors[name] = [];
-                    if ($.inArray(error, $scope.validation.errors[name]) == -1)
-                        $scope.validation.errors[name].push(error);
+                    FormHelper.clearFieldErrors($scope, name);
                 };
 
                 $scope.validate = function (name) {
@@ -94,22 +115,16 @@ forms.factory('ValidationCtrl',
                             return;
 
                         var params = {};
-                        $.each($scope.model, function (key, item) {
+                        for (var key in $scope.model) {
+                            var item = $scope.model[key];
                             if (angular.isObject(item) && angular.isDefined(item['value']))
                                 params[key] = item.value;
-                        });
+                        }
                         params['_field'] = name;
 
                         validator(params)
                             .then(function (data) {
-                                if (data.success)
-                                    return;
-
-                                if (angular.isDefined(data.errors)) {
-                                    $.each(data.errors, function (index, value) {
-                                        $scope.setValidationError(name, value);
-                                    });
-                                }
+                                FormHelper.setFieldErrors($scope, data, name);
                             });
                     }, 250);
                 };
@@ -117,32 +132,28 @@ forms.factory('ValidationCtrl',
                 $scope.submit = function () {
                     $scope.processing = true;
 
-                    $scope.resetValidation();
                     if (!submitter) {
+                        FormHelper.clearErrors($scope);
                         $scope.processing = false;
                         return;
                     }
 
                     var params = {};
-                    $.each($scope.model, function (key, item) {
+                    for (var key in $scope.model) {
+                        var item = $scope.model[key];
                         if (angular.isObject(item) && angular.isDefined(item['value']))
                             params[key] = item.value;
-                    });
+                    }
 
                     submitter(params)
                         .then(function (data) {
+                            FormHelper.setErrors($scope, data);
                             if (data.success) {
-                                if (typeof $scope['$close'] == 'function')
+                                if (angular.isFunction($scope['$close']))
                                     $scope.$close(data);
                                 return;
                             }
-
-                            if (angular.isDefined(data.messages))
-                                $scope.validation.messages = data.messages;
-                            if (angular.isDefined(data.errors))
-                                $scope.validation.errors = data.errors;
-
-                            resetFocus();
+                            FormHelper.setFocus($scope);
                         })
                         .finally(function () {
                             $scope.processing = false;
@@ -169,30 +180,6 @@ forms.factory('LoginForm',
                     },
                     validator: function () { return AuthApi.validate; },
                     submitter: function () { return AuthApi.token; },
-                }
-            }).result;
-        }
-    } ]
-);
-
-forms.factory('ProfileForm',
-    [ '$uibModal', '$filter', 'ValidationCtrl', 'ProfileApi',
-    function ($uibModal, $filter, ValidationCtrl, ProfileApi) {
-        return function (profile) {
-            return $uibModal.open({
-                controller: ValidationCtrl,
-                templateUrl: 'modals/profile.html',
-                resolve: {
-                    model: function () {
-                        return {
-                            name: { value: profile.name, focus: true, required: false },
-                            email: { value: profile.email, focus: false, required: true },
-                            new_password: { value: '', focus: false, required: false },
-                            retyped_password: { value: '', focus: false, required: false },
-                        };
-                    },
-                    validator: function () { return ProfileApi.validate; },
-                    submitter: function () { return ProfileApi.update; },
                 }
             }).result;
         }

@@ -21,7 +21,7 @@ services.factory('AppControl',
                 default: null,
                 available: [],
             },
-            user_id: null,
+            authenticated: false,
             name: 'Anonymous',
             email: null,
             roles: [],
@@ -142,6 +142,9 @@ services.factory('AppControl',
             getProfile: function () {
                 return profile;
             },
+            setProfile: function (newProfile) {
+                profile = newProfile;
+            },
             loadProfile: function () {
                 var locale = $cookies.get('locale');
                 if (typeof locale == 'undefined')
@@ -153,7 +156,7 @@ services.factory('AppControl',
                 ProfileApi.read()
                     .then(function (data) {
                         profile = data;
-                        if (!profile.user_id && me.hasToken()) {
+                        if (!profile.authenticated && me.hasToken()) {
                             me.removeToken();
                             return $window.location.reload();
                         }

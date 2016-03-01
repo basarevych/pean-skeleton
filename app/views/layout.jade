@@ -13,5 +13,10 @@ html(ng-app="app")
             else
                 link(rel='stylesheet', href='/css/vendor.min.css')
                 link(rel='stylesheet', href='/css/app.min.css')
+            script.
+                var loader1 = new Image();
+                loader1.src = '/img/loader.gif';
+                var loader2 = new Image();
+                loader2.src = '/img/loader-small.png';
     body(class=bodyClass)
         block content

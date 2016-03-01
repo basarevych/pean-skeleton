@@ -60,11 +60,11 @@
                         </li>
                     </ul>
                 </li>
-                <li class="btn navbar-btn" ng-click="login()" ng-show="appControl.getProfile().user_id === null"
+                <li class="btn navbar-btn" ng-click="login()" ng-hide="appControl.getProfile().authenticated"
                     ng-class="{ 'btn-primary': socketServer.getConnected(), 'btn-danger': !socketServer.getConnected() }">
                     {{ 'SIGN_IN_MENU' | glMessage }}
                 </li>
-                <li class="btn-group" uib-dropdown ng-hide="appControl.getProfile().user_id === null">
+                <li class="btn-group" uib-dropdown ng-show="appControl.getProfile().authenticated">
                     <button type="button" class="btn btn-default navbar-btn uib-dropdown-toggle" uib-dropdown-toggle
                         ng-class="{ 'btn-primary': socketServer.getConnected(), 'btn-danger': !socketServer.getConnected() }">
                         <span class="glyphicon glyphicon-user"></span>
@@ -72,9 +72,17 @@
                         <span class="caret"></span>
                     </button>
                     <ul class="uib-dropdown-menu" role="menu">
-                        <li><a href="javascript:void(0)" ng-click="changeProfile()">{{ 'PROFILE_MENU' | glMessage }}</a></li>
+                        <li>
+                            <a ui-sref="layout.profile">
+                                {{ 'PROFILE_MENU' | glMessage }}
+                            </a>
+                        </li>
                         <li class="divider"></li>
-                        <li><a href="javascript:void(0)" ng-click="logout()">{{ 'SIGN_OUT_MENU' | glMessage }}</a></li>
+                        <li>
+                            <a href="javascript:void(0)" ng-click="logout()">
+                                {{ 'SIGN_OUT_MENU' | glMessage }}
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>

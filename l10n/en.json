@@ -54,6 +54,8 @@
         "CHANGE_BUTTON": "Change",
 
         "REQUIRED_FIELD_LABEL": "REQUIRED FIELD",
+        "PLEASE_WAIT_LABEL": "Please wait...",
+        "CHANGES_SAVED_LABEL": "Changes saved",
         "USERNAME_LABEL": "Email",
         "PASSWORD_LABEL": "Password",
         "NAME_LABEL": "Name",

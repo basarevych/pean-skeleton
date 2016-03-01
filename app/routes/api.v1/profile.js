@@ -83,7 +83,7 @@ module.exports = function () {
                 default:    config['lang']['default'],
                 available:  config['lang']['locales'],
             },
-            user_id: null,
+            authenticated: false,
             name: 'anonymous',
             email: null,
             roles:  [],
@@ -93,7 +93,7 @@ module.exports = function () {
         if (!user)
             return res.json(result);
 
-        result['user_id'] = user.getId();
+        result['authenticated'] = true;
         result['name'] = user.getName();
         result['email'] = user.getEmail();
         roleRepo.findByUserId(user.getId())

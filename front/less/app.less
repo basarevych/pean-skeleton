@@ -52,6 +52,22 @@ body.padded {
     }
 }
 
+.main-window {
+    box-shadow: 0 0 8px @gray-dark;
+    background-color: @body-bg;
+    border: 1px solid @gray-light;
+    border-radius: @border-radius-base;
+    margin-top: 50px;
+    padding: 40px 30px 30px 20px !important;
+    h3 {
+        margin: 0 20px 20px 20px;
+        text-align: center;
+    }
+    .message {
+        text-align: center;
+    }
+}
+
 [ui-view] {
     &.ng-enter {
         transition: 0.75s cubic-bezier(0.25, 0.1, 0.25, 1.0) all;
