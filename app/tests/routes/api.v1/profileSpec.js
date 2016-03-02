@@ -36,7 +36,7 @@ describe('/v1/profile route', function () {
                     default: config['lang']['default'],
                     available: config['lang']['locales']
                 });
-                expect(res.body.user_id).toBeNull();
+                expect(res.body.authenticated).toBeFalsy();
                 expect(res.body.roles).toEqual([]);
             })
             .expect(200, done);
