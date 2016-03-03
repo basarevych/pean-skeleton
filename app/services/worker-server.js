@@ -21,28 +21,6 @@ function WorkerServer() {
 WorkerServer.INTERVAL = 10000;      // Job polling interval
 
 /**
- * Create job polling timer
- */
-WorkerServer.prototype.startTimer = function () {
-    if (this.timer)
-        return;
-
-    var me = this;
-    this.timer = setInterval(function () { me.work(); }, WorkerServer.INTERVAL);
-};
-
-/**
- * Cancel job polling timer
- */
-WorkerServer.prototype.cancelTimer = function () {
-    if (!this.timer)
-        return;
-
-    clearInterval(this.timer);
-    this.timer = null;
-};
-
-/**
  * Create server and start waiting for the jobs
  */
 WorkerServer.prototype.start = function () {
@@ -66,6 +44,7 @@ WorkerServer.prototype.start = function () {
             subscriber.subscribe(process.env.PROJECT + ":jobs:success");
             subscriber.subscribe(process.env.PROJECT + ":jobs:failure");
 
+            setInterval(function () { me.work(); }, WorkerServer.INTERVAL);
             me.work();
         })
         .catch(function (err) {
@@ -79,8 +58,6 @@ WorkerServer.prototype.start = function () {
 WorkerServer.prototype.work = function () {
     var me = this;
     var logger = locator.get('logger');
-
-    this.cancelTimer();
 
     var jobRepo = locator.get('job-repository');
     jobRepo.processNewJobs()
@@ -96,8 +73,6 @@ WorkerServer.prototype.work = function () {
         .catch(function (err) {
             logger.error('WorkerServer.work() - jobRepo.processNewJobs', err);
         });
-
-    this.startTimer();
 };
 
 /**

@@ -179,14 +179,7 @@ JobRepository.prototype.save = function (job) {
 
             me._sendFailureEmail(job)
                 .finally(function () {
-                    var redis = me.getRedis();
-                    redis.publish(process.env.PROJECT + ":jobs:" + job.getStatus(), id, function (err, reply) {
-                        if (err)
-                            logger.error('JobRepository.save() - redis publish', err);
-
-                        redis.quit();
-                        defer.resolve(id);
-                    });
+                    me._broadcastJob(job, function () { defer.resolve(id); });
                 });
         });
     });
@@ -199,6 +192,8 @@ JobRepository.prototype.save = function (job) {
  *
  * Searches for jobs with 'created' status and changes it to either
  * 'expired' or 'started'
+ *
+ * Jobs of the same queue are executed in created order
  *
  * @return {object}             Returns promise resolving to an object with
  *                              two arrays of expired/started models:
@@ -217,6 +212,49 @@ JobRepository.prototype.processNewJobs = function () {
         var now = moment();
         var returnValue = { expired: [], started: [] };
 
+        function processJob(job, jobDefer) {
+            if (job.getStatus == 'started' || now.isBefore(job.getScheduledFor()))
+                return jobDefer.resolve();
+
+            if (now.isAfter(job.getValidUntil())) {
+                job.setStatus('expired');
+
+                db.query(
+                    "UPDATE jobs "
+                  + "   SET status = $1 "
+                  + " WHERE id = $2 ",
+                    [ 'expired', job.getId() ],
+                    function (err, result) {
+                        if (err)
+                            return jobDefer.reject([ 'JobRepository.processNewJobs() - process expired', err ]);
+
+                        returnValue.expired.push(job);
+
+                        me._sendFailureEmail(job)
+                            .finally(function () {
+                                jobDefer.resolve();
+                            });
+                    }
+                );
+            } else {
+                job.setStatus('started');
+
+                db.query(
+                    "UPDATE jobs "
+                  + "   SET status = $1 "
+                  + " WHERE id = $2 ",
+                    [ 'started', job.getId() ],
+                    function (err, result) {
+                        if (err)
+                            return jobDefer.reject([ 'JobRepository.processNewJobs() - process started', err ]);
+
+                        returnValue.started.push(job);
+                        jobDefer.resolve();
+                    }
+                );
+            }
+        }
+
         db.query("BEGIN TRANSACTION", [], function (err, result) {
             if (err) {
                 db.end();
@@ -226,8 +264,8 @@ JobRepository.prototype.processNewJobs = function () {
             db.query(
                 "  SELECT * "
               + "    FROM jobs "
-              + "   WHERE status = $1 AND scheduled_for <= $2 "
-              + "ORDER BY id ASC ",
+              + "   WHERE queue IS NULL AND status = $1 AND scheduled_for <= $2 "
+              + "ORDER BY created_at ASC ",
                 [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
                 function (err, result) {
                     if (err) {
@@ -236,117 +274,75 @@ JobRepository.prototype.processNewJobs = function () {
                     }
 
                     var promises = [];
-                    var queuedJobs = [];
+
                     result.rows.forEach(function (row) {
                         var job = new JobModel(row);
                         var jobDefer = q.defer();
-
-                        if (now.isAfter(job.getValidUntil())) {
-                            job.setStatus('expired');
-
-                            db.query(
-                                "UPDATE jobs "
-                              + "   SET status = $1 "
-                              + " WHERE id = $2 ",
-                                [ 'expired', job.getId() ],
-                                function (err, result) {
-                                    if (err)
-                                        return jobDefer.reject([ 'JobRepository.processNewJobs() - update expired', err ]);
-
-                                    returnValue.expired.push(job);
-
-                                    me._sendFailureEmail(job)
-                                        .finally(function () {
-                                            jobDefer.resolve();
-                                        });
-                                }
-                            );
-                            promises.push(jobDefer.promise);
-                            return;
-                        }
-
-                        if (job.getQueue() == null) {
-                            job.setStatus('started');
-
-                            db.query(
-                                "UPDATE jobs "
-                              + "   SET status = $1 "
-                              + " WHERE id = $2 ",
-                                [ 'started', job.getId() ],
-                                function (err, result) {
-                                    if (err)
-                                        return jobDefer.reject([ 'JobRepository.processNewJobs() - update started', err ]);
-
-                                    returnValue.started.push(job);
-                                    jobDefer.resolve();
-                                }
-                            );
-                            promises.push(jobDefer.promise);
-                            return;
-                        }
-
-                        queuedJobs.push(job);
+                        promises.push(jobDefer.promise);
+                        processJob(job, jobDefer);
                     });
 
-                    var queuedDefer = q.defer();
-                    promises.push(queuedDefer.promise);
+                    db.query(
+                        "  SELECT DISTINCT queue AS queue "
+                      + "    FROM jobs "
+                      + "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
+                        [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
+                        function (err, result) {
+                            if (err) {
+                                db.end();
+                                return defer.reject([ 'JobRepository.processNewJobs() - select created', err ]);
+                            }
 
-                    function processQueue() {
-                        var job = queuedJobs.shift();
-                        if (!job) {
-                            queuedDefer.resolve();
-                            return;
-                        }
-
-                        db.query(
-                            "  SELECT * "
-                          + "    FROM jobs "
-                          + "   WHERE status = $1 AND queue = $2 ",
-                            [ 'started', job.getQueue() ],
-                            function (err, result) {
-                                if (err)
-                                    return queuedDefer.reject([ 'JobRepository.processNewJobs() - select started in queue', err ]);
-
-                                if (result.rows.length > 0) {
-                                    processQueue();
-                                    return;
-                                }
+                            result.rows.forEach(function (row) {
+                                var jobDefer = q.defer();
+                                promises.push(jobDefer.promise);
 
                                 db.query(
-                                    "UPDATE jobs "
-                                  + "   SET status = $1 "
-                                  + " WHERE id = $2 ",
-                                    [ 'started', job.getId() ],
+                                    "  SELECT * "
+                                  + "    FROM jobs "
+                                  + "   WHERE queue = $1 AND (status = $2 OR status = $3) "
+                                  + "ORDER BY created_at ASC "
+                                  + "   LIMIT 1 ",
+                                    [ row['queue'], 'created', 'started' ],
                                     function (err, result) {
-                                        if (err)
-                                            return queuedDefer.reject([ 'JobRepository.processNewJobs() - update started in queue', err ]);
+                                        if (err) {
+                                            db.end();
+                                            return defer.reject([ 'JobRepository.processNewJobs() - select first in the queue', err ]);
+                                        }
 
-                                        returnValue.started.push(job);
-                                        processQueue();
+                                        var job = new JobModel(result.rows[0]);
+                                        processJob(job, jobDefer);
                                     }
                                 );
-                            }
-                        );
-                    }
-
-                    processQueue();
-
-                    q.all(promises)
-                        .then(function (result) {
-                            db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                if (err)
-                                    return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
-
-                                db.end();
-                                defer.resolve(returnValue);
                             });
-                        })
-                        .catch(function (err) {
-                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                                db.end();
-                                defer.reject(err);
-                            });
-                        });
+
+                            q.all(promises)
+                                .then(function (result) {
+                                    db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                        if (err)
+                                            return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
+
+                                        db.end();
+
+                                        var jobs = returnValue.expired.concat(returnValue.started);
+                                        function broadcastJob() {
+                                            var job = jobs.shift();
+                                            if (!job)
+                                                return defer.resolve(returnValue);
+
+                                            me._broadcastJob(job, function () { broadcastJob() });
+                                        }
+                                        broadcastJob();
+                                    });
+                                })
+                                .catch(function (err) {
+                                    db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                        db.end();
+                                        defer.reject(err);
+                                    });
+                                });
+                        }
+                    );
                 }
             );
         });
@@ -396,14 +392,18 @@ JobRepository.prototype.restartInterrupted = function () {
  * Postpone job execution
  *
  * @param {object} job      The job
+ * @param {number} seconds  Interval in seconds or undefined for default
  * @return {object}         Returns promise resolving to a number of DB rows affected
  */
-JobRepository.prototype.postponeJob = function (job) {
+JobRepository.prototype.postponeJob = function (job, interval) {
     var logger = locator.get('logger');
     var defer = q.defer();
     var me = this;
 
-    var newTime = clone(job.getScheduledFor()).add(JobModel.POSTPONE_INTERVAL, 'seconds');
+    if (!interval)
+        interval = JobModel.POSTPONE_INTERVAL;
+
+    var newTime = clone(job.getScheduledFor()).add(interval, 'seconds');
 
     var db = this.getPostgres();
     db.connect(function (err) {
@@ -430,93 +430,6 @@ JobRepository.prototype.postponeJob = function (job) {
                 defer.resolve(result.rowCount);
             }
         );
-    });
-
-    return defer.promise;
-};
-
-/**
- * Postpone all created/started jobs in the queue
- *
- * @param {string} queue        The queue name
- * @return {object}             Returns promise resolving to a number of DB rows affected
- */
-JobRepository.prototype.postponeQueue = function (queue) {
-    var logger = locator.get('logger');
-    var defer = q.defer();
-    var me = this;
-
-    var db = this.getPostgres();
-    db.connect(function (err) {
-        if (err)
-            return defer.reject([ 'JobRepository.postponeQueue() - pg connect', err ]);
-
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                db.end();
-                return defer.reject([ 'JobRepository.postponeQueue() - begin transation', err ]);
-            }
-
-            db.query(
-                "SELECT * "
-              + "  FROM jobs "
-              + " WHERE queue = $1 "
-              + "   AND (status = $2 OR status = $3) ",
-                [ queue, 'created', 'started' ],
-                function (err, result) {
-                    if (err) {
-                        db.end();
-                        return defer.reject([ 'JobRepository.postponeQueue() - select jobs in queue', err ]);
-                    }
-
-                    var count = result.rowCount;
-                    var promises = [];
-                    result.rows.forEach(function (row) {
-                        var job = new JobModel(row);
-                        var jobDefer = q.defer();
-                        promises.push(jobDefer.promise);
-
-                        var newTime = clone(job.getScheduledFor()).add(JobModel.POSTPONE_INTERVAL, 'seconds');
-                        db.query(
-                            "UPDATE jobs "
-                          + "   SET status = $1, "
-                          + "       scheduled_for = $2 "
-                          + " WHERE id = $3 ",
-                            [
-                                'created',
-                                newTime.tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                                job.getId(),
-                            ],
-                            function (err, result) {
-                                if (err)
-                                    return jobDefer.reject([ 'JobRepository.postponeQueue() - postpone job', err ]);
-
-                                jobDefer.resolve();
-                            }
-                        );
-                    });
-
-                    q.all(promises)
-                        .then(function () {
-                            db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                if (err) {
-                                    db.end();
-                                    return defer.reject([ 'JobRepository.postponeQueue() - commit transaction', err ]);
-                                }
-
-                                db.end();
-                                defer.resolve(count);
-                            });
-                        })
-                        .catch(function (err) {
-                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                                db.end();
-                                defer.reject(err);
-                            });
-                        });
-                }
-            );
-        });
     });
 
     return defer.promise;
@@ -590,6 +503,25 @@ JobRepository.prototype.deleteAll = function () {
     });
 
     return defer.promise;
+};
+
+/**
+ * Broadcast job status change
+ *
+ * @param {object} job          Job model
+ * @param {function} cb         Completition callback
+ */
+JobRepository.prototype._broadcastJob = function (job, cb) {
+    var redis = this.getRedis();
+    redis.publish(process.env.PROJECT + ":jobs:" + job.getStatus(), job.getId(), function (err, reply) {
+        if (err)
+            logger.error('JobRepository._broadcastJob() - redis publish', err);
+
+        redis.quit();
+
+        if (cb)
+            cb();
+    });
 };
 
 /**
