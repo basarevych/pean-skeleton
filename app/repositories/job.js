@@ -403,7 +403,8 @@ JobRepository.prototype.postponeJob = function (job, interval) {
     if (!interval)
         interval = JobModel.POSTPONE_INTERVAL;
 
-    var newTime = clone(job.getScheduledFor()).add(interval, 'seconds');
+    var now = moment();
+    var newTime = now.add(interval, 'seconds');
 
     var db = this.getPostgres();
     db.connect(function (err) {
