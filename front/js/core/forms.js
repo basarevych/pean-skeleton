@@ -130,6 +130,9 @@ forms.factory('ValidationCtrl',
                 };
 
                 $scope.submit = function () {
+                    if ($scope.processing)
+                        return;
+
                     $scope.processing = true;
 
                     if (!submitter) {
