@@ -11,6 +11,10 @@ module.exports = function (app) {
                 path: "app/services/filer.js",
                 instantiate: true,
             },
+            "emailer": {
+                path: "app/services/emailer.js",
+                instantiate: true,
+            },
             "rester": {
                 path: "app/services/rester.js",
                 instantiate: true,

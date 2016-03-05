@@ -7,7 +7,6 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var moment = require('moment-timezone');
-var emailjs = require('emailjs/email')
 var BaseRepository = locator.get('base-repository');
 var BaseModel = locator.get('base-model');
 var JobModel = locator.get('job-model');
@@ -540,8 +539,6 @@ JobRepository.prototype._sendFailureEmail = function resolve(job) {
         return defer.promise;
     }
 
-    var server  = emailjs.server.connect({ host: "127.0.0.1" });
-
     var data = {
         id: job.getId(),
         name: job.getName(),
@@ -555,6 +552,7 @@ JobRepository.prototype._sendFailureEmail = function resolve(job) {
     };
 
     var app = locator.get('app');
+    var emailer = locator.get('emailer');
     app.render(
         'email/job-failure-text',
         data,
@@ -573,17 +571,15 @@ JobRepository.prototype._sendFailureEmail = function resolve(job) {
                         return;
                     }
 
-                    server.send({
-                        text: text,
+                    emailer.send({
                         from: config['error']['job_failure']['from'],
                         to: config['error']['job_failure']['to'],
                         subject: config['error']['job_failure']['subject'],
-                        attachment: [
-                          { data: html, alternative: true },
-                        ],
+                        text: text,
+                        html: html,
+                    }).finally(function () {
+                        defer.resolve();
                     });
-
-                    defer.resolve();
                 }
             );
         }

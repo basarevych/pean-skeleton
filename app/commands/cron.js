@@ -8,6 +8,7 @@ var locator = require('node-service-locator');
 
 module.exports = function (argv, rl) {
     var config = locator.get('config');
+    var logger = locator.get('logger');
 
     /**
      * One liner for command

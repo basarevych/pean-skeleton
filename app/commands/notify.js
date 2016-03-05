@@ -9,6 +9,7 @@ var NotificationModel = locator.get('notification-model');
 
 module.exports = function (argv, rl) {
     var config = locator.get('config');
+    var logger = locator.get('logger');
 
     /**
      * One liner for command
@@ -44,8 +45,6 @@ module.exports = function (argv, rl) {
             help(function () { rl.write("\n"); done() });
             return;
         }
-
-        var logger = locator.get('logger');
 
         var notification = new NotificationModel();
         notification.setText(argv['_'][1]);

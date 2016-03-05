@@ -12,6 +12,7 @@ var UserModel = locator.get('user-model');
 
 module.exports = function (argv, rl) {
     var config = locator.get('config');
+    var logger = locator.get('logger');
 
     /**
      * One liner for command
@@ -34,7 +35,6 @@ module.exports = function (argv, rl) {
      * Execute command
      */
     function run(done) {
-        var logger = locator.get('logger');
         var roleRepo = locator.get('role-repository');
         var roleTranslationRepo = locator.get('role-translation-repository');
         var permissionRepo = locator.get('permission-repository');

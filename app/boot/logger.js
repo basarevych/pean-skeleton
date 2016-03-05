@@ -6,16 +6,14 @@
 
 var locator = require('node-service-locator');
 var logger = require('tracer').colorConsole();
-var emailjs = require('emailjs/email')
-var path = require('path')
 
 module.exports = function (app) {
     var config = locator.get('config');
-    var server  = emailjs.server.connect({ host: "127.0.0.1" });
 
     var original = logger.error;
     logger.error = function () {
         if (config['error']['logger_error']['enabled']) { // send the error via email
+            var emailer = locator.get('emailer');
             var errors = arguments
             app.render(
                 'email/logger-error-text',
@@ -35,14 +33,12 @@ module.exports = function (app) {
                             if (err)
                                 return;
 
-                            server.send({
-                                text: text,
+                            emailer.send({
                                 from: config['error']['logger_error']['from'],
                                 to: config['error']['logger_error']['to'],
                                 subject: config['error']['logger_error']['subject'],
-                                attachment: [
-                                  { data: html, alternative: true },
-                                ],
+                                text: text,
+                                html: html,
                             });
                         }
                     );
