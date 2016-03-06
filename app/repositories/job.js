@@ -66,6 +66,48 @@ JobRepository.prototype.find = function (id) {
 };
 
 /**
+ * Find jobs by name
+ *
+ * @param {string} name     Name to search by
+ * @return {object}         Returns promise resolving to array of models
+ */
+JobRepository.prototype.findByName = function (name) {
+    var logger = locator.get('logger');
+    var defer = q.defer();
+
+    var db = this.getPostgres();
+    db.connect(function (err) {
+        if (err)
+            return defer.reject([ 'JobRepository.findByName() - pg connect', err ]);
+
+        db.query(
+            "SELECT * "
+          + "  FROM jobs "
+          + " WHERE name = $1 ",
+            [ name ],
+            function (err, result) {
+                if (err) {
+                    db.end();
+                    return defer.reject([ 'JobRepository.findByName() - select query', err ]);
+                }
+
+                db.end();
+
+                var jobs = [];
+                result.rows.forEach(function (row) {
+                    var job = new JobModel(row);
+                    jobs.push(job);
+                });
+
+                defer.resolve(jobs);
+            }
+        );
+    });
+
+    return defer.promise;
+};
+
+/**
  * Find all the jobs
  *
  * @return {object}             Returns promise resolving to array of models
