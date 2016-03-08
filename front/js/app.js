@@ -135,8 +135,8 @@ app.run(
         $rootScope.login = function () {
             LoginForm()
                 .then(function (data) {
-                    $scope.appControl.setToken(data.token);
-                    $scope.appControl.loadProfile();
+                    $rootScope.appControl.setToken(data.token);
+                    $rootScope.appControl.loadProfile();
                 });
         };
 

@@ -331,7 +331,7 @@ JobRepository.prototype.processNewJobs = function () {
                         function (err, result) {
                             if (err) {
                                 db.end();
-                                return defer.reject([ 'JobRepository.processNewJobs() - select created', err ]);
+                                return defer.reject([ 'JobRepository.processNewJobs() - select queues with created', err ]);
                             }
 
                             result.rows.forEach(function (row) {
@@ -339,20 +339,37 @@ JobRepository.prototype.processNewJobs = function () {
                                 promises.push(jobDefer.promise);
 
                                 db.query(
-                                    "  SELECT * "
+                                    "  SELECT COUNT(*) AS count "
                                   + "    FROM jobs "
-                                  + "   WHERE queue = $1 AND (status = $2 OR status = $3) "
-                                  + "ORDER BY created_at ASC "
-                                  + "   LIMIT 1 ",
-                                    [ row['queue'], 'created', 'started' ],
+                                  + "   WHERE queue = $1 AND status = $2 ",
+                                    [ row['queue'], 'started' ],
                                     function (err, result) {
                                         if (err) {
                                             db.end();
-                                            return defer.reject([ 'JobRepository.processNewJobs() - select first in the queue', err ]);
+                                            return defer.reject([ 'JobRepository.processNewJobs() - check the queue is busy', err ]);
                                         }
 
-                                        var job = new JobModel(result.rows[0]);
-                                        processJob(job, jobDefer);
+                                        if (result.rows[0]['count'] > 0) {
+                                            jobDefer.resolve();
+                                        } else {
+                                            db.query(
+                                                "  SELECT * "
+                                              + "    FROM jobs "
+                                              + "   WHERE queue = $1 AND status = $2 "
+                                              + "ORDER BY created_at ASC, id ASC "
+                                              + "   LIMIT 1 ",
+                                                [ row['queue'], 'created' ],
+                                                function (err, result) {
+                                                    if (err) {
+                                                        db.end();
+                                                        return defer.reject([ 'JobRepository.processNewJobs() - select first in the queue', err ]);
+                                                    }
+
+                                                    var job = new JobModel(result.rows[0]);
+                                                    processJob(job, jobDefer);
+                                                }
+                                            );
+                                        }
                                     }
                                 );
                             });
