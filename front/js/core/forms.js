@@ -80,13 +80,13 @@ forms.factory('FormHelper',
                 $scope.validation.errors = {};
             },
             setErrors: function ($scope, data) {
-                if (angular.isArray(data.messages))
-                    $scope.validation.messages = data.messages;
-
                 if (data.success || !angular.isObject(data.errors))
                     this.clearErrors($scope);
                 else
                     $scope.validation.errors = data.errors;
+
+                if (angular.isArray(data.messages))
+                    $scope.validation.messages = data.messages;
             },
         };
     } ]
