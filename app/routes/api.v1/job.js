@@ -292,17 +292,17 @@ module.exports = function () {
                         if (!job)
                             return app.abort(res, 404, "Job " + jobId + " not found");
 
-                            res.json({
-                                id: job.getId(),
-                                name: job.getName(),
-                                queue: job.getQueue(),
-                                status: job.getStatus(),
-                                created_at: job.getCreatedAt().unix(),
-                                scheduled_for: job.getScheduledFor().unix(),
-                                valid_until: job.getValidUntil().unix(),
-                                input_data: job.getInputData(),
-                                output_data: job.getOutputData(),
-                            });
+                        res.json({
+                            id: job.getId(),
+                            name: job.getName(),
+                            queue: job.getQueue(),
+                            status: job.getStatus(),
+                            created_at: job.getCreatedAt().unix(),
+                            scheduled_for: job.getScheduledFor().unix(),
+                            valid_until: job.getValidUntil().unix(),
+                            input_data: job.getInputData(),
+                            output_data: job.getOutputData(),
+                        });
                     });
             })
             .catch(function (err) {
