@@ -25,7 +25,7 @@ Spawner.TIMEOUT = 60 * 1000;        // Command execution time limit
  * @param {string[]} params     Command arguments
  * @param {object} [expect]     Expect-send strings object { 'wait for regexp string': 'send this' }
  * @return {object}             Returns promise resolving to object { code: 0, output: '' }
-                                If command failed exit code will be null
+ *                              If command failed exit code will be null
  */
 Spawner.prototype.exec = function (command, params, expect) {
     var defer = q.defer();
