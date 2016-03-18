@@ -462,7 +462,6 @@ module.exports = function () {
                                 job.setValidUntil(jobForm.getValue('valid_until').length ? moment.unix(jobForm.getValue('valid_until')) : moment().add(5, 'minutes'));
                                 job.setInputData(jobForm.getValue('input_data').length ? JSON.parse(jobForm.getValue('input_data')) : {});
 
-                                var jobRepo = locator.get('job-repository');
                                 return jobRepo.save(job)
                                     .then(function (jobId) {
                                         if (jobId === null)
