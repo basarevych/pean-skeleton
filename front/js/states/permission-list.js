@@ -11,7 +11,7 @@ module.controller("PermissionListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/permission/table',
+            url: $window['config']['api_url'] + '/permission/table',
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) { return row; },

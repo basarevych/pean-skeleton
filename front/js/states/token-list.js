@@ -19,7 +19,7 @@ module.controller("TokenListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/token/table' + urlParam,
+            url: $window['config']['api_url'] + '/token/table' + urlParam,
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {

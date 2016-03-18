@@ -11,7 +11,7 @@ module.controller("UserListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['apiUrl'] + '/user/table',
+            url: $window['config']['api_url'] + '/user/table',
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {

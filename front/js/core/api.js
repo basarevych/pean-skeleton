@@ -46,7 +46,7 @@ api.factory('ResourceWrapper',
 api.factory('AuthApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/auth/:action', { }, {
+        var resource = $resource($window['config']['api_url'] + '/auth/:action', { }, {
             token:      { method: 'POST', params: { action: 'token' }, isArray: false },
             validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
         });
@@ -65,7 +65,7 @@ api.factory('AuthApi',
 api.factory('ProfileApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/profile/:action', { }, {
+        var resource = $resource($window['config']['api_url'] + '/profile/:action', { }, {
             read:       { method: 'GET', isArray: false },
             update:     { method: 'PUT', isArray: false },
             validate:   { method: 'POST', params: { action: 'validate' }, isArray: false },
@@ -88,7 +88,7 @@ api.factory('ProfileApi',
 api.factory('RoleApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/role/:id/:action', { }, {
+        var resource = $resource($window['config']['api_url'] + '/role/:id/:action', { }, {
             list:       { method: 'GET', isArray: true },
             create:     { method: 'POST', isArray: false },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
@@ -123,7 +123,7 @@ api.factory('RoleApi',
 api.factory('PermissionApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/permission/:id/:action', { }, {
+        var resource = $resource($window['config']['api_url'] + '/permission/:id/:action', { }, {
             list:       { method: 'GET', isArray: true },
             create:     { method: 'POST', isArray: false },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
@@ -158,7 +158,7 @@ api.factory('PermissionApi',
 api.factory('UserApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/user/:id/:action', { }, {
+        var resource = $resource($window['config']['api_url'] + '/user/:id/:action', { }, {
             list:        { method: 'GET', isArray: true },
             create:      { method: 'POST', isArray: false },
             read:        { method: 'GET', params: { id: '@id' }, isArray: false },
@@ -197,7 +197,7 @@ api.factory('UserApi',
 api.factory('TokenApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/token/:id', { }, {
+        var resource = $resource($window['config']['api_url'] + '/token/:id', { }, {
             list:       { method: 'GET', isArray: true },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
             delete:     { method: 'DELETE', params: { id: '@id' }, isArray: false },
@@ -220,7 +220,7 @@ api.factory('TokenApi',
 api.factory('JobApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/job/:id/:action', { }, {
+        var resource = $resource($window['config']['api_url'] + '/job/:id/:action', { }, {
             list:       { method: 'GET', isArray: true },
             create:     { method: 'POST', isArray: false },
             read:       { method: 'GET', params: { id: '@id' }, isArray: false },
@@ -259,7 +259,7 @@ api.factory('JobApi',
 api.factory('NotificationApi',
     [ '$resource', '$window', 'ResourceWrapper',
     function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['apiUrl'] + '/notification', { }, {
+        var resource = $resource($window['config']['api_url'] + '/notification', { }, {
             create:     { method: 'POST', isArray: false },
         });
 
