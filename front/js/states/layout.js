@@ -9,7 +9,7 @@ module.controller("LayoutCtrl",
 
         $scope.setLocale = function (locale) {
             $cookies.put('locale', locale, { path: '/', expires: moment().add(1, 'year').toDate() });
-            globalizeWrapper.setLocale(locale);
+            $window.location.reload();
         };
 
         $scope.logout = function () {
