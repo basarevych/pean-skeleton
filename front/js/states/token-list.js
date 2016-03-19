@@ -9,9 +9,12 @@ module.controller("TokenListCtrl",
             return; // Disable this controller
 
         $scope.userEmail = null;
-        UserApi.read({ id: $scope.$stateParams.userId })
+        UserApi.read({ id: $scope.$stateParams.userId }, true)
             .then(function (data) {
                 $scope.userEmail = data.email;
+            })
+            .catch(function (err) {
+                $scope.$state.go('layout.user-list');
             });
 
         var urlParam = "?user_id=" + $scope.$stateParams.userId;
