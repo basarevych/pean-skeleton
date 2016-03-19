@@ -18,7 +18,7 @@
                 </label>
                 <div class="col-sm-8">
                     <div class="input-group">
-                        <input type="text" readonly="readonly" class="form-control" ng-model="model.original_handle" focus-on="model.handle.focus" on-key-enter="model.parent_id.focus = true"
+                        <input type="text" readonly="readonly" class="form-control" ng-model="model.handle.value" focus-on="model.handle.focus" on-key-enter="model.parent_id.focus = true"
                                ng-disabled="processing">
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default" ng-click="model.changeHandle(); resetValidation('handle')">

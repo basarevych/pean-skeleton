@@ -36,7 +36,7 @@
                 </label>
                 <div class="col-sm-8">
                     <div class="input-group">
-                        <input type="text" readonly="readonly" class="form-control" ng-model="model.original_email" focus-on="model.email.focus" on-key-enter="model.password.focus = true"
+                        <input type="text" readonly="readonly" class="form-control" ng-model="model.email.value" focus-on="model.email.focus" on-key-enter="model.password.focus = true"
                                ng-disabled="processing">
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default" ng-click="model.changeEmail(); resetValidation('email')">

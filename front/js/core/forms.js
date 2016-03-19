@@ -241,14 +241,13 @@ forms.factory('EditRoleForm',
                             locale: locale,
                             title_focus: false,
                             handle_changed: false,
-                            original_handle: role.handle,
                             changeHandle: function () {
                                 this.handle_changed = true;
                                 this.handle.focus = true;
                             },
                             cancelHandle: function () {
                                 this.handle_changed = false;
-                                this.handle.value = this.original_handle;
+                                this.handle.value = role.handle;
                             },
                         };
                     },
@@ -413,14 +412,13 @@ forms.factory('EditUserForm',
                                 this.password.focus = true;
                             },
                             email_changed: false,
-                            original_email: user.email,
                             changeEmail: function () {
                                 this.email_changed = true;
                                 this.email.focus = true;
                             },
                             cancelEmail: function () {
                                 this.email_changed = false;
-                                this.email.value = this.original_email;
+                                this.email.value = user.email;
                             },
                         };
                     },
