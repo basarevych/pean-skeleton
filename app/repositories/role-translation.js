@@ -280,7 +280,7 @@ RoleTranslationRepository.prototype.save = function (translation) {
                         if (id)
                             translation.setId(id);
                         else
-                            id = translation.getId();
+                            id = result.rowCount > 0 ? translation.getId() : null;
 
                         db.query("COMMIT TRANSACTION", [], function (err, result) {
                             if (err) {
@@ -289,7 +289,10 @@ RoleTranslationRepository.prototype.save = function (translation) {
                             }
 
                             db.end();
-                            translation.dirty(false);
+
+                            if (id)
+                                translation.dirty(false);
+
                             defer.resolve(id);
                         });
                     });

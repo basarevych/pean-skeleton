@@ -372,7 +372,7 @@ UserRepository.prototype.save = function (user) {
                         if (id)
                             user.setId(id);
                         else
-                            id = user.getId();
+                            id = result.rowCount > 0 ? user.getId() : null;
 
                         db.query("COMMIT TRANSACTION", [], function (err, result) {
                             if (err) {
@@ -381,7 +381,10 @@ UserRepository.prototype.save = function (user) {
                             }
 
                             db.end();
-                            user.dirty(false);
+
+                            if (id)
+                                user.dirty(false);
+
                             defer.resolve(id);
                         });
                     });

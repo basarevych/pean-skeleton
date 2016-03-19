@@ -210,13 +210,15 @@ JobRepository.prototype.save = function (job) {
             }
 
             db.end();
-            job.dirty(false);
 
             var id = result.rows.length && result.rows[0]['id'];
             if (id)
                 job.setId(id);
             else
-                id = job.getId();
+                id = result.rowCount > 0 ? job.getId() : null;
+
+            if (id)
+                job.dirty(false);
 
             me._sendFailureEmail(job)
                 .finally(function () {

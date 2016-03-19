@@ -277,7 +277,7 @@ RoleRepository.prototype.save = function (role) {
                         if (id)
                             role.setId(id);
                         else
-                            id = role.getId();
+                            id = result.rowCount > 0 ? role.getId() : null;
 
                         db.query("COMMIT TRANSACTION", [], function (err, result) {
                             if (err) {
@@ -286,7 +286,10 @@ RoleRepository.prototype.save = function (role) {
                             }
 
                             db.end();
-                            role.dirty(false);
+
+                            if (id)
+                                role.dirty(false);
+
                             defer.resolve(id);
                         });
                     });

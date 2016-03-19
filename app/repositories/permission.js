@@ -260,13 +260,15 @@ PermissionRepository.prototype.save = function (permission) {
             }
 
             db.end();
-            permission.dirty(false);
 
             var id = result.rows.length && result.rows[0]['id'];
             if (id)
                 permission.setId(id);
             else
-                id = permission.getId();
+                id = result.rowCount > 0 ? permission.getId() : null;
+
+            if (id)
+                permission.dirty(false);
 
             defer.resolve(id);
         });

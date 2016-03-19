@@ -180,8 +180,12 @@ TokenRepository.prototype.save = function (token) {
                 if (err)
                     return updateDefer.reject([ 'TokenRepository.save() - update query', err ]);
 
-                token.dirty(false);
-                updateDefer.resolve(token.getId());
+                var id = result.rowCount > 0 ? token.getId() : null
+
+                if (id)
+                    token.dirty(false);
+
+                updateDefer.resolve(id);
             }
         );
 
@@ -197,7 +201,6 @@ TokenRepository.prototype.save = function (token) {
             updateToken()
                 .then(function (tokenId) {
                     db.end();
-                    token.dirty(false);
                     defer.resolve(tokenId);
                 })
                 .catch(function (err) {
@@ -244,7 +247,6 @@ TokenRepository.prototype.save = function (token) {
                                     }
 
                                     db.end();
-                                    token.dirty(false);
                                     defer.resolve(tokenId);
                                 });
                             })
