@@ -21,6 +21,30 @@ describe('/v1/auth route', function () {
         });
     });
 
+    it('validates email', function (done) {
+        request(app)
+            .post('/v1/auth/validate')
+            .send({ _field: 'email', email: 'foo' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(function (res) {
+                expect(res.body.success).toBe(false);
+            })
+            .expect(200, done);
+    });
+
+    it('validates password', function (done) {
+        request(app)
+            .post('/v1/auth/validate')
+            .send({ _field: 'password', password: 'foo' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(function (res) {
+                expect(res.body.success).toBe(false);
+            })
+            .expect(200, done);
+    });
+
     it('creates token', function (done) {
         var searchedEmail, searchedPassword;
         var foundUser = new UserModel();
@@ -54,48 +78,7 @@ describe('/v1/auth route', function () {
                 expect(searchedEmail).toBe('root@example.com');
                 expect(searchedPassword).toBe('foobar');
                 expect(res.body.success).toBeTruthy();
-            })
-            .expect(200, done);
-    });
-
-    it('validates', function (done) {
-        request(app)
-            .post('/v1/auth/validate')
-            .send({ _field: 'email', email: 'foo' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(res.body.success).toBe(false);
-            })
-            .expect(200, done);
-
-        request(app)
-            .post('/v1/auth/validate')
-            .send({ _field: 'email', email: 'foo@bar.com' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(res.body.success).toBe(true);
-            })
-            .expect(200, done);
-
-        request(app)
-            .post('/v1/auth/validate')
-            .send({ _field: 'password', password: 'foo' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(res.body.success).toBe(false);
-            })
-            .expect(200, done);
-
-        request(app)
-            .post('/v1/auth/validate')
-            .send({ _field: 'password', password: 'foobar' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(res.body.success).toBe(true);
+                expect(res.body.token.split('.').length).toBe(3);
             })
             .expect(200, done);
     });
