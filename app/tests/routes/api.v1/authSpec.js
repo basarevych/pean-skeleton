@@ -46,8 +46,8 @@ describe('/v1/auth route', function () {
     });
 
     it('creates token', function (done) {
-        var searchedEmail, searchedPassword;
-        var foundUser = new UserModel();
+        var searchedEmail, searchedPassword, savedToken;
+        var foundUser = new UserModel({ id: 42 });
         foundUser.checkPassword = function (password) {
             searchedPassword = password;
             return true;
@@ -62,7 +62,8 @@ describe('/v1/auth route', function () {
             },
         });
         locator.register('token-repository', {
-            save: function () {
+            save: function (token) {
+                savedToken = token;
                 var defer = q.defer();
                 defer.resolve(1);
                 return defer.promise;
@@ -79,6 +80,7 @@ describe('/v1/auth route', function () {
                 expect(searchedPassword).toBe('foobar');
                 expect(res.body.success).toBeTruthy();
                 expect(res.body.token.split('.').length).toBe(3);
+                expect(savedToken.getUserId()).toBe(42);
             })
             .expect(200, done);
     });
