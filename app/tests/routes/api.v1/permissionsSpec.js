@@ -9,7 +9,7 @@ var UserModel = require('../../../models/user');
 var RoleModel = require('../../../models/role');
 var PermissionModel = require('../../../models/permission');
 
-describe('/v1/permission route', function () {
+describe('/v1/permissions route', function () {
     var config;
     var authUser = new UserModel({ id: 42 });
     var aclQueried;
@@ -41,7 +41,7 @@ describe('/v1/permission route', function () {
 
     it('protects table', function (done) {
         request(app)
-            .get('/v1/permission/table?query=data')
+            .get('/v1/permissions/table?query=data')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -67,7 +67,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .get('/v1/permission/table?query=describe')
+            .get('/v1/permissions/table?query=describe')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
@@ -97,7 +97,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .get('/v1/permission/table?query=data&filters={}&sort_column="id"&sort_dir="asc"&page_number=1&page_size=0')
+            .get('/v1/permissions/table?query=data&filters={}&sort_column="id"&sort_dir="asc"&page_number=1&page_size=0')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
@@ -108,7 +108,7 @@ describe('/v1/permission route', function () {
 
     it('protects validate', function (done) {
         request(app)
-            .post('/v1/permission/validate')
+            .post('/v1/permissions/validate')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -117,7 +117,7 @@ describe('/v1/permission route', function () {
         locator.register('user', authUser);
 
         request(app)
-            .post('/v1/permission/validate')
+            .post('/v1/permissions/validate')
             .send({ _field: 'role_id', role_id: '' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
@@ -130,7 +130,7 @@ describe('/v1/permission route', function () {
 
     it('protects LIST', function (done) {
         request(app)
-            .get('/v1/permission')
+            .get('/v1/permissions')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -153,7 +153,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .get('/v1/permission')
+            .get('/v1/permissions')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -169,7 +169,7 @@ describe('/v1/permission route', function () {
 
     it('protects READ', function (done) {
         request(app)
-            .get('/v1/permission/1')
+            .get('/v1/permissions/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -195,7 +195,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .get('/v1/permission/1')
+            .get('/v1/permissions/1')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -211,7 +211,7 @@ describe('/v1/permission route', function () {
 
     it('protects CREATE', function (done) {
         request(app)
-            .post('/v1/permission')
+            .post('/v1/permissions')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -239,7 +239,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .post('/v1/permission')
+            .post('/v1/permissions')
             .send({
                 role_id: 42,
                 resource: 'res',
@@ -261,7 +261,7 @@ describe('/v1/permission route', function () {
 
     it('protects UPDATE', function (done) {
         request(app)
-            .put('/v1/permission/1')
+            .put('/v1/permissions/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -287,7 +287,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .put('/v1/permission/1')
+            .put('/v1/permissions/1')
             .send({
                 role_id: 9000,
                 resource: 'res',
@@ -309,7 +309,7 @@ describe('/v1/permission route', function () {
 
     it('protects DELETE', function (done) {
         request(app)
-            .delete('/v1/permission/1')
+            .delete('/v1/permissions/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -335,7 +335,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .delete('/v1/permission/1')
+            .delete('/v1/permissions/1')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -349,7 +349,7 @@ describe('/v1/permission route', function () {
 
     it('protects DELETE ALL', function (done) {
         request(app)
-            .delete('/v1/permission')
+            .delete('/v1/permissions')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -368,7 +368,7 @@ describe('/v1/permission route', function () {
         });
 
         request(app)
-            .delete('/v1/permission')
+            .delete('/v1/permissions')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {

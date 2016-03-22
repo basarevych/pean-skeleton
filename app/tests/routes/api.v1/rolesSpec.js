@@ -5,17 +5,23 @@ var request = require('supertest');
 var q = require('q');
 var moment = require('moment-timezone');
 var app = require('../../../app.js');
-var BaseModel = require('../../../models/base');
 var UserModel = require('../../../models/user');
-var JobModel = require('../../../models/job');
+var RoleModel = require('../../../models/role');
+var RoleTranslationModel = require('../../../models/role-translation');
 
-describe('/v1/job route', function () {
+describe('/v1/roles route', function () {
     var config;
     var authUser = new UserModel({ id: 42 });
     var aclQueried;
 
     beforeEach(function () {
         config = locator.get('config');
+        config['lang'] = {
+            locales: [ 'en' ],
+            default: 'en',
+        };
+        locator.register('config', config);
+
         aclQueried = false;
         locator.register('logger', {
             log: function () {},
@@ -41,14 +47,14 @@ describe('/v1/job route', function () {
 
     it('protects table', function (done) {
         request(app)
-            .get('/v1/job/table?query=data')
+            .get('/v1/roles/table?query=data')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
     it('describes table', function (done) {
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             getPostgres: function () {
                 return {
                     connect: function (cb) {
@@ -67,7 +73,7 @@ describe('/v1/job route', function () {
         });
 
         request(app)
-            .get('/v1/job/table?query=describe')
+            .get('/v1/roles/table?query=describe')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
@@ -78,7 +84,7 @@ describe('/v1/job route', function () {
 
     it('renders table', function (done) {
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             getPostgres: function () {
                 return {
                     connect: function (cb) {
@@ -97,7 +103,7 @@ describe('/v1/job route', function () {
         });
 
         request(app)
-            .get('/v1/job/table?query=data&filters={}&sort_column="id"&sort_dir="asc"&page_number=1&page_size=0')
+            .get('/v1/roles/table?query=data&filters={}&sort_column="id"&sort_dir="asc"&page_number=1&page_size=0')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
@@ -108,17 +114,17 @@ describe('/v1/job route', function () {
 
     it('protects validate', function (done) {
         request(app)
-            .post('/v1/job/validate')
+            .post('/v1/roles/validate')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
-    it('validates name', function (done) {
+    it('validates parent_id', function (done) {
         locator.register('user', authUser);
 
         request(app)
-            .post('/v1/job/validate')
-            .send({ _field: 'name', name: '' })
+            .post('/v1/roles/validate')
+            .send({ _form_type: 'create', _field: 'parent_id', parent_id: '' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -128,12 +134,12 @@ describe('/v1/job route', function () {
             .expect(200, done);
     });
 
-    it('validates status', function (done) {
+    it('validates handle', function (done) {
         locator.register('user', authUser);
 
         request(app)
-            .post('/v1/job/validate')
-            .send({ _field: 'status', status: '' })
+            .post('/v1/roles/validate')
+            .send({ _form_type: 'create', _field: 'handle', handle: '' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -143,305 +149,288 @@ describe('/v1/job route', function () {
             .expect(200, done);
     });
 
-    it('validates scheduled_for', function (done) {
+    it('validates translations', function (done) {
         locator.register('user', authUser);
 
         request(app)
-            .post('/v1/job/validate')
-            .send({ _field: 'scheduled_for', scheduled_for: 'abc' })
+            .post('/v1/roles/validate')
+            .send({ _form_type: 'create', _field: 'translations', translations: 'foo' })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
                 expect(res.body.success).toBeFalsy();
-            })
-            .expect(200, done);
-    });
-
-    it('validates valid_until', function (done) {
-        locator.register('user', authUser);
-
-        request(app)
-            .post('/v1/job/validate')
-            .send({ _field: 'valid_until', valid_until: 'abc' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(aclQueried).toBeTruthy();
-                expect(res.body.success).toBeFalsy();
-            })
-            .expect(200, done);
-    });
-
-    it('validates input_data', function (done) {
-        locator.register('user', authUser);
-
-        request(app)
-            .post('/v1/job/validate')
-            .send({ _field: 'input_data', input_data: '*' })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(aclQueried).toBeTruthy();
-                expect(res.body.success).toBeFalsy();
-            })
-            .expect(200, done);
-    });
-
-    it('protects statuses', function (done) {
-        request(app)
-            .get('/v1/job/statuses')
-            .set('Accept', 'application/json')
-            .expect(401, done);
-    });
-
-    it('returns statuses', function (done) {
-        locator.register('user', authUser);
-
-        request(app)
-            .get('/v1/job/statuses')
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(function (res) {
-                expect(aclQueried).toBeTruthy();
-                expect(Array.isArray(res.body)).toBeTruthy();
-                expect(res.body).toEqual(JobModel.STATUS_TYPES);
             })
             .expect(200, done);
     });
 
     it('protects LIST', function (done) {
         request(app)
-            .get('/v1/job')
+            .get('/v1/roles')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
     it('returns LIST', function (done) {
-        var utcCreated = moment.unix(123);
-        var localCreated = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
-        var utcScheduled = moment.unix(456);
-        var localScheduled = moment.tz(utcScheduled.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
-        var utcValid = moment.unix(789);
-        var localValid = moment.tz(utcValid.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
-
-        var job = new JobModel({
+        var role = new RoleModel({
             id: 42,
-            name: 'foo',
-            queue: 'bar',
-            status: 'created',
-            created_at: utcCreated,
-            scheduled_for: utcScheduled,
-            valid_until: utcValid,
-            input_data: { test1: "test1" },
-            output_data: { test2: "test2" },
+            parent_id: null,
+            handle: 'foo',
+        });
+        var roleTranslation = new RoleTranslationModel({
+            id: 9000,
+            role_id: 42,
+            locale: 'en',
+            title: 'bar',
         });
 
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             findAll: function () {
                 var defer = q.defer();
-                defer.resolve([ job ]);
+                defer.resolve([ role ]);
+                return defer.promise;
+            },
+        });
+        locator.register('role-translation-repository', {
+            findAll: function () {
+                var defer = q.defer();
+                defer.resolve([ roleTranslation ]);
                 return defer.promise;
             },
         });
 
         request(app)
-            .get('/v1/job')
+            .get('/v1/roles')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
                 expect(Array.isArray(res.body)).toBeTruthy();
                 expect(res.body[0].id).toBe(42);
-                expect(res.body[0].name).toBe('foo');
-                expect(res.body[0].queue).toBe('bar');
-                expect(res.body[0].status).toBe('created');
-                expect(res.body[0].created_at).toBe(localCreated.unix());
-                expect(res.body[0].scheduled_for).toBe(localScheduled.unix());
-                expect(res.body[0].valid_until).toBe(localValid.unix());
-                expect(res.body[0].input_data).toEqual({ test1: "test1" });
-                expect(res.body[0].output_data).toEqual({ test2: "test2" });
+                expect(res.body[0].parent_id).toBe(null);
+                expect(res.body[0].handle).toBe('foo');
+                expect(res.body[0].translations).toEqual({ en: { title: 'bar' }});
             })
             .expect(200, done);
     });
 
     it('protects READ', function (done) {
         request(app)
-            .get('/v1/job/1')
+            .get('/v1/roles/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
     it('returns READ', function (done) {
-        var searchedId;
-
-        var utcCreated = moment.unix(123);
-        var localCreated = moment.tz(utcCreated.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
-        var utcScheduled = moment.unix(456);
-        var localScheduled = moment.tz(utcScheduled.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
-        var utcValid = moment.unix(789);
-        var localValid = moment.tz(utcValid.format(BaseModel.DATETIME_FORMAT), 'UTC').local();
-
-        var job = new JobModel({
+        var searchedId1, searchedId2;
+        var role = new RoleModel({
             id: 42,
-            name: 'foo',
-            queue: 'bar',
-            status: 'created',
-            created_at: utcCreated,
-            scheduled_for: utcScheduled,
-            valid_until: utcValid,
-            input_data: { test1: "test1" },
-            output_data: { test2: "test2" },
+            parent_id: null,
+            handle: 'foo',
+        });
+        var roleTranslation = new RoleTranslationModel({
+            id: 9000,
+            role_id: 42,
+            locale: 'en',
+            title: 'bar',
         });
 
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             find: function (id) {
-                searchedId = id;
+                searchedId1 = id
                 var defer = q.defer();
-                defer.resolve([ job ]);
+                defer.resolve([ role ]);
+                return defer.promise;
+            },
+        });
+        locator.register('role-translation-repository', {
+            findByRoleId: function (id) {
+                searchedId2 = id;
+                var defer = q.defer();
+                defer.resolve([ roleTranslation ]);
                 return defer.promise;
             },
         });
 
         request(app)
-            .get('/v1/job/1')
+            .get('/v1/roles/1')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
-                expect(searchedId).toBe(1);
+                expect(searchedId1).toBe(1);
+                expect(searchedId2).toBe(1);
                 expect(res.body.id).toBe(42);
-                expect(res.body.name).toBe('foo');
-                expect(res.body.queue).toBe('bar');
-                expect(res.body.status).toBe('created');
-                expect(res.body.created_at).toBe(localCreated.unix());
-                expect(res.body.scheduled_for).toBe(localScheduled.unix());
-                expect(res.body.valid_until).toBe(localValid.unix());
-                expect(res.body.input_data).toEqual({ test1: "test1" });
-                expect(res.body.output_data).toEqual({ test2: "test2" });
+                expect(res.body.parent_id).toBe(null);
+                expect(res.body.handle).toBe('foo');
+                expect(res.body.translations).toEqual({ en: { title: 'bar' }});
             })
             .expect(200, done);
     });
 
     it('protects CREATE', function (done) {
         request(app)
-            .post('/v1/job')
+            .post('/v1/roles')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
     it('runs CREATE', function (done) {
-        var savedModel;
+        var searchedHandle, savedRole, savedTranslation;
 
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
+            findByHandle: function (handle) {
+                searchedHandle = handle;
+                var defer = q.defer();
+                defer.resolve([]);
+                return defer.promise;
+            },
             save: function (model) {
-                savedModel = model;
+                savedRole = model;
                 var defer = q.defer();
                 defer.resolve(42);
                 return defer.promise;
             },
         });
+        locator.register('role-translation-repository', {
+            save: function (model) {
+                savedTranslation = model;
+                var defer = q.defer();
+                defer.resolve(9000);
+                return defer.promise;
+            },
+        });
 
         request(app)
-            .post('/v1/job')
+            .post('/v1/roles')
             .send({
-                name: 'foo',
-                queue: 'bar',
-                status: 'created',
-                scheduled_for: 123,
-                valid_until: 456,
-                input_data: '{ "test": "baz" }',
+                parent_id: null,
+                handle: 'foo',
+                translations: {
+                    en: {
+                        title: 'bar',
+                    },
+                },
             })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
+                expect(searchedHandle).toBe('foo');
                 expect(res.body.success).toBeTruthy();
                 expect(res.body.id).toBe(42);
-                expect(savedModel.getName()).toBe('foo');
-                expect(savedModel.getQueue()).toBe('bar');
-                expect(savedModel.getStatus()).toBe('created');
-                expect(savedModel.getScheduledFor()).toEqual(moment.unix(123));
-                expect(savedModel.getValidUntil()).toEqual(moment.unix(456));
-                expect(savedModel.getInputData()).toEqual({ "test": "baz" });
+                expect(savedRole.getParentId()).toBe(null);
+                expect(savedRole.getHandle()).toBe('foo');
+                expect(savedTranslation.getLocale()).toBe('en');
+                expect(savedTranslation.getTitle()).toBe('bar');
             })
             .expect(200, done);
     });
 
     it('protects UPDATE', function (done) {
         request(app)
-            .put('/v1/job/1')
+            .put('/v1/roles/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
     it('runs UPDATE', function (done) {
-        var searchedId, savedModel;
-        var job = new JobModel({ id: 42 });
+        var searchedId1, searchedId2, searchedHandle, savedRole, savedTranslation;
+        var role = new RoleModel({
+            id: 42,
+            parent_id: null,
+            handle: 'foo',
+        });
+        var roleTranslation = new RoleTranslationModel({
+            id: 9000,
+            role_id: 42,
+            locale: 'en',
+            title: 'bar',
+        });
 
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             find: function (id) {
-                searchedId = id;
+                searchedId1 = id
                 var defer = q.defer();
-                defer.resolve([ job ]);
+                defer.resolve([ role ]);
+                return defer.promise;
+            },
+            findByHandle: function (handle) {
+                searchedHandle = handle;
+                var defer = q.defer();
+                defer.resolve([]);
                 return defer.promise;
             },
             save: function (model) {
-                savedModel = model;
+                savedRole = model;
                 var defer = q.defer();
-                defer.resolve(job.getId());
+                defer.resolve(42);
+                return defer.promise;
+            },
+        });
+        locator.register('role-translation-repository', {
+            findByRoleId: function (id) {
+                searchedId2 = id;
+                var defer = q.defer();
+                defer.resolve([ roleTranslation ]);
+                return defer.promise;
+            },
+            save: function (model) {
+                savedTranslation = model;
+                var defer = q.defer();
+                defer.resolve(9000);
                 return defer.promise;
             },
         });
 
         request(app)
-            .put('/v1/job/1')
+            .put('/v1/roles/1')
             .send({
-                name: 'foo',
-                queue: 'bar',
-                status: 'created',
-                scheduled_for: 123,
-                valid_until: 456,
-                input_data: '{ "test": "baz" }',
+                parent_id: null,
+                handle: 'foo',
+                translations: {
+                    en: {
+                        title: 'bar',
+                    },
+                },
             })
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
-                expect(searchedId).toBe(1);
+                expect(searchedId1).toBe(1);
+                expect(searchedId2).toBe(1);
+                expect(searchedHandle).toBe('foo');
                 expect(res.body.success).toBeTruthy();
-                expect(savedModel.getId()).toBe(42);
-                expect(savedModel.getName()).toBe('foo');
-                expect(savedModel.getQueue()).toBe('bar');
-                expect(savedModel.getStatus()).toBe('created');
-                expect(savedModel.getScheduledFor()).toEqual(moment.unix(123));
-                expect(savedModel.getValidUntil()).toEqual(moment.unix(456));
-                expect(savedModel.getInputData()).toEqual({ "test": "baz" });
+                expect(savedRole.getParentId()).toBe(null);
+                expect(savedRole.getHandle()).toBe('foo');
+                expect(savedTranslation.getLocale()).toBe('en');
+                expect(savedTranslation.getTitle()).toBe('bar');
             })
             .expect(200, done);
     });
 
     it('protects DELETE', function (done) {
         request(app)
-            .delete('/v1/job/1')
+            .delete('/v1/roles/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
 
     it('runs DELETE', function (done) {
         var searchedId, deletedModel;
-        var job = new JobModel({ id: 42 });
+        var role = new RoleModel({ id: 42 });
 
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             find: function (id) {
                 searchedId = id;
                 var defer = q.defer();
-                defer.resolve([ job ]);
+                defer.resolve([ role ]);
                 return defer.promise;
             },
             delete: function (model) {
@@ -453,21 +442,21 @@ describe('/v1/job route', function () {
         });
 
         request(app)
-            .delete('/v1/job/1')
+            .delete('/v1/roles/1')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
                 expect(searchedId).toBe(1);
                 expect(res.body.success).toBeTruthy();
-                expect(deletedModel).toEqual(job);
+                expect(deletedModel).toEqual(role);
             })
             .expect(200, done);
     });
 
     it('protects DELETE ALL', function (done) {
         request(app)
-            .delete('/v1/job')
+            .delete('/v1/roles')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -476,7 +465,7 @@ describe('/v1/job route', function () {
         var allDeleted = false;
 
         locator.register('user', authUser);
-        locator.register('job-repository', {
+        locator.register('role-repository', {
             deleteAll: function () {
                 allDeleted = true;
                 var defer = q.defer();
@@ -486,7 +475,7 @@ describe('/v1/job route', function () {
         });
 
         request(app)
-            .delete('/v1/job')
+            .delete('/v1/roles')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {

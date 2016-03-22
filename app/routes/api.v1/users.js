@@ -262,7 +262,7 @@ module.exports = function () {
                     case 'describe':
                         table.describe(function (err, result) {
                             if (err)
-                                return app.abort(res, 500, 'GET /v1/user/table failed', err);
+                                return app.abort(res, 500, 'GET /v1/users/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -272,7 +272,7 @@ module.exports = function () {
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
                                 if (err)
-                                    return app.abort(res, 500, 'GET /v1/user/table failed', err);
+                                    return app.abort(res, 500, 'GET /v1/users/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -283,7 +283,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/user/table failed', err);
+                app.abort(res, 500, 'GET /v1/users/table failed', err);
             });
     });
 
@@ -327,7 +327,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/user/' + userId + ' failed', err);
+                app.abort(res, 500, 'GET /v1/users/' + userId + ' failed', err);
             });
     });
 
@@ -372,7 +372,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/user failed', err);
+                app.abort(res, 500, 'GET /v1/users failed', err);
             });
     });
 
@@ -399,7 +399,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/user/validate failed', err);
+                app.abort(res, 500, 'POST /v1/users/validate failed', err);
             });
     });
 
@@ -459,7 +459,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/user/search failed', err);
+                app.abort(res, 500, 'POST /v1/users/search failed', err);
             });
     });
 
@@ -513,7 +513,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/user failed', err);
+                app.abort(res, 500, 'POST /v1/users failed', err);
             });
     });
 
@@ -583,7 +583,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'PUT /v1/user/' + userId + ' failed', err);
+                app.abort(res, 500, 'PUT /v1/users/' + userId + ' failed', err);
             });
     });
 
@@ -623,7 +623,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'DELETE /v1/user/' + userId + ' failed', err);
+                app.abort(res, 500, 'DELETE /v1/users/' + userId + ' failed', err);
             });
     });
 
@@ -648,9 +648,9 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'DELETE /v1/user failed', err);
+                app.abort(res, 500, 'DELETE /v1/users failed', err);
             });
     });
 
-    app.use('/v1/user', router);
+    app.use('/v1/users', router);
 };

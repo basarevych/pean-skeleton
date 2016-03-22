@@ -11,7 +11,7 @@ module.controller("UserListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['api_url'] + '/user/table',
+            url: $window['config']['api_url'] + '/users/table',
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {
@@ -20,7 +20,7 @@ module.controller("UserListCtrl",
                     row['created_at'] = m.format($filter('glMessage')('DT_DATE_TIME_FORMAT'));
                 }
 
-                row['tokens'] = '<a href="/#/user/' + row['id'] + '/token">' + row['tokens'] + '</a>'
+                row['tokens'] = '<a href="/#/users/' + row['id'] + '/tokens">' + row['tokens'] + '</a>'
 
                 return row;
             },

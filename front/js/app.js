@@ -49,35 +49,35 @@ app.config(
                 templateUrl: 'views/profile.html',
             })
             .state('layout.role-list', {
-                url: '/role',
+                url: '/roles',
                 title: 'APP_TITLE',
                 controller: 'RoleListCtrl',
                 templateUrl: 'views/role-list.html',
                 roles: [ 'admin' ],
             })
             .state('layout.permission-list', {
-                url: '/permission',
+                url: '/permissions',
                 title: 'APP_TITLE',
                 controller: 'PermissionListCtrl',
                 templateUrl: 'views/permission-list.html',
                 roles: [ 'admin' ],
             })
             .state('layout.user-list', {
-                url: '/user',
+                url: '/users',
                 title: 'APP_TITLE',
                 controller: 'UserListCtrl',
                 templateUrl: 'views/user-list.html',
                 roles: [ 'admin' ],
             })
             .state('layout.token-list', {
-                url: '/user/:userId/token',
+                url: '/users/:userId/tokens',
                 title: 'APP_TITLE',
                 controller: 'TokenListCtrl',
                 templateUrl: 'views/token-list.html',
                 roles: [ 'admin' ],
             })
             .state('layout.job-list', {
-                url: '/job',
+                url: '/jobs',
                 title: 'APP_TITLE',
                 controller: 'JobListCtrl',
                 templateUrl: 'views/job-list.html',

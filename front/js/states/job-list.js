@@ -11,7 +11,7 @@ module.controller("JobListCtrl",
         $scope.hasSelection = false;
         $scope.hasSingleSelection = false;
         $scope.tableCtrl = dynamicTable({
-            url: $window['config']['api_url'] + '/job/table',
+            url: $window['config']['api_url'] + '/jobs/table',
             row_id_column: 'id',
             sort_column: 'id',
             mapper: function (row) {

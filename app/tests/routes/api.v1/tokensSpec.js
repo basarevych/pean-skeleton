@@ -9,7 +9,7 @@ var BaseModel = require('../../../models/base');
 var UserModel = require('../../../models/user');
 var TokenModel = require('../../../models/token');
 
-describe('/v1/token route', function () {
+describe('/v1/tokens route', function () {
     var config;
     var authUser = new UserModel({ id: 42 });
     var aclQueried;
@@ -41,7 +41,7 @@ describe('/v1/token route', function () {
 
     it('protects table', function (done) {
         request(app)
-            .get('/v1/token/table?user_id=1&query=data')
+            .get('/v1/tokens/table?user_id=1&query=data')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -68,7 +68,7 @@ describe('/v1/token route', function () {
 
 
         request(app)
-            .get('/v1/token/table?user_id=1&query=describe')
+            .get('/v1/tokens/table?user_id=1&query=describe')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
@@ -98,7 +98,7 @@ describe('/v1/token route', function () {
         });
 
         request(app)
-            .get('/v1/token/table?user_id=1&query=data&filters={}&sort_column="id"&sort_dir="asc"&page_number=1&page_size=0')
+            .get('/v1/tokens/table?user_id=1&query=data&filters={}&sort_column="id"&sort_dir="asc"&page_number=1&page_size=0')
             .expect('Content-Type', /json/)
             .expect(function (res) {
                 expect(aclQueried).toBeTruthy();
@@ -109,7 +109,7 @@ describe('/v1/token route', function () {
 
     it('protects LIST', function (done) {
         request(app)
-            .get('/v1/token')
+            .get('/v1/tokens')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -139,7 +139,7 @@ describe('/v1/token route', function () {
         });
 
         request(app)
-            .get('/v1/token')
+            .get('/v1/tokens')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -157,7 +157,7 @@ describe('/v1/token route', function () {
 
     it('protects READ', function (done) {
         request(app)
-            .get('/v1/token/1')
+            .get('/v1/tokens/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -189,7 +189,7 @@ describe('/v1/token route', function () {
         });
 
         request(app)
-            .get('/v1/token/1')
+            .get('/v1/tokens/1')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -207,7 +207,7 @@ describe('/v1/token route', function () {
 
     it('protects DELETE', function (done) {
         request(app)
-            .delete('/v1/token/1')
+            .delete('/v1/tokens/1')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -233,7 +233,7 @@ describe('/v1/token route', function () {
         });
 
         request(app)
-            .delete('/v1/token/1')
+            .delete('/v1/tokens/1')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {
@@ -247,7 +247,7 @@ describe('/v1/token route', function () {
 
     it('protects DELETE ALL', function (done) {
         request(app)
-            .delete('/v1/token')
+            .delete('/v1/tokens')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -266,7 +266,7 @@ describe('/v1/token route', function () {
         });
 
         request(app)
-            .delete('/v1/token')
+            .delete('/v1/tokens')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(function (res) {

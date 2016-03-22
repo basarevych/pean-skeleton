@@ -82,9 +82,9 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/notification failed', err);
+                app.abort(res, 500, 'POST /v1/notifications failed', err);
             });
     });
 
-    app.use('/v1/notification', router);
+    app.use('/v1/notifications', router);
 };

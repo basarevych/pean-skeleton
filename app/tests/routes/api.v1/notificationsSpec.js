@@ -8,7 +8,7 @@ var app = require('../../../app.js');
 var UserModel = require('../../../models/user');
 var NotificationModel = require('../../../models/notification');
 
-describe('/v1/notification route', function () {
+describe('/v1/notifications route', function () {
     var config;
     var authUser = new UserModel({ id: 42 });
     var aclQueried;
@@ -40,7 +40,7 @@ describe('/v1/notification route', function () {
 
     it('protects CREATE', function (done) {
         request(app)
-            .post('/v1/notification')
+            .post('/v1/notifications')
             .set('Accept', 'application/json')
             .expect(401, done);
     });
@@ -59,7 +59,7 @@ describe('/v1/notification route', function () {
         });
 
         request(app)
-            .post('/v1/notification')
+            .post('/v1/notifications')
             .send({
                 text: 'foo',
                 title: 'bar',
@@ -108,7 +108,7 @@ describe('/v1/notification route', function () {
             scheduled_for: 123,
         };
         request(app)
-            .post('/v1/notification')
+            .post('/v1/notifications')
             .send(data)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)

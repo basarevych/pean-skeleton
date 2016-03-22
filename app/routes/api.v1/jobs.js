@@ -227,7 +227,7 @@ module.exports = function () {
                     case 'describe':
                         table.describe(function (err, result) {
                             if (err)
-                                return app.abort(res, 500, 'GET /v1/job/table failed', err);
+                                return app.abort(res, 500, 'GET /v1/jobs/table failed', err);
 
                             result['success'] = true;
                             res.json(result);
@@ -237,7 +237,7 @@ module.exports = function () {
                         table.setPageParams(req.query)
                             .fetch(function (err, result) {
                                 if (err)
-                                    return app.abort(res, 500, 'GET /v1/job/table failed', err);
+                                    return app.abort(res, 500, 'GET /v1/jobs/table failed', err);
 
                                 result['success'] = true;
                                 res.json(result);
@@ -248,7 +248,7 @@ module.exports = function () {
                 }
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/job/table failed', err);
+                app.abort(res, 500, 'GET /v1/jobs/table failed', err);
             });
     });
 
@@ -266,7 +266,7 @@ module.exports = function () {
                 res.json(JobModel.STATUS_TYPES);
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/job/statuses failed', err);
+                app.abort(res, 500, 'GET /v1/jobs/statuses failed', err);
             });
     });
 
@@ -306,7 +306,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/job/' + jobId + ' failed', err);
+                app.abort(res, 500, 'GET /v1/jobs/' + jobId + ' failed', err);
             });
     });
 
@@ -342,7 +342,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'GET /v1/job failed', err);
+                app.abort(res, 500, 'GET /v1/jobs failed', err);
             });
     });
 
@@ -369,7 +369,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/job/validate failed', err);
+                app.abort(res, 500, 'POST /v1/jobs/validate failed', err);
             });
     });
 
@@ -415,7 +415,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'POST /v1/job failed', err);
+                app.abort(res, 500, 'POST /v1/jobs failed', err);
             });
     });
 
@@ -473,7 +473,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'PUT /v1/job/' + jobId + ' failed', err);
+                app.abort(res, 500, 'PUT /v1/jobs/' + jobId + ' failed', err);
             });
     });
 
@@ -513,7 +513,7 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'DELETE /v1/job/' + jobId + ' failed', err);
+                app.abort(res, 500, 'DELETE /v1/jobs/' + jobId + ' failed', err);
             });
     });
 
@@ -538,9 +538,9 @@ module.exports = function () {
                     });
             })
             .catch(function (err) {
-                app.abort(res, 500, 'DELETE /v1/job failed', err);
+                app.abort(res, 500, 'DELETE /v1/jobs failed', err);
             });
     });
 
-    app.use('/v1/job', router);
+    app.use('/v1/jobs', router);
 };
