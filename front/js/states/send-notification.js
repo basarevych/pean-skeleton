@@ -136,16 +136,8 @@ module.controller("SendNotificationCtrl",
                     break;
             }
 
-            NotificationApi.create(params)
-                .then(function (data) {
-                    if (!data.success) {
-                        InfoDialog({
-                            title: 'NOTIFICATION_ERROR_TITLE',
-                            text: 'NOTIFICATION_ERROR_TEXT',
-                        });
-                    }
-                    $scope.sendButtonActive = true;
-                });
+            $scope.socketServer.getSocket().emit('notification', params);
+            $scope.sendButtonActive = true;
         };
 
         $scope.getEmail = function (search) {

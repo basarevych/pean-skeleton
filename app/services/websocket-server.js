@@ -6,6 +6,10 @@
 
 var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');
+var moment = require('moment-timezone');
+var q = require('q');
+var fs = require('fs');
+var path = require('path');
 
 /**
  * Web socket server
@@ -14,9 +18,26 @@ var jwt = require('jsonwebtoken');
  */
 function WebSocketServer() {
     this.httpServer = null;
-    this.httpClients = {};
     this.httpsServer = null;
-    this.httpsClients = {};
+
+    this.sessions = {};
+    /**
+     * sessions[sessionId] = {
+     *   type: 'http' | 'https',
+     *   user: UserModel instance or null,
+     * }
+     */
+
+    this.handlers = [];
+    /**
+     * [
+     *   {
+     *     message: 'web socket message',
+     *     cb: the callback,
+     *   },
+     *   ...
+     * ]
+     */
 };
 
 /**
@@ -60,6 +81,46 @@ WebSocketServer.prototype.getHttpsServer = function () {
 };
 
 /**
+ * Get all the sessions
+ *
+ * @return {object}         Returns the sessions object
+ */
+WebSocketServer.prototype.getSessions = function () {
+    return this.sessions;
+};
+
+/**
+ * Get session by socket ID
+ *
+ * @param {string} socketId     Socket ID
+ * @return {object|null}        Returns the session or null
+ */
+WebSocketServer.prototype.getSession = function (socketId) {
+    if (typeof this.sessions[socketId] == 'undefined')
+        return null;
+
+    return this.sessions[socketId];
+};
+
+/**
+ * WebSocket message callback
+ *
+ * @callback WebSocketServer~handler
+ * @param {object} socket       The socket
+ * @apram {object} data         Received data
+ */
+
+/**
+ * Add a message handler
+ *
+ * @param {string} message              WebSocket message
+ * @param {WebSocketServer~handler} cb  Handler callback
+ */
+WebSocketServer.prototype.on = function (message, cb) {
+    this.handlers.push({ message: message, cb: cb });
+};
+
+/**
  * Create HTTP and HTTPS Web socket servers
  */
 WebSocketServer.prototype.start = function () {
@@ -67,80 +128,39 @@ WebSocketServer.prototype.start = function () {
     var logger = locator.get('logger');
     var webServer = locator.get('web-server');
 
-    if (webServer.getHttpServer()) {
+    if (webServer.getHttpServer())
         this.setHttpServer(require('socket.io')(webServer.getHttpServer()));
-        this.httpServer.on('connect', function (socket) { me.onConnect('http', socket); });
-    }
 
-    if (webServer.getHttpsServer()) {
+    if (webServer.getHttpsServer())
         this.setHttpsServer(require('socket.io')(webServer.getHttpsServer()));
-        this.httpsServer.on('connect', function (socket) { me.onConnect('https', socket); });
+
+    var dir = path.join(__dirname, '..', 'messages');
+    try {
+        fs.readdirSync(dir).forEach(function (name) {
+            require(dir + '/' + name)(me);
+        });
+    } catch (err) {
+        console.log(err);
+        process.exit(1);
     }
 
-    var notificationRepo = locator.get('notification-repository');
-    var userRepo = locator.get('user-repository');
-    var subscriber = notificationRepo.getRedis();
-    subscriber.on("message", function (channel, message) {
-        switch (channel) {
-            case process.env.PROJECT + ":notifications":        // Notification has been created - send it
-                notificationRepo.find(message)
-                    .then(function (notifications) {
-                        var notification = notifications.length && notifications[0];
-                        var params = {
-                            text: notification.getText(),
-                            variables: notification.getVariables()
-                        };
-                        if (notification.getTitle())
-                            params['title'] = notification.getTitle();
-                        if (notification.getIcon())
-                            params['icon'] = notification.getIcon();
+    if (this.getHttpServer()) {
+        this.getHttpServer().on('connect', function (socket) {
+            me.onConnect('http', socket);
+            me.handlers.forEach(function (handler) {
+                socket.on(handler.message, function (data) { handler.cb(socket, data); });
+            });
+        });
+    }
 
-                        if (notification.getUserId()) {
-                            for (var socketId in me.httpClients) {
-                                var userId = me.httpClients[socketId];
-                                if (userId == notification.getUserId())
-                                    me.httpServer.to(socketId).emit('notification', params);
-                            }
-                            for (var socketId in me.httpsClients) {
-                                var userId = me.httpsClients[socketId];
-                                if (userId == notification.getUserId())
-                                    me.httpsServer.to(socketId).emit('notification', params);
-                            }
-                        } else if (notification.getRoleId()) {
-                            userRepo.findByRoleId(notification.getRoleId())
-                                .then(function (users) {
-                                    for (var socketId in me.httpClients) {
-                                        var userId = me.httpClients[socketId];
-                                        users.forEach(function (user) {
-                                            if (userId == user.getId())
-                                                me.httpServer.to(socketId).emit('notification', params);
-                                        });
-                                    }
-                                    for (var socketId in me.httpsClients) {
-                                        var userId = me.httpsClients[socketId];
-                                        users.forEach(function (user) {
-                                            if (userId == user.getId())
-                                                me.httpsServer.to(socketId).emit('notification', params);
-                                        });
-                                    }
-                                })
-                                .catch(function (err) {
-                                    logger.error('WebSocketServer.start() - userRepo.findByRoleId', err);
-                                });
-                        } else {
-                            if (me.httpServer)
-                                me.httpServer.emit('notification', params);
-                            if (me.httpsServer)
-                                me.httpsServer.emit('notification', params);
-                        }
-                    })
-                    .catch(function (err) {
-                        logger.error('WebSocketServer.start() - notificationRepo.find', err);
-                    });
-                break;
-        }
-    });
-    subscriber.subscribe(process.env.PROJECT + ":notifications");
+    if (this.getHttpsServer()) {
+        this.getHttpsServer().on('connect', function (socket) {
+            me.onConnect('https', socket);
+            me.handlers.forEach(function (handler) {
+                socket.on(handler.message, function (data) { handler.cb(socket, data); });
+            });
+        });
+    }
 };
 
 /**
@@ -152,43 +172,60 @@ WebSocketServer.prototype.start = function () {
 WebSocketServer.prototype.onConnect = function (type, socket) {
     var me = this;
     console.log("[WebSocket] Connected (" + type + ") " + socket.id);
-    socket.on('disconnect', function () { me.onDisconnect(type, socket); });
-    socket.on('token', function (data) { me.onToken(type, socket, data); });
+
+    this.sessions[socket.id] = {
+        type: type,
+        user: null,
+    };
+
+    socket.on('disconnect', function () { me.onDisconnect(socket); });
+    socket.on('token', function (data) { me.onToken(socket, data); });
 };
 
 /**
  * Web socket server 'disconnect' event handler
  *
- * @param {string} type     Possible values: 'http', 'https'
  * @param {object} socket   Web socket
  */
-WebSocketServer.prototype.onDisconnect = function (type, socket) {
-    console.log("[WebSocket] Disconnected (" + type + ") " + socket.id);
-    if (type == 'http')
-        delete this.httpClients[socket.id];
-    else if (type == 'https')
-        delete this.httpsClients[socket.id];
+WebSocketServer.prototype.onDisconnect = function (socket) {
+    console.log("[WebSocket] Disconnected (" + this.sessions[socket.id]['type'] + ") " + socket.id);
+    delete this.sessions[socket.id];
 };
 
 /**
  * Handle 'token' message sent by client
  *
- * @param {string} type     Possible values: 'http', 'https'
  * @param {object} socket   Web socket
  * @param {string} data     The message (encrypted token)
  */
-WebSocketServer.prototype.onToken = function (type, socket, data) {
+WebSocketServer.prototype.onToken = function (socket, data) {
     var config = locator.get('config');
 
     var me = this;
     jwt.verify(data, config['jwt']['secret'], function (err, payload) {
-        if (err || !payload)
+        if (err || !payload || !payload.token_id)
             return;
 
-        if (type == 'http')
-            me.httpClients[socket.id] = payload.user_id;
-        else if (type == 'https')
-            me.httpsClients[socket.id] = payload.user_id;
+        var tokenRepo = locator.get('token-repository');
+        var userRepo = locator.get('user-repository');
+
+        tokenRepo.find(payload.token_id)
+            .then(function (tokens) {
+                var token = tokens.length && tokens[0];
+                var now = moment();
+                if (!token || (now.unix() - token.getUpdatedAt().unix() > config['jwt']['ttl']))
+                    return;
+
+                return userRepo.find(token.getUserId())
+                    .then(function (users) {
+                        var user = users.length && users[0];
+                        if (user)
+                            me.sessions[socket.id]['user'] = user;
+                    });
+            })
+            .catch(function () {
+                logger.error('WebSocket token handler failed', err);
+            });
     });
 };
 

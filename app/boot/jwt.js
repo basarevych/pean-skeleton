@@ -32,7 +32,7 @@ module.exports = function (app) {
             if (parts.length == 2 && parts[0] == 'Bearer') {
                 var token = parts[1];
                 jwt.verify(token, config['jwt']['secret'], function (err, payload) {
-                    if (err || !payload) {
+                    if (err || !payload || !payload.token_id) {
                         next();
                         return;
                     }

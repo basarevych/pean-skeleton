@@ -255,18 +255,3 @@ api.factory('JobApi',
         };
     } ]
 );
-
-api.factory('NotificationApi',
-    [ '$resource', '$window', 'ResourceWrapper',
-    function ($resource, $window, ResourceWrapper) {
-        var resource = $resource($window['config']['api_url'] + '/notifications', { }, {
-            create:     { method: 'POST', isArray: false },
-        });
-
-        return {
-            create: function (params, noErrorHandler) {
-                return ResourceWrapper(resource.create(params).$promise, noErrorHandler);
-            },
-        };
-    } ]
-);
