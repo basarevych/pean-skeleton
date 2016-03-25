@@ -42,6 +42,9 @@ NotificationRepository.prototype.find = function (id) {
 
         redis.quit();
 
+        if (reply === null)
+            return defer.resolve([]);
+
         var notification = new NotificationModel();
         notification.setId(reply['id']);
         notification.setText(reply['text']);
