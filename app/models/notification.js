@@ -16,7 +16,7 @@ var BaseModel = locator.get('base-model');
  * @param {object} model    DB row used as source for this instance
  */
 function NotificationModel(model) {
-    this.id = null;
+    this.id = null;         // UUID
     this.text = "";         // Notification text is: glMessage(model.text, model.variables)
     this.title = null;      // Notification title is: glMessage(model.title, model.variables)
     this.icon = null;       // Notification icon class is: glMessage(model.icon, model.variables)
@@ -71,7 +71,7 @@ NotificationModel.prototype.data = function (model) {
 /**
  * ID setter
  *
- * @param {integer} id      New ID
+ * @param {string} id       New ID
  * @return {object}         Returns self
  */
 NotificationModel.prototype.setId = function (id) {
@@ -82,7 +82,7 @@ NotificationModel.prototype.setId = function (id) {
 /**
  * ID getter
  *
- * @return {integer}        Returns current ID
+ * @return {string}         Returns current ID
  */
 NotificationModel.prototype.getId = function () {
     return this.field('id');
@@ -182,7 +182,7 @@ NotificationModel.prototype.setUserId = function (userId) {
 /**
  * User ID getter
  *
- * @return {integer}        Returns current user ID
+ * @return {number}         Returns current user ID
  */
 NotificationModel.prototype.getUserId = function () {
     return this.field('user_id');
@@ -202,7 +202,7 @@ NotificationModel.prototype.setRoleId = function (roleId) {
 /**
  * Role ID getter
  *
- * @return {integer}        Returns current role ID
+ * @return {number}         Returns current role ID
  */
 NotificationModel.prototype.getRoleId = function () {
     return this.field('role_id');
