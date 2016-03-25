@@ -3,8 +3,8 @@
 var module = angular.module('state.send-notification', []);
 
 module.controller("SendNotificationCtrl",
-    [ '$scope', '$filter', 'globalizeWrapper', 'NotificationApi', 'UserApi', 'RoleApi', 'InfoDialog',
-    function ($scope, $filter, globalizeWrapper, NotificationApi, UserApi, RoleApi, InfoDialog) {
+    [ '$scope', '$filter', 'globalizeWrapper', 'UserApi', 'RoleApi', 'InfoDialog',
+    function ($scope, $filter, globalizeWrapper, UserApi, RoleApi, InfoDialog) {
         if (!$scope.appControl.aclCheckCurrentState())
             return; // Disable this controller
 

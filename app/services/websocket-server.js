@@ -140,7 +140,7 @@ WebSocketServer.prototype.start = function () {
             require(dir + '/' + name)(me);
         });
     } catch (err) {
-        console.log(err);
+        console.log('WebSocketServer.start() - ' + name, err);
         process.exit(1);
     }
 
