@@ -97,7 +97,7 @@ NotificationRepository.prototype.save = function (notification) {
             return defer.reject([ 'NotificationRepository.save() - save notification', err ]);
         }
 
-        redis.expire(name, 60, function (err, reply) {
+        redis.expire(name, NotificationModel.NOTIFICATION_TTL, function (err, reply) {
             if (err) {
                 redis.quit();
                 return defer.reject([ 'NotificationRepository.save() - expire', err ]);

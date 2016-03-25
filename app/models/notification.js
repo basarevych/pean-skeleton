@@ -27,6 +27,11 @@ function NotificationModel(model) {
     BaseModel.call(this, model);
 };
 
+/**
+ * Redis expire time of notification
+ */
+NotificationModel.NOTIFICATION_TTL = 60;        // seconds
+
 NotificationModel.prototype = new BaseModel();
 NotificationModel.prototype.constructor = NotificationModel;
 
