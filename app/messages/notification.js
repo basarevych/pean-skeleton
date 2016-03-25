@@ -160,6 +160,7 @@ module.exports = function (server) {
     // Subscribe to Redis broadcast of new notifications
     var notificationRepo = locator.get('notification-repository');
     var subscriber = notificationRepo.getRedis();
+    subscriber.subscribe(process.env.PROJECT + ":notifications");
     subscriber.on("message", function (channel, message) {
         if (channel != process.env.PROJECT + ":notifications")
             return;
@@ -174,5 +175,4 @@ module.exports = function (server) {
                 logger.error('Redis notification', err);
             });
     });
-    subscriber.subscribe(process.env.PROJECT + ":notifications");
 };
