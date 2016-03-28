@@ -92,19 +92,20 @@ Spawner.prototype.exec = function (command, params, expect) {
  *
  * @constructor
  * @param {object} cmd          pty.spawn object
+ * @params {object} [expect]    Expect object as in Spawner.spawn()
  */
-function Subprocess(cmd) {
+function Subprocess(cmd, expect) {
     this.defer = q.defer();
     this.cmd = cmd;
 
-    var result = {
+    this.result = {
         code: null,
         output: '',
     };
 
     var me = this;
     cmd.on('data', function (data) {
-        result['output'] += data.toString();
+        me.result['output'] += data.toString();
 
         if (typeof expect != 'object')
             return;
@@ -118,8 +119,8 @@ function Subprocess(cmd) {
         });
     });
     cmd.on('exit', function (code, signal) {
-        result['code'] = code;
-        me.defer.resolve(result);
+        me.result['code'] = code;
+        me.defer.resolve(me.result);
     });
     cmd.on('error', function (err) {
         if (err.errno == 'EIO' && err.syscall == 'read')    // TODO: check the status of this bug
@@ -136,6 +137,24 @@ function Subprocess(cmd) {
  */
 Subprocess.prototype.isRunning = function () {
     return this.defer.promise.isPending();
+};
+
+/**
+ * Get process exit code
+ *
+ * @return {null|number}        Returns the code
+ */
+Subprocess.prototype.getCode = function () {
+    return this.result.code;
+};
+
+/**
+ * Get process output so far
+ *
+ * @return {string}             Returns the output
+ */
+Subprocess.prototype.getOutput = function () {
+    return this.result.output;
 };
 
 /**
@@ -172,7 +191,7 @@ Spawner.prototype.spawn = function (command, params, expect) {
         },
     };
     
-    return new Subprocess(pty.spawn(command, params, options));
+    return new Subprocess(pty.spawn(command, params, options), expect);
 };
 
 Spawner.Subprocess = Subprocess;
