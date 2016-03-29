@@ -22,6 +22,11 @@ function Spawner() {
 Spawner.EXEC_TIMEOUT = 600;          // seconds
 
 /**
+ * Maximum output length
+ */
+Spawner.MAX_OUTPUT_LENGTH = 102400;
+
+/**
  * Execute a command
  *
  * @param {string} command      Command name
@@ -55,6 +60,8 @@ Spawner.prototype.exec = function (command, params, expect) {
 
     cmd.on('data', function (data) {
         result['output'] += data.toString();
+        if (result['output'].length > Spawner.MAX_OUTPUT_LENGTH)
+            result['output'] = result['output'].slice(result['output'].length - Spawner.MAX_OUTPUT_LENGTH);
 
         if (typeof expect != 'object')
             return;
@@ -109,6 +116,8 @@ function Subprocess(cmd, expect) {
     var me = this;
     cmd.on('data', function (data) {
         me.result['output'] += data.toString();
+        if (result['output'].length > Spawner.MAX_OUTPUT_LENGTH)
+            result['output'] = result['output'].slice(result['output'].length - Spawner.MAX_OUTPUT_LENGTH);
 
         if (typeof expect != 'object')
             return;
