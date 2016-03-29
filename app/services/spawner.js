@@ -62,8 +62,11 @@ Spawner.prototype.exec = function (command, params, expect) {
         data.toString().split('\n').forEach(function (line) {
             for (var key in expect) {
                 var re = new RegExp(key, "i");
-                if (re.test(line))
-                    setTimeout(function () { cmd.write(expect[key] + "\r"); }, 250);
+                if (re.test(line)) {
+                    (function (send) {
+                        setTimeout(function () { cmd.write(send + "\r"); }, 250);
+                    })(expect[key]);
+                }
             }
         });
     });
@@ -113,8 +116,11 @@ function Subprocess(cmd, expect) {
         data.toString().split('\n').forEach(function (line) {
             for (var key in expect) {
                 var re = new RegExp(key, "i");
-                if (re.test(line))
-                    setTimeout(function () { cmd.write(expect[key] + "\r"); }, 250);
+                if (re.test(line)) {
+                    (function (send) {
+                        setTimeout(function () { cmd.write(send + "\r"); }, 250);
+                    })(expect[key]);
+                }
             }
         });
     });
