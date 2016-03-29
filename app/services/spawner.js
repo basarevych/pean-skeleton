@@ -116,8 +116,8 @@ function Subprocess(cmd, expect) {
     var me = this;
     cmd.on('data', function (data) {
         me.result['output'] += data.toString();
-        if (result['output'].length > Spawner.MAX_OUTPUT_LENGTH)
-            result['output'] = result['output'].slice(result['output'].length - Spawner.MAX_OUTPUT_LENGTH);
+        if (me.result['output'].length > Spawner.MAX_OUTPUT_LENGTH)
+            me.result['output'] = me.result['output'].slice(me.result['output'].length - Spawner.MAX_OUTPUT_LENGTH);
 
         if (typeof expect != 'object')
             return;
