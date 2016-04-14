@@ -286,7 +286,7 @@ RoleRepository.prototype.save = function (role) {
                                     if ((err.sqlState || err.code) == '40001') { // serialization failure
                                         if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
                                             db.end();
-                                            return defer.reject('UserRepository.save() - maximum transaction retries reached');
+                                            return defer.reject('RoleRepository.save() - maximum transaction retries reached');
                                         }
                                         var random = locator.get('random');
                                         var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);

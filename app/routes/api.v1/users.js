@@ -138,7 +138,7 @@ module.exports = function () {
             var value = req.body.roles;
             var errors = [];
 
-            if (typeof value != 'object' || !Array.isArray(value)) {
+            if (!Array.isArray(value)) {
                 errors.push(glMessage('VALIDATOR_NOT_ARRAY'));
             } else {
                 var toCheck = clone(value);
