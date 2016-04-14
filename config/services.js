@@ -23,6 +23,10 @@ module.exports = function (app) {
                 path: "app/services/spawner.js",
                 instantiate: true,
             },
+            "random": {
+                path: "app/services/random.js",
+                instantiate: true,
+            },
             "acl": {
                 path: "app/services/acl.js",
                 instantiate: true,

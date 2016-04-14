@@ -22,6 +22,16 @@ function BaseRepository() {
 BaseRepository.MAX_TRANSACTION_RETRIES = 10;
 
 /**
+ * Minimum time to wait before retrying transaction
+ */
+BaseRepository.MIN_TRANSACTION_DELAY = 100;     // ms
+
+/**
+ * Maximum time to wait before retrying transaction
+ */
+BaseRepository.MAX_TRANSACTION_DELAY = 1000;    // ms
+
+/**
  * Retrieve Postgres DB client
  *
  * @return {object}

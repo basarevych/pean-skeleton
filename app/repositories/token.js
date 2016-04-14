@@ -248,7 +248,9 @@ TokenRepository.prototype.save = function (token) {
                                                     db.end();
                                                     return defer.reject('TokenRepository.save() - maximum transaction retries reached');
                                                 }
-                                                return transaction();
+                                                var random = locator.get('random');
+                                                var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
+                                                return setTimeout(function () { transaction(); }, delay);
                                             }
 
                                             db.end();
