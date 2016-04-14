@@ -17,6 +17,11 @@ function BaseRepository() {
 }
 
 /**
+ * Max number of transaction retries on serialization failures
+ */
+BaseRepository.MAX_TRANSACTION_RETRIES = 10;
+
+/**
  * Retrieve Postgres DB client
  *
  * @return {object}

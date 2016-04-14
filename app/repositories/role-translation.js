@@ -204,101 +204,113 @@ RoleTranslationRepository.prototype.save = function (translation) {
         if (err)
             return defer.reject([ 'RoleTranslationRepository.save() - pg connect', err ]);
 
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                db.end();
-                return defer.reject([ 'RoleTranslationRepository.save() - begin transaction', err ]);
-            }
+        var retries = 0;
+        function transaction() {
+            db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
+                if (err) {
+                    db.end();
+                    return defer.reject([ 'RoleTranslationRepository.save() - begin transaction', err ]);
+                }
 
-            var query = "SELECT id "
-                      + "  FROM role_translations "
-                      + " WHERE role_id = $1 "
-                      + "       AND locale = $2 ";
-            var params = [
-                translation.getRoleId(),
-                translation.getLocale(),
-            ];
+                var query = "SELECT id "
+                          + "  FROM role_translations "
+                          + " WHERE role_id = $1 "
+                          + "       AND locale = $2 ";
+                var params = [
+                    translation.getRoleId(),
+                    translation.getLocale(),
+                ];
 
-            if (translation.getId()) {
-                query += " AND id <> $3 ";
-                params.push(translation.getId());
-            }
+                if (translation.getId()) {
+                    query += " AND id <> $3 ";
+                    params.push(translation.getId());
+                }
 
-            db.query(
-                query,
-                params,
-                function (err, result) {
-                    if (err) {
-                        db.end();
-                        return defer.reject([ 'RoleTranslationRepository.save() - main query', err ]);
-                    }
-
-                    if (result.rows.length) {
-                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'RoleTranslationRepository.save() - rollback transaction', err ]);
-                            }
-
-                            db.end();
-                            defer.resolve(null);
-                        });
-                        return;
-                    }
-
-                    if (translation.getId()) {
-                        query = "UPDATE role_translations "
-                              + "   SET role_id = $1, "
-                              + "       locale = $2, "
-                              + "       title = $3 "
-                              + " WHERE id = $4 ";
-                        params = [
-                            translation.getRoleId(),
-                            translation.getLocale(),
-                            translation.getTitle(),
-                            translation.getId(),
-                        ];
-                    } else {
-                        query = "   INSERT "
-                              + "     INTO role_translations(role_id, locale, title) "
-                              + "   VALUES ($1, $2, $3) "
-                              + "RETURNING id ";
-                        params = [
-                            translation.getRoleId(),
-                            translation.getLocale(),
-                            translation.getTitle(),
-                        ];
-                    }
-
-                    db.query(query, params, function (err, result) {
+                db.query(
+                    query,
+                    params,
+                    function (err, result) {
                         if (err) {
                             db.end();
                             return defer.reject([ 'RoleTranslationRepository.save() - main query', err ]);
                         }
 
-                        var id = result.rows.length && result.rows[0]['id'];
-                        if (id)
-                            translation.setId(id);
-                        else
-                            id = result.rowCount > 0 ? translation.getId() : null;
+                        if (result.rows.length) {
+                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    db.end();
+                                    return defer.reject([ 'RoleTranslationRepository.save() - rollback transaction', err ]);
+                                }
 
-                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                db.end();
+                                defer.resolve(null);
+                            });
+                            return;
+                        }
+
+                        if (translation.getId()) {
+                            query = "UPDATE role_translations "
+                                  + "   SET role_id = $1, "
+                                  + "       locale = $2, "
+                                  + "       title = $3 "
+                                  + " WHERE id = $4 ";
+                            params = [
+                                translation.getRoleId(),
+                                translation.getLocale(),
+                                translation.getTitle(),
+                                translation.getId(),
+                            ];
+                        } else {
+                            query = "   INSERT "
+                                  + "     INTO role_translations(role_id, locale, title) "
+                                  + "   VALUES ($1, $2, $3) "
+                                  + "RETURNING id ";
+                            params = [
+                                translation.getRoleId(),
+                                translation.getLocale(),
+                                translation.getTitle(),
+                            ];
+                        }
+
+                        db.query(query, params, function (err, result) {
                             if (err) {
                                 db.end();
-                                return defer.reject([ 'RoleTranslationRepository.save() - commit transaction', err ]);
+                                return defer.reject([ 'RoleTranslationRepository.save() - main query', err ]);
                             }
 
-                            db.end();
-
+                            var id = result.rows.length && result.rows[0]['id'];
                             if (id)
-                                translation.dirty(false);
+                                translation.setId(id);
+                            else
+                                id = result.rowCount > 0 ? translation.getId() : null;
 
-                            defer.resolve(id);
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    if ((err.sqlState || err.code) == '40001') { // serialization failure
+                                        if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
+                                            db.end();
+                                            return defer.reject('RoleTranslationRepository.save() - maximum transaction retries reached');
+                                        }
+                                        return transaction();
+                                    }
+
+                                    db.end();
+                                    return defer.reject([ 'RoleTranslationRepository.save() - commit transaction', err ]);
+                                }
+
+                                db.end();
+
+                                if (id)
+                                    translation.dirty(false);
+
+                                defer.resolve(id);
+                            });
                         });
-                    });
-                }
-            );
-        });
+                    }
+                );
+            });
+        }
+        transaction();
     });
 
     return defer.promise;

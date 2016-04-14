@@ -295,102 +295,114 @@ UserRepository.prototype.save = function (user) {
         if (err)
             return defer.reject([ 'UserRepository.save() - pg connect', err ]);
 
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                db.end();
-                return defer.reject([ 'UserRepository.save() - begin transaction', err ]);
-            }
+        var retries = 0;
+        function transaction() {
+            db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
+                if (err) {
+                    db.end();
+                    return defer.reject([ 'UserRepository.save() - begin transaction', err ]);
+                }
 
-            var query = "SELECT email "
-                      + "  FROM users "
-                      + " WHERE email = $1 ";
-            var params = [
-                user.getEmail()
-            ];
+                var query = "SELECT email "
+                          + "  FROM users "
+                          + " WHERE email = $1 ";
+                var params = [
+                    user.getEmail()
+                ];
 
-            if (user.getId()) {
-                query += " AND id <> $2 ";
-                params.push(user.getId());
-            }
+                if (user.getId()) {
+                    query += " AND id <> $2 ";
+                    params.push(user.getId());
+                }
 
-            db.query(
-                query,
-                params,
-                function (err, result) {
-                    if (err) {
-                        db.end();
-                        return defer.reject([ 'UserRepository.save() - collision check', err ]);
-                    }
-
-                    if (result.rows.length) {
-                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'UserRepository.save() - rollback transaction', err ]);
-                            }
-
-                            db.end();
-                            defer.resolve(null);
-                        });
-                        return;
-                    }
-
-                    if (user.getId()) {
-                        query = "UPDATE users "
-                              + "   SET name = $1, "
-                              + "       email = $2, "
-                              + "       password = $3, "
-                              + "       created_at = $4 "
-                              + " WHERE id = $5 ";
-                        params = [
-                            user.getName(),
-                            user.getEmail(),
-                            user.getPassword(),
-                            user.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                            user.getId(),
-                        ];
-                    } else {
-                        query = "   INSERT "
-                              + "     INTO users(name, email, password, created_at) "
-                              + "   VALUES ($1, $2, $3, $4) "
-                              + "RETURNING id ";
-                        params = [
-                            user.getName(),
-                            user.getEmail(),
-                            user.getPassword(),
-                            user.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                        ];
-                    }
-
-                    db.query(query, params, function (err, result) {
+                db.query(
+                    query,
+                    params,
+                    function (err, result) {
                         if (err) {
                             db.end();
-                            return defer.reject([ 'UserRepository.save() - main query', err ]);
+                            return defer.reject([ 'UserRepository.save() - collision check', err ]);
                         }
 
-                        var id = result.rows.length && result.rows[0]['id'];
-                        if (id)
-                            user.setId(id);
-                        else
-                            id = result.rowCount > 0 ? user.getId() : null;
+                        if (result.rows.length) {
+                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    db.end();
+                                    return defer.reject([ 'UserRepository.save() - rollback transaction', err ]);
+                                }
 
-                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                db.end();
+                                defer.resolve(null);
+                            });
+                            return;
+                        }
+
+                        if (user.getId()) {
+                            query = "UPDATE users "
+                                  + "   SET name = $1, "
+                                  + "       email = $2, "
+                                  + "       password = $3, "
+                                  + "       created_at = $4 "
+                                  + " WHERE id = $5 ";
+                            params = [
+                                user.getName(),
+                                user.getEmail(),
+                                user.getPassword(),
+                                user.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                                user.getId(),
+                            ];
+                        } else {
+                            query = "   INSERT "
+                                  + "     INTO users(name, email, password, created_at) "
+                                  + "   VALUES ($1, $2, $3, $4) "
+                                  + "RETURNING id ";
+                            params = [
+                                user.getName(),
+                                user.getEmail(),
+                                user.getPassword(),
+                                user.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                            ];
+                        }
+
+                        db.query(query, params, function (err, result) {
                             if (err) {
                                 db.end();
-                                return defer.reject([ 'UserRepository.save() - commit transaction', err ]);
+                                return defer.reject([ 'UserRepository.save() - main query', err ]);
                             }
 
-                            db.end();
-
+                            var id = result.rows.length && result.rows[0]['id'];
                             if (id)
-                                user.dirty(false);
+                                user.setId(id);
+                            else
+                                id = result.rowCount > 0 ? user.getId() : null;
 
-                            defer.resolve(id);
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    if ((err.sqlState || err.code) == '40001') { // serialization failure
+                                        if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
+                                            db.end();
+                                            return defer.reject('UserRepository.save() - maximum transaction retries reached');
+                                        }
+                                        return transaction();
+                                    }
+
+                                    db.end();
+                                    return defer.reject([ 'UserRepository.save() - commit transaction', err ]);
+                                }
+
+                                db.end();
+
+                                if (id)
+                                    user.dirty(false);
+
+                                defer.resolve(id);
+                            });
                         });
-                    });
-                }
-            );
-        });
+                    }
+                );
+            });
+        }
+        transaction();
     });
 
     return defer.promise;
@@ -412,63 +424,75 @@ UserRepository.prototype.addRole = function (user, role) {
         if (err)
             return defer.reject([ 'UserRepository.addRole() - pg connect', err ]);
 
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                db.end();
-                return defer.reject([ 'UserRepository.addRole() - begin transaction', err ]);
-            }
+        var retries = 0;
+        function transaction() {
+            db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
+                if (err) {
+                    db.end();
+                    return defer.reject([ 'UserRepository.addRole() - begin transaction', err ]);
+                }
 
-            db.query(
-                "SELECT count(*) AS count "
-              + "  FROM user_roles "
-              + " WHERE user_id = $1 "
-              + "       AND role_id = $2 ",
-                [ user.getId(), role.getId() ],
-                function (err, result) {
-                    if (err) {
-                        db.end();
-                        return defer.reject([ 'UserRepository.addRole() - collision check', err ]);
-                    }
-
-                    if (result.rows[0]['count'] > 0) {
-                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'UserRepository.addRole() - rollback transaction', err ]);
-                            }
-
+                db.query(
+                    "SELECT count(*) AS count "
+                  + "  FROM user_roles "
+                  + " WHERE user_id = $1 "
+                  + "       AND role_id = $2 ",
+                    [ user.getId(), role.getId() ],
+                    function (err, result) {
+                        if (err) {
                             db.end();
-                            defer.resolve(0);
-                        });
-                        return;
-                    }
+                            return defer.reject([ 'UserRepository.addRole() - collision check', err ]);
+                        }
 
-                    db.query(
-                        "   INSERT "
-                      + "     INTO user_roles(user_id, role_id) "
-                      + "   VALUES ($1, $2) ",
-                        [ user.getId(), role.getId() ],
-                        function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'UserRepository.addRole() - main query', err ]);
-                            }
-
-                            var count = result.rowCount;
-                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                        if (result.rows[0]['count'] > 0) {
+                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
                                 if (err) {
                                     db.end();
-                                    return defer.reject([ 'UserRepository.addRole() - commit transaction', err ]);
+                                    return defer.reject([ 'UserRepository.addRole() - rollback transaction', err ]);
                                 }
 
                                 db.end();
-                                defer.resolve(count);
+                                defer.resolve(0);
                             });
+                            return;
                         }
-                    );
-                }
-            );
-        });
+
+                        db.query(
+                            "   INSERT "
+                          + "     INTO user_roles(user_id, role_id) "
+                          + "   VALUES ($1, $2) ",
+                            [ user.getId(), role.getId() ],
+                            function (err, result) {
+                                if (err) {
+                                    db.end();
+                                    return defer.reject([ 'UserRepository.addRole() - main query', err ]);
+                                }
+
+                                var count = result.rowCount;
+                                db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                    if (err) {
+                                        if ((err.sqlState || err.code) == '40001') { // serialization failure
+                                            if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
+                                                db.end();
+                                                return defer.reject('UserRepository.addRole() - maximum transaction retries reached');
+                                            }
+                                            return transaction();
+                                        }
+
+                                        db.end();
+                                        return defer.reject([ 'UserRepository.addRole() - commit transaction', err ]);
+                                    }
+
+                                    db.end();
+                                    defer.resolve(count);
+                                });
+                            }
+                        );
+                    }
+                );
+            });
+        }
+        transaction();
     });
 
     return defer.promise;

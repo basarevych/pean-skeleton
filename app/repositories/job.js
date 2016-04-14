@@ -252,8 +252,8 @@ JobRepository.prototype.processNewJobs = function () {
         if (err)
             return defer.reject([ 'JobRepository.processNewJobs() - pg connect', err ]);
 
-        var now = moment();
-        var returnValue = { expired: [], started: [] };
+        var now; // moment();
+        var returnValue; // { expired: [], started: [] };
 
         function processJob(job, jobDefer) {
             if (job.getStatus == 'started' || now.isBefore(job.getScheduledFor()))
@@ -298,114 +298,131 @@ JobRepository.prototype.processNewJobs = function () {
             }
         }
 
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                db.end();
-                return defer.reject([ 'JobRepository.processNewJobs() - begin transaction', err ]);
-            }
+        var retries = 0;
+        function transaction() {
+            now = moment();
+            returnValue = { expired: [], started: [] };
 
-            db.query(
-                "  SELECT * "
-              + "    FROM jobs "
-              + "   WHERE queue IS NULL AND status = $1 AND scheduled_for <= $2 "
-              + "ORDER BY created_at ASC ",
-                [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
-                function (err, result) {
-                    if (err) {
-                        db.end();
-                        return defer.reject([ 'JobRepository.processNewJobs() - select created', err ]);
-                    }
-
-                    var promises = [];
-
-                    result.rows.forEach(function (row) {
-                        var job = new JobModel(row);
-                        var jobDefer = q.defer();
-                        promises.push(jobDefer.promise);
-                        processJob(job, jobDefer);
-                    });
-
-                    db.query(
-                        "  SELECT DISTINCT queue AS queue "
-                      + "    FROM jobs "
-                      + "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
-                        [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
-                        function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'JobRepository.processNewJobs() - select queues with created', err ]);
-                            }
-
-                            result.rows.forEach(function (row) {
-                                var jobDefer = q.defer();
-                                promises.push(jobDefer.promise);
-
-                                db.query(
-                                    "  SELECT COUNT(*) AS count "
-                                  + "    FROM jobs "
-                                  + "   WHERE queue = $1 AND status = $2 ",
-                                    [ row['queue'], 'started' ],
-                                    function (err, result) {
-                                        if (err) {
-                                            db.end();
-                                            return defer.reject([ 'JobRepository.processNewJobs() - check the queue is busy', err ]);
-                                        }
-
-                                        if (result.rows[0]['count'] > 0) {
-                                            jobDefer.resolve();
-                                        } else {
-                                            db.query(
-                                                "  SELECT * "
-                                              + "    FROM jobs "
-                                              + "   WHERE queue = $1 AND status = $2 "
-                                              + "ORDER BY created_at ASC, id ASC "
-                                              + "   LIMIT 1 ",
-                                                [ row['queue'], 'created' ],
-                                                function (err, result) {
-                                                    if (err) {
-                                                        db.end();
-                                                        return defer.reject([ 'JobRepository.processNewJobs() - select first in the queue', err ]);
-                                                    }
-
-                                                    var job = new JobModel(result.rows[0]);
-                                                    processJob(job, jobDefer);
-                                                }
-                                            );
-                                        }
-                                    }
-                                );
-                            });
-
-                            q.all(promises)
-                                .then(function (result) {
-                                    db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                        if (err)
-                                            return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
-
-                                        db.end();
-
-                                        var jobs = returnValue.expired.concat(returnValue.started);
-                                        function broadcastJob() {
-                                            var job = jobs.shift();
-                                            if (!job)
-                                                return defer.resolve(returnValue);
-
-                                            me._broadcastJob(job, function () { broadcastJob() });
-                                        }
-                                        broadcastJob();
-                                    });
-                                })
-                                .catch(function (err) {
-                                    db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                                        db.end();
-                                        defer.reject(err);
-                                    });
-                                });
-                        }
-                    );
+            db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
+                if (err) {
+                    db.end();
+                    return defer.reject([ 'JobRepository.processNewJobs() - begin transaction', err ]);
                 }
-            );
-        });
+
+                db.query(
+                    "  SELECT * "
+                  + "    FROM jobs "
+                  + "   WHERE queue IS NULL AND status = $1 AND scheduled_for <= $2 "
+                  + "ORDER BY created_at ASC ",
+                    [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
+                    function (err, result) {
+                        if (err) {
+                            db.end();
+                            return defer.reject([ 'JobRepository.processNewJobs() - select created', err ]);
+                        }
+
+                        var promises = [];
+
+                        result.rows.forEach(function (row) {
+                            var job = new JobModel(row);
+                            var jobDefer = q.defer();
+                            promises.push(jobDefer.promise);
+                            processJob(job, jobDefer);
+                        });
+
+                        db.query(
+                            "  SELECT DISTINCT queue AS queue "
+                          + "    FROM jobs "
+                          + "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
+                            [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
+                            function (err, result) {
+                                if (err) {
+                                    db.end();
+                                    return defer.reject([ 'JobRepository.processNewJobs() - select queues with created', err ]);
+                                }
+
+                                result.rows.forEach(function (row) {
+                                    var jobDefer = q.defer();
+                                    promises.push(jobDefer.promise);
+
+                                    db.query(
+                                        "  SELECT COUNT(*) AS count "
+                                      + "    FROM jobs "
+                                      + "   WHERE queue = $1 AND status = $2 ",
+                                        [ row['queue'], 'started' ],
+                                        function (err, result) {
+                                            if (err) {
+                                                db.end();
+                                                return defer.reject([ 'JobRepository.processNewJobs() - check the queue is busy', err ]);
+                                            }
+
+                                            if (result.rows[0]['count'] > 0) {
+                                                jobDefer.resolve();
+                                            } else {
+                                                db.query(
+                                                    "  SELECT * "
+                                                  + "    FROM jobs "
+                                                  + "   WHERE queue = $1 AND status = $2 "
+                                                  + "ORDER BY created_at ASC, id ASC "
+                                                  + "   LIMIT 1 ",
+                                                    [ row['queue'], 'created' ],
+                                                    function (err, result) {
+                                                        if (err) {
+                                                            db.end();
+                                                            return defer.reject([ 'JobRepository.processNewJobs() - select first in the queue', err ]);
+                                                        }
+
+                                                        var job = new JobModel(result.rows[0]);
+                                                        processJob(job, jobDefer);
+                                                    }
+                                                );
+                                            }
+                                        }
+                                    );
+                                });
+
+                                q.all(promises)
+                                    .then(function (result) {
+                                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                            if (err) {
+                                                if ((err.sqlState || err.code) == '40001') { // serialization failure
+                                                    if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
+                                                        db.end();
+                                                        return defer.reject('JobRepository.processNewJobs() - maximum transaction retries reached');
+                                                    }
+                                                    return transaction();
+                                                }
+
+                                                db.end();
+                                                return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
+                                            }
+
+                                            db.end();
+
+                                            var jobs = returnValue.expired.concat(returnValue.started);
+                                            function broadcastJob() {
+                                                var job = jobs.shift();
+                                                if (!job)
+                                                    return defer.resolve(returnValue);
+
+                                                me._broadcastJob(job, function () { broadcastJob() });
+                                            }
+                                            broadcastJob();
+                                        });
+                                    })
+                                    .catch(function (err) {
+                                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                            db.end();
+                                            defer.reject(err);
+                                        });
+                                    });
+                            }
+                        );
+                    }
+                );
+            });
+        }
+        transaction();
     });
 
     return defer.promise;

@@ -206,96 +206,108 @@ RoleRepository.prototype.save = function (role) {
         if (err)
             return defer.reject([ 'RoleRepository.save() - pg connect', err ]);
 
-        db.query("BEGIN TRANSACTION", [], function (err, result) {
-            if (err) {
-                db.end();
-                return defer.reject([ 'RoleRepository.save() - begin transaction', err ]);
-            }
+        var retries = 0;
+        function transaction() {
+            db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
+                if (err) {
+                    db.end();
+                    return defer.reject([ 'RoleRepository.save() - begin transaction', err ]);
+                }
 
-            var query = "SELECT handle "
-                      + "  FROM roles "
-                      + " WHERE handle = $1 ";
-            var params = [
-                role.getHandle()
-            ];
+                var query = "SELECT handle "
+                          + "  FROM roles "
+                          + " WHERE handle = $1 ";
+                var params = [
+                    role.getHandle()
+                ];
 
-            if (role.getId()) {
-                query += " AND id <> $2 ";
-                params.push(role.getId());
-            }
+                if (role.getId()) {
+                    query += " AND id <> $2 ";
+                    params.push(role.getId());
+                }
 
-            db.query(
-                query,
-                params,
-                function (err, result) {
-                    if (err) {
-                        db.end();
-                        return defer.reject([ 'RoleRepository.save() - collision check', err ]);
-                    }
-
-                    if (result.rows.length) {
-                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'RoleRepository.save() - rollback transaction', err ]);
-                            }
-
-                            db.end();
-                            defer.resolve(null);
-                        });
-                        return;
-                    }
-
-                    if (role.getId()) {
-                        query = "UPDATE roles "
-                              + "   SET parent_id = $1, "
-                              + "       handle = $2 "
-                              + " WHERE id = $3 ";
-                        params = [
-                            role.getParentId(),
-                            role.getHandle(),
-                            role.getId(),
-                        ];
-                    } else {
-                        query = "   INSERT "
-                              + "     INTO roles(parent_id, handle) "
-                              + "   VALUES ($1, $2) "
-                              + "RETURNING id ";
-                        params = [
-                            role.getParentId(),
-                            role.getHandle(),
-                        ];
-                    }
-
-                    db.query(query, params, function (err, result) {
+                db.query(
+                    query,
+                    params,
+                    function (err, result) {
                         if (err) {
                             db.end();
-                            return defer.reject([ 'RoleRepository.save() - main query', err ]);
+                            return defer.reject([ 'RoleRepository.save() - collision check', err ]);
                         }
 
-                        var id = result.rows.length && result.rows[0]['id'];
-                        if (id)
-                            role.setId(id);
-                        else
-                            id = result.rowCount > 0 ? role.getId() : null;
+                        if (result.rows.length) {
+                            db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    db.end();
+                                    return defer.reject([ 'RoleRepository.save() - rollback transaction', err ]);
+                                }
 
-                        db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                db.end();
+                                defer.resolve(null);
+                            });
+                            return;
+                        }
+
+                        if (role.getId()) {
+                            query = "UPDATE roles "
+                                  + "   SET parent_id = $1, "
+                                  + "       handle = $2 "
+                                  + " WHERE id = $3 ";
+                            params = [
+                                role.getParentId(),
+                                role.getHandle(),
+                                role.getId(),
+                            ];
+                        } else {
+                            query = "   INSERT "
+                                  + "     INTO roles(parent_id, handle) "
+                                  + "   VALUES ($1, $2) "
+                                  + "RETURNING id ";
+                            params = [
+                                role.getParentId(),
+                                role.getHandle(),
+                            ];
+                        }
+
+                        db.query(query, params, function (err, result) {
                             if (err) {
                                 db.end();
-                                return defer.reject([ 'RoleRepository.save() - commit transaction', err ]);
+                                return defer.reject([ 'RoleRepository.save() - main query', err ]);
                             }
 
-                            db.end();
-
+                            var id = result.rows.length && result.rows[0]['id'];
                             if (id)
-                                role.dirty(false);
+                                role.setId(id);
+                            else
+                                id = result.rowCount > 0 ? role.getId() : null;
 
-                            defer.resolve(id);
+                            db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                if (err) {
+                                    if ((err.sqlState || err.code) == '40001') { // serialization failure
+                                        if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
+                                            db.end();
+                                            return defer.reject('UserRepository.save() - maximum transaction retries reached');
+                                        }
+                                        return transaction();
+                                    }
+
+                                    db.end();
+                                    return defer.reject([ 'RoleRepository.save() - commit transaction', err ]);
+                                }
+
+                                db.end();
+
+                                if (id)
+                                    role.dirty(false);
+
+                                defer.resolve(id);
+                            });
                         });
-                    });
-                }
-            );
-        });
+                    }
+                );
+            });
+        }
+        transaction();
     });
 
     return defer.promise;
