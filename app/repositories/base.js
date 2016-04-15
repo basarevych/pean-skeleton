@@ -19,7 +19,7 @@ function BaseRepository() {
 /**
  * Max number of transaction retries on serialization failures
  */
-BaseRepository.MAX_TRANSACTION_RETRIES = 10;
+BaseRepository.MAX_TRANSACTION_RETRIES = 60;
 
 /**
  * Minimum time to wait before retrying transaction
