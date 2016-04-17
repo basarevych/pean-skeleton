@@ -296,7 +296,10 @@ UserRepository.prototype.save = function (user) {
             return defer.reject([ 'UserRepository.save() - pg connect', err ]);
 
         var retries = 0;
+        var originalId = user.getId();
         function transaction() {
+            user.setId(originalId);
+
             db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
                 if (err) {
                     db.end();
@@ -480,7 +483,7 @@ UserRepository.prototype.addRole = function (user, role) {
                                             }
                                             var random = locator.get('random');
                                             var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
-                                            return setTimeout(function () { transaction(); }, delay);
+                                            return setTimeout(function () { transaction(model); }, delay);
                                         }
 
                                         db.end();
@@ -496,7 +499,7 @@ UserRepository.prototype.addRole = function (user, role) {
                 );
             });
         }
-        transaction();
+        transaction(user);
     });
 
     return defer.promise;

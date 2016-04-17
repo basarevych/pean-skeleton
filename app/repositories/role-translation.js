@@ -205,7 +205,10 @@ RoleTranslationRepository.prototype.save = function (translation) {
             return defer.reject([ 'RoleTranslationRepository.save() - pg connect', err ]);
 
         var retries = 0;
+        var originalId = translation.getId();
         function transaction() {
+            translation.setId(originalId);
+
             db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
                 if (err) {
                     db.end();
@@ -232,7 +235,7 @@ RoleTranslationRepository.prototype.save = function (translation) {
                     function (err, result) {
                         if (err) {
                             db.end();
-                            return defer.reject([ 'RoleTranslationRepository.save() - main query', err ]);
+                            return defer.reject([ 'RoleTranslationRepository.save() - collision check', err ]);
                         }
 
                         if (result.rows.length) {

@@ -207,7 +207,10 @@ RoleRepository.prototype.save = function (role) {
             return defer.reject([ 'RoleRepository.save() - pg connect', err ]);
 
         var retries = 0;
+        var originalId = role.getId();
         function transaction() {
+            role.setId(originalId);
+
             db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
                 if (err) {
                     db.end();
