@@ -207,69 +207,41 @@ TokenRepository.prototype.save = function (token) {
                     defer.reject(err);
                 });
         } else {
-            var retries = 0;
-            function transaction() {
-                db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
+            db.query(
+                "   INSERT "
+              + "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) "
+              + "   VALUES ($1, $2, $3, $4, $5) "
+              + "RETURNING id ",
+                [
+                    token.getUserId(),
+                    JSON.stringify(token.getPayload()),
+                    token.getIpAddress(),
+                    token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                    token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
+                ],
+                function (err, result) {
                     if (err) {
                         db.end();
-                        return defer.reject([ 'TokenRepository.save() - begin transaction', err ]);
+                        return defer.reject([ 'TokenRepository.save() - insert', err ]);
                     }
 
-                    db.query(
-                        "   INSERT "
-                      + "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) "
-                      + "   VALUES ($1, $2, $3, $4, $5) "
-                      + "RETURNING id ",
-                        [
-                            token.getUserId(),
-                            JSON.stringify(token.getPayload()),
-                            token.getIpAddress(),
-                            token.getCreatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                            token.getUpdatedAt().tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
-                        ],
-                        function (err, result) {
-                            if (err) {
-                                db.end();
-                                return defer.reject([ 'TokenRepository.save() - insert', err ]);
-                            }
+                    token.setId(result.rows[0]['id']);
 
-                            token.setId(result.rows[0]['id']);
+                    var payload = token.getPayload();
+                    payload['token_id'] = token.getId();
+                    token.setPayload(payload);
 
-                            var payload = token.getPayload();
-                            payload['token_id'] = token.getId();
-                            token.setPayload(payload);
-
-                            updateToken()
-                                .then(function (tokenId) {
-                                    db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                        if (err) {
-                                            if ((err.sqlState || err.code) == '40001') { // serialization failure
-                                                if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
-                                                    db.end();
-                                                    return defer.reject('TokenRepository.save() - maximum transaction retries reached');
-                                                }
-                                                var random = locator.get('random');
-                                                var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
-                                                return setTimeout(function () { transaction(); }, delay);
-                                            }
-
-                                            db.end();
-                                            return defer.reject([ 'TokenRepository.save() - commit transaction', err ]);
-                                        }
-
-                                        db.end();
-                                        defer.resolve(tokenId);
-                                    });
-                                })
-                                .catch(function (err) {
-                                    db.end();
-                                    defer.reject(err);
-                                });
-                        }
-                    );
-                });
-            }
-            transaction();
+                    updateToken()
+                        .then(function (tokenId) {
+                            db.end();
+                            defer.resolve(tokenId);
+                        })
+                        .catch(function (err) {
+                            db.end();
+                            defer.reject(err);
+                        });
+                }
+            );
         }
     });
 

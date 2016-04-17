@@ -57,4 +57,28 @@ BaseRepository.prototype.getRedis = function () {
     return redis.createClient(config['redis']['port'], config['redis']['host'], options);
 };
 
+/**
+ * Rollback and restart a transaction
+ *
+ * If transaction could not be rolled back defer's promise is rejected
+ * otherwise transaction function is called
+ *
+ * @param {object} db               Postgres client
+ * @param {object} defer            Caller's defer
+ * @param {function} transaction    Transaction function
+ */
+BaseRepository.prototype.restartTransaction = function (db, defer, transaction) {
+    db.query("ROLLBACK TRANSACTION", [], function (err, result) {
+        if (err) {
+            db.end();
+            defer.reject([ 'BaseRepository.restartTransaction() - rollback', err ]);
+            return error(err);
+        }
+
+        var random = locator.get('random');
+        var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
+        return setTimeout(function () { transaction(); }, delay);
+    });
+};
+
 module.exports = BaseRepository;

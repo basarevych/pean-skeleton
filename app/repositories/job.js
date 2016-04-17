@@ -269,7 +269,7 @@ JobRepository.prototype.processNewJobs = function () {
                     [ 'expired', job.getId() ],
                     function (err, result) {
                         if (err)
-                            return jobDefer.reject([ 'JobRepository.processNewJobs() - process expired', err ]);
+                            return jobDefer.reject(err);
 
                         returnValue.expired.push(job);
 
@@ -289,7 +289,7 @@ JobRepository.prototype.processNewJobs = function () {
                     [ 'started', job.getId() ],
                     function (err, result) {
                         if (err)
-                            return jobDefer.reject([ 'JobRepository.processNewJobs() - process started', err ]);
+                            return jobDefer.reject(err);
 
                         returnValue.started.push(job);
                         jobDefer.resolve();
@@ -300,6 +300,11 @@ JobRepository.prototype.processNewJobs = function () {
 
         var retries = 0;
         function transaction() {
+            if (++retries > BaseRepository.MAX_TRANSACTION_RETRIES) {
+                db.end();
+                return defer.reject('JobRepository.processNewJobs() - maximum transaction retries reached');
+            }
+
             now = moment();
             returnValue = { expired: [], started: [] };
 
@@ -317,6 +322,9 @@ JobRepository.prototype.processNewJobs = function () {
                     [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
                     function (err, result) {
                         if (err) {
+                            if ((err.sqlState || err.code) == '40001') // serialization failure
+                                return me.restartTransaction(db, defer, transaction);
+
                             db.end();
                             return defer.reject([ 'JobRepository.processNewJobs() - select created', err ]);
                         }
@@ -330,96 +338,101 @@ JobRepository.prototype.processNewJobs = function () {
                             processJob(job, jobDefer);
                         });
 
-                        db.query(
-                            "  SELECT DISTINCT queue AS queue "
-                          + "    FROM jobs "
-                          + "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
-                            [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
-                            function (err, result) {
-                                if (err) {
-                                    db.end();
-                                    return defer.reject([ 'JobRepository.processNewJobs() - select queues with created', err ]);
-                                }
+                        q.all(promises)
+                            .then(function () {
+                                db.query(
+                                    "  SELECT DISTINCT queue AS queue "
+                                  + "    FROM jobs "
+                                  + "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
+                                    [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
+                                    function (err, result) {
+                                        if (err) {
+                                            if ((err.sqlState || err.code) == '40001') // serialization failure
+                                                return me.restartTransaction(db, defer, transaction);
 
-                                result.rows.forEach(function (row) {
-                                    var jobDefer = q.defer();
-                                    promises.push(jobDefer.promise);
-
-                                    db.query(
-                                        "  SELECT COUNT(*) AS count "
-                                      + "    FROM jobs "
-                                      + "   WHERE queue = $1 AND status = $2 ",
-                                        [ row['queue'], 'started' ],
-                                        function (err, result) {
-                                            if (err) {
-                                                db.end();
-                                                return defer.reject([ 'JobRepository.processNewJobs() - check the queue is busy', err ]);
-                                            }
-
-                                            if (result.rows[0]['count'] > 0) {
-                                                jobDefer.resolve();
-                                            } else {
-                                                db.query(
-                                                    "  SELECT * "
-                                                  + "    FROM jobs "
-                                                  + "   WHERE queue = $1 AND status = $2 "
-                                                  + "ORDER BY created_at ASC, id ASC "
-                                                  + "   LIMIT 1 ",
-                                                    [ row['queue'], 'created' ],
-                                                    function (err, result) {
-                                                        if (err) {
-                                                            db.end();
-                                                            return defer.reject([ 'JobRepository.processNewJobs() - select first in the queue', err ]);
-                                                        }
-
-                                                        var job = new JobModel(result.rows[0]);
-                                                        processJob(job, jobDefer);
-                                                    }
-                                                );
-                                            }
+                                            db.end();
+                                            return defer.reject([ 'JobRepository.processNewJobs() - select queues with created', err ]);
                                         }
-                                    );
-                                });
 
-                                q.all(promises)
-                                    .then(function (result) {
-                                        db.query("COMMIT TRANSACTION", [], function (err, result) {
-                                            if (err) {
-                                                if ((err.sqlState || err.code) == '40001') { // serialization failure
-                                                    if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
-                                                        db.end();
-                                                        return defer.reject('JobRepository.processNewJobs() - maximum transaction retries reached');
+                                        promises = [];
+
+                                        result.rows.forEach(function (row) {
+                                            var jobDefer = q.defer();
+                                            promises.push(jobDefer.promise);
+
+                                            db.query(
+                                                "  SELECT COUNT(*) AS count "
+                                              + "    FROM jobs "
+                                              + "   WHERE queue = $1 AND status = $2 ",
+                                                [ row['queue'], 'started' ],
+                                                function (err, result) {
+                                                    if (err)
+                                                        return jobDefer.reject(err);
+
+                                                    if (result.rows[0]['count'] > 0) {
+                                                        jobDefer.resolve();
+                                                    } else {
+                                                        db.query(
+                                                            "  SELECT * "
+                                                          + "    FROM jobs "
+                                                          + "   WHERE queue = $1 AND status = $2 "
+                                                          + "ORDER BY created_at ASC, id ASC "
+                                                          + "   LIMIT 1 ",
+                                                            [ row['queue'], 'created' ],
+                                                            function (err, result) {
+                                                                if (err)
+                                                                    return jobDefer.reject(err);
+
+                                                                var job = new JobModel(result.rows[0]);
+                                                                processJob(job, jobDefer);
+                                                            }
+                                                        );
                                                     }
-                                                    var random = locator.get('random');
-                                                    var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
-                                                    return setTimeout(function () { transaction(); }, delay);
                                                 }
+                                            );
+                                        });
+
+                                        q.all(promises)
+                                            .then(function () {
+                                                db.query("COMMIT TRANSACTION", [], function (err, result) {
+                                                    if (err) {
+                                                        if ((err.sqlState || err.code) == '40001') // serialization failure
+                                                            return me.restartTransaction(db, defer, transaction);
+
+                                                        db.end();
+                                                        return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
+                                                    }
+
+                                                    db.end();
+
+                                                    var jobs = returnValue.expired.concat(returnValue.started);
+                                                    function broadcastJob() {
+                                                        var job = jobs.shift();
+                                                        if (!job)
+                                                            return defer.resolve(returnValue);
+
+                                                        me._broadcastJob(job, function () { broadcastJob() });
+                                                    }
+                                                    broadcastJob();
+                                                });
+                                            })
+                                            .catch(function (err) {
+                                                if ((err.sqlState || err.code) == '40001') // serialization failure
+                                                    return me.restartTransaction(db, defer, transaction);
 
                                                 db.end();
-                                                return defer.reject([ 'JobRepository.processNewJobs() - commit transaction', err ]);
-                                            }
+                                                defer.reject([ 'JobRepository.processNewJobs() - queue', err ]);
+                                            });
+                                    }
+                                );
+                            })
+                            .catch(function (err) {
+                                if ((err.sqlState || err.code) == '40001') // serialization failure
+                                    return me.restartTransaction(db, defer, transaction);
 
-                                            db.end();
-
-                                            var jobs = returnValue.expired.concat(returnValue.started);
-                                            function broadcastJob() {
-                                                var job = jobs.shift();
-                                                if (!job)
-                                                    return defer.resolve(returnValue);
-
-                                                me._broadcastJob(job, function () { broadcastJob() });
-                                            }
-                                            broadcastJob();
-                                        });
-                                    })
-                                    .catch(function (err) {
-                                        db.query("ROLLBACK TRANSACTION", [], function (err, result) {
-                                            db.end();
-                                            defer.reject(err);
-                                        });
-                                    });
-                            }
-                        );
+                                db.end();
+                                defer.reject([ 'JobRepository.processNewJobs() - no queue', err ]);
+                            });
                     }
                 );
             });

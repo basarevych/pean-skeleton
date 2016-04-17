@@ -289,6 +289,7 @@ UserRepository.prototype.searchByEmail = function (search, limit) {
 UserRepository.prototype.save = function (user) {
     var logger = locator.get('logger');
     var defer = q.defer();
+    var me = this;
 
     var db = this.getPostgres();
     db.connect(function (err) {
@@ -298,6 +299,10 @@ UserRepository.prototype.save = function (user) {
         var retries = 0;
         var originalId = user.getId();
         function transaction() {
+            if (++retries > BaseRepository.MAX_TRANSACTION_RETRIES) {
+                db.end();
+                return defer.reject('UserRepository.save() - maximum transaction retries reached');
+            }
             user.setId(originalId);
 
             db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
@@ -323,6 +328,9 @@ UserRepository.prototype.save = function (user) {
                     params,
                     function (err, result) {
                         if (err) {
+                            if ((err.sqlState || err.code) == '40001') // serialization failure
+                                return me.restartTransaction(db, defer, transaction);
+
                             db.end();
                             return defer.reject([ 'UserRepository.save() - collision check', err ]);
                         }
@@ -369,6 +377,9 @@ UserRepository.prototype.save = function (user) {
 
                         db.query(query, params, function (err, result) {
                             if (err) {
+                                if ((err.sqlState || err.code) == '40001') // serialization failure
+                                    return me.restartTransaction(db, defer, transaction);
+
                                 db.end();
                                 return defer.reject([ 'UserRepository.save() - main query', err ]);
                             }
@@ -381,15 +392,8 @@ UserRepository.prototype.save = function (user) {
 
                             db.query("COMMIT TRANSACTION", [], function (err, result) {
                                 if (err) {
-                                    if ((err.sqlState || err.code) == '40001') { // serialization failure
-                                        if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
-                                            db.end();
-                                            return defer.reject('UserRepository.save() - maximum transaction retries reached');
-                                        }
-                                        var random = locator.get('random');
-                                        var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
-                                        return setTimeout(function () { transaction(); }, delay);
-                                    }
+                                    if ((err.sqlState || err.code) == '40001') // serialization failure
+                                        return me.restartTransaction(db, defer, transaction);
 
                                     db.end();
                                     return defer.reject([ 'UserRepository.save() - commit transaction', err ]);
@@ -423,6 +427,7 @@ UserRepository.prototype.save = function (user) {
 UserRepository.prototype.addRole = function (user, role) {
     var logger = locator.get('logger');
     var defer = q.defer();
+    var me = this;
 
     var db = this.getPostgres();
     db.connect(function (err) {
@@ -431,6 +436,11 @@ UserRepository.prototype.addRole = function (user, role) {
 
         var retries = 0;
         function transaction() {
+            if (++retries > BaseRepository.MAX_TRANSACTION_RETRIES) {
+                db.end();
+                return defer.reject('UserRepository.addRole() - maximum transaction retries reached');
+            }
+
             db.query("BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE", [], function (err, result) {
                 if (err) {
                     db.end();
@@ -445,6 +455,9 @@ UserRepository.prototype.addRole = function (user, role) {
                     [ user.getId(), role.getId() ],
                     function (err, result) {
                         if (err) {
+                            if ((err.sqlState || err.code) == '40001') // serialization failure
+                                return me.restartTransaction(db, defer, transaction);
+
                             db.end();
                             return defer.reject([ 'UserRepository.addRole() - collision check', err ]);
                         }
@@ -469,6 +482,9 @@ UserRepository.prototype.addRole = function (user, role) {
                             [ user.getId(), role.getId() ],
                             function (err, result) {
                                 if (err) {
+                                    if ((err.sqlState || err.code) == '40001') // serialization failure
+                                        return me.restartTransaction(db, defer, transaction);
+
                                     db.end();
                                     return defer.reject([ 'UserRepository.addRole() - main query', err ]);
                                 }
@@ -476,15 +492,8 @@ UserRepository.prototype.addRole = function (user, role) {
                                 var count = result.rowCount;
                                 db.query("COMMIT TRANSACTION", [], function (err, result) {
                                     if (err) {
-                                        if ((err.sqlState || err.code) == '40001') { // serialization failure
-                                            if (++retries >= BaseRepository.MAX_TRANSACTION_RETRIES) {
-                                                db.end();
-                                                return defer.reject('UserRepository.addRole() - maximum transaction retries reached');
-                                            }
-                                            var random = locator.get('random');
-                                            var delay = random.getRandomInt(BaseRepository.MIN_TRANSACTION_DELAY, BaseRepository.MAX_TRANSACTION_DELAY);
-                                            return setTimeout(function () { transaction(model); }, delay);
-                                        }
+                                        if ((err.sqlState || err.code) == '40001') // serialization failure
+                                            return me.restartTransaction(db, defer, transaction);
 
                                         db.end();
                                         return defer.reject([ 'UserRepository.addRole() - commit transaction', err ]);
@@ -499,7 +508,7 @@ UserRepository.prototype.addRole = function (user, role) {
                 );
             });
         }
-        transaction(user);
+        transaction();
     });
 
     return defer.promise;
