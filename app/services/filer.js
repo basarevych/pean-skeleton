@@ -20,7 +20,7 @@ function Filer() {
  * Read file descriptor
  *
  * @param {integer} fd      File descriptor
- * @return {object}         Returns promise resolving to file contents
+ * @return {object}         Returns promise resolving to file contents as UTF8 string
  */
 Filer.prototype.read = function (fd) {
     var defer = q.defer();
@@ -128,9 +128,12 @@ Filer.prototype.lockRead = function (filename, defaultContents) {
  *
  * @param {string} filename     File path and name
  * @param {string} contents     New file contents
+ * @param {string} mode         Mode (as a string representing octal number) or undefined
+ * @param {string} uid          UID or undefined
+ * @param {string} gid          GID or undefined
  * @return {object}             Returns promise resolving to true on success
  */
-Filer.prototype.lockWrite = function (filename, contents) {
+Filer.prototype.lockWrite = function (filename, contents, mode, uid, gid) {
     var me = this;
     var defer = q.defer();
 
@@ -148,6 +151,10 @@ Filer.prototype.lockWrite = function (filename, contents) {
 
         me.write(fd, contents)
             .then(function () {
+                if (typeof mode != 'undefined')
+                    fs.chmodSync(filename, parseInt(mode, 8));
+                if (typeof uid != 'undefined' && typeof gid != 'undefined')
+                    fs.chownSync(filename, parseInt(uid, 10), parseInt(gid, 10));
                 fs.flock(fd, 'un', function (err) {
                     if (err) {
                         fs.closeSync(fd);
@@ -180,9 +187,12 @@ Filer.prototype.lockWrite = function (filename, contents) {
  *
  * @param {string} filename     File path and name
  * @param {Filer~updater} cb    Updater callback
+ * @param {string} mode         Mode (as a string representing octal number) or undefined
+ * @param {string} uid          UID or undefined
+ * @param {string} gid          GID or undefined
  * @return {object}             Returns promise resolving to true on success
  */
-Filer.prototype.lockUpdate = function (filename, cb) {
+Filer.prototype.lockUpdate = function (filename, cb, mode, uid, gid) {
     var me = this;
     var defer = q.defer();
 
@@ -207,6 +217,10 @@ Filer.prototype.lockUpdate = function (filename, cb) {
                 return me.write(fd, newContents)
             })
             .then(function () {
+                if (typeof mode != 'undefined')
+                    fs.chmodSync(filename, parseInt(mode, 8));
+                if (typeof uid != 'undefined' && typeof gid != 'undefined')
+                    fs.chownSync(filename, parseInt(uid, 10), parseInt(gid, 10));
                 fs.flock(fd, 'un', function (err) {
                     if (err) {
                         fs.closeSync(fd);
@@ -222,6 +236,60 @@ Filer.prototype.lockUpdate = function (filename, cb) {
                 defer.reject(err);
             });
     });
+
+    return defer.promise;
+};
+
+/**
+ * Create a directory (recursively)
+ *
+ * @param {string} path         Path of directory
+ * @param {string} mode         Mode (as a string representing octal number) or undefined
+ * @param {string} uid          UID or undefined
+ * @param {string} gid          GID or undefined
+ * @return {object}             Returns promise resolving on success
+ */
+Filer.prototype.createDirectory = function (path, mode, uid, gid) {
+    var defer = q.defer();
+
+    if (path.length < 2 || path[0] != '/') {
+        defer.reject('Invalid path');
+        return defer.promise;
+    }
+
+    var parts = path.split('/');
+    parts.shift();
+
+    function mkdir(i) {
+        var dir = '';
+        for (var j = 0; j <= i; j++)
+            dir += '/' + parts[j];
+
+        try {
+            if (!fs.statSync(dir).isDirectory())
+                return defer.reject('Path exists and not a directory: ' + dir);
+            return;
+        } catch (err) {
+            // do nothing
+        }
+
+        try {
+            fs.mkdirSync(dir, typeof mode == 'undefined' ? undefined : parseInt(mode, 8));
+            if (typeof uid != 'undefined' && typeof gid != 'undefined')
+                fs.chownSync(dir, parseInt(uid, 10), parseInt(gid, 10));
+        } catch (err) {
+            defer.reject(err);
+        }
+    }
+
+    for (var i = 0; i < parts.length; i++) {
+        mkdir(i);
+        if (!defer.promise.isPending())
+            break;
+    }
+
+    if (defer.promise.isPending())
+        defer.resolve();
 
     return defer.promise;
 };
