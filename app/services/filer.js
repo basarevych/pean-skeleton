@@ -7,6 +7,7 @@
 var locator = require('node-service-locator');
 var q = require('q');
 var fs = require('fs-ext');
+var rimraf = require('rimraf');
 
 /**
  * File operations service
@@ -290,6 +291,30 @@ Filer.prototype.createDirectory = function (path, mode, uid, gid) {
 
     if (defer.promise.isPending())
         defer.resolve();
+
+    return defer.promise;
+};
+
+/**
+ * Remove a file or directory recursively
+ *
+ * @param {string} path         Path of directory
+ * @return {object}             Returns promise resolving on success
+ */
+Filer.prototype.remove = function (path) {
+    var defer = q.defer();
+
+    if (path.length < 2 || path[0] != '/') {
+        defer.reject('Invalid path');
+        return defer.promise;
+    }
+
+    rimraf(path, { disableGlob: true }, function (err) {
+        if (err)
+            return defer.reject(err);
+
+        defer.resolve();
+    });
 
     return defer.promise;
 };
