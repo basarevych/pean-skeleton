@@ -24,6 +24,8 @@ module.exports = function (app) {
     // initial services
     locator.register('app', app);
     locator.register('config', config);
+    locator.register('set-timeout', function (cb, delay) { return setTimeout(cb, delay); });
+    locator.register('set-interval', function (cb, delay) { return setInterval(cb, delay); });
 
     // error function
     app.abort = function (res, status) {
