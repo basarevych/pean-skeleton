@@ -21,7 +21,7 @@ function Filer() {
  * Read file descriptor
  *
  * @param {integer} fd      File descriptor
- * @return {object}         Returns promise resolving to file contents as UTF8 string
+ * @return {object}         Returns promise resolving to file contents as Buffer
  */
 Filer.prototype.read = function (fd) {
     var defer = q.defer();
@@ -29,6 +29,9 @@ Filer.prototype.read = function (fd) {
     fs.fstat(fd, function (err, stats) {
         if (err)
             return defer.reject(err);
+
+        if (stats.size == 0)
+            return defer.resolve('');
 
         var buffer = new Buffer(stats.size);
         fs.read(
@@ -43,7 +46,7 @@ Filer.prototype.read = function (fd) {
                 if (bytesRead != stats.size)
                     return defer.reject('Only ' + bytesRead + ' out of ' + stats.size + ' has been read on fd ' + fd);
 
-                defer.resolve(buffer.toString('utf8', 0, buffer.length));
+                defer.resolve(buffer);
             }
         );
 
@@ -56,13 +59,12 @@ Filer.prototype.read = function (fd) {
  * Write to file descriptor
  *
  * @param {integer} fd          File descriptor
- * @param {string} contents     New contents of the file
+ * @param {object} buffer       New contents of the file
  * @return {object}             Returns promise resolving to true on success
  */
-Filer.prototype.write = function (fd, contents) {
+Filer.prototype.write = function (fd, buffer) {
     var defer = q.defer();
 
-    var buffer = new Buffer(contents);
     fs.write(
         fd,
         buffer,
@@ -81,13 +83,13 @@ Filer.prototype.write = function (fd, contents) {
 };
 
 /*
- * Lock a file (shared) and read it
+ * Lock a file (shared) and read it returning as Buffer
  *
  * @param {string} filename             File path and name
  * @param {string} defaultContents      Contents to return on failure to open the file
  * @return {object}                     Returns promise resolving to file contents
  */
-Filer.prototype.lockRead = function (filename, defaultContents) {
+Filer.prototype.lockReadBuffer = function (filename, defaultContents) {
     var me = this;
     var defer = q.defer();
 
@@ -124,17 +126,31 @@ Filer.prototype.lockRead = function (filename, defaultContents) {
     return defer.promise;
 };
 
+/*
+ * Lock a file (shared) and read it returning string
+ *
+ * @param {string} filename             File path and name
+ * @param {string} defaultContents      Contents to return on failure to open the file
+ * @return {object}                     Returns promise resolving to file contents
+ */
+Filer.prototype.lockRead = function (filename, defaultContents) {
+    return this.lockReadBuffer(filename, defaultContents)
+        .then(function (buffer) {
+            return buffer.toString('utf8', 0, buffer.length);
+        });
+};
+
 /**
  * Lock a file (exclusively) and write to it
  *
  * @param {string} filename     File path and name
- * @param {string} contents     New file contents
+ * @param {object} buffer       New file contents
  * @param {string} mode         Mode (as a string representing octal number) or undefined
  * @param {string} uid          UID or undefined
  * @param {string} gid          GID or undefined
  * @return {object}             Returns promise resolving to true on success
  */
-Filer.prototype.lockWrite = function (filename, contents, mode, uid, gid) {
+Filer.prototype.lockWriteBuffer = function (filename, buffer, mode, uid, gid) {
     var me = this;
     var defer = q.defer();
 
@@ -150,7 +166,7 @@ Filer.prototype.lockWrite = function (filename, contents, mode, uid, gid) {
         if (err)
             return defer.reject(err);
 
-        me.write(fd, contents)
+        me.write(fd, buffer)
             .then(function () {
                 if (typeof mode != 'undefined')
                     fs.chmodSync(filename, parseInt(mode, 8));
@@ -176,24 +192,39 @@ Filer.prototype.lockWrite = function (filename, contents, mode, uid, gid) {
 };
 
 /**
- * Updater callback
- *
- * @callback Filer~updater
- * @param {string} contents     Previous file contents
- * @return {object}             Returns promise resolving to new file contents
- */
-
-/**
- * Lock a file (exclusively) and update it
+ * Lock a file (exclusively) and write to it
  *
  * @param {string} filename     File path and name
- * @param {Filer~updater} cb    Updater callback
+ * @param {string} contents     New file contents
  * @param {string} mode         Mode (as a string representing octal number) or undefined
  * @param {string} uid          UID or undefined
  * @param {string} gid          GID or undefined
  * @return {object}             Returns promise resolving to true on success
  */
-Filer.prototype.lockUpdate = function (filename, cb, mode, uid, gid) {
+Filer.prototype.lockWrite = function (filename, contents, mode, uid, gid) {
+    var buffer = new Buffer(contents);
+    return this.lockWriteBuffer(filename, buffer, mode, uid, gid);
+};
+
+/**
+ * Buffer updater callback
+ *
+ * @callback Filer~bufferUpdater
+ * @param {object} buffer       Previous file contents (Buffer)
+ * @return {object}             Returns promise resolving to new file contents (Buffer)
+ */
+
+/**
+ * Lock a file (exclusively) and update it using Buffer
+ *
+ * @param {string} filename         File path and name
+ * @param {Filer~bufferUpdater} cb  Buffer updater callback
+ * @param {string} mode             Mode (as a string representing octal number) or undefined
+ * @param {string} uid              UID or undefined
+ * @param {string} gid              GID or undefined
+ * @return {object}                 Returns promise resolving to true on success
+ */
+Filer.prototype.lockUpdateBuffer = function (filename, cb, mode, uid, gid) {
     var me = this;
     var defer = q.defer();
 
@@ -210,12 +241,12 @@ Filer.prototype.lockUpdate = function (filename, cb, mode, uid, gid) {
             return defer.reject(err);
 
         me.read(fd)
-            .then(function (contents) {
-                return cb(contents)
+            .then(function (buffer) {
+                return cb(buffer)
             })
-            .then(function (newContents) {
+            .then(function (newBuffer) {
                 fs.ftruncateSync(fd, 0);
-                return me.write(fd, newContents)
+                return me.write(fd, newBuffer)
             })
             .then(function () {
                 if (typeof mode != 'undefined')
@@ -239,6 +270,34 @@ Filer.prototype.lockUpdate = function (filename, cb, mode, uid, gid) {
     });
 
     return defer.promise;
+};
+
+/**
+ * String updater callback
+ *
+ * @callback Filer~stringUpdater
+ * @param {string} contents     Previous file contents (string)
+ * @return {object}             Returns promise resolving to new file contents (string)
+ */
+
+/**
+ * Lock a file (exclusively) and update it using string
+ *
+ * @param {string} filename         File path and name
+ * @param {Filer~stringUpdater} cb  String updater callback
+ * @param {string} mode             Mode (as a string representing octal number) or undefined
+ * @param {string} uid              UID or undefined
+ * @param {string} gid              GID or undefined
+ * @return {object}                 Returns promise resolving to true on success
+ */
+Filer.prototype.lockUpdate = function (filename, cb, mode, uid, gid) {
+    var stringCb = function (buffer) {
+        return cb(buffer.toString('utf8', 0, buffer.length))
+            .then(function (result) {
+                return new Buffer(result);
+            });
+    };
+    return this.lockUpdateBuffer(filename, stringCb, mode, uid, gid);
 };
 
 /**
