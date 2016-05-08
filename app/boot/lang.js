@@ -39,7 +39,9 @@ module.exports = function (app) {
     app.use(function (req, res, next) {
         var logger = locator.get('logger');
 
-        var lang = config['lang']['locales'].indexOf(req.cookies.locale) == -1 ? null : req.cookies.locale;
+        var lang = null
+        if (req.cookies)
+            lang = config['lang']['locales'].indexOf(req.cookies.locale) == -1 ? null : req.cookies.locale;
         if (!lang)
             lang = req.acceptsLanguages(config['lang']['locales']);
         if (!lang)
