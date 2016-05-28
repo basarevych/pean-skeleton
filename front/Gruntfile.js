@@ -59,6 +59,16 @@ module.exports = function(grunt) {
                     },
                 ]
             },
+            buildtag: {
+                files: [
+                    { // Copy build tag
+                        expand: true,
+                        cwd: '.',
+                        src: 'build.tag.txt',
+                        dest: '../public',     
+                    },
+                ]
+            },
         },
 
         concat: {
@@ -207,6 +217,12 @@ module.exports = function(grunt) {
                 }
             }
         },
+
+        execute: {
+            target: {
+                src: 'build.tag.js',
+            }
+        },
     });
 
     // These plugins provide necessary tasks.
@@ -216,7 +232,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-execute');
     grunt.loadNpmTasks('grunt-karma');
 
-    grunt.registerTask('default', ['copy', 'concat', 'uglify', 'less', 'cssmin']);
+    grunt.registerTask('default', ['execute', 'copy', 'concat', 'uglify', 'less', 'cssmin']);
 };

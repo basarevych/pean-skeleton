@@ -12,6 +12,7 @@
     "grunt-contrib-less": "~1.1.0",
     "grunt-contrib-uglify": "~0.11.0",
     "grunt-contrib-watch": "~0.6.1",
+    "grunt-execute": "~0.2.2",
     "grunt-karma": "~0.12.1",
     "jasmine-core": "~2.4.0",
     "karma": "~0.13.15",

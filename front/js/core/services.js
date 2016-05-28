@@ -197,10 +197,11 @@ services.factory('AppControl',
 );
 
 services.factory('SocketServer',
-    [ '$rootScope', '$filter',
-    function ($rootScope, $filter) {
+    [ '$rootScope', '$filter', '$http', '$window',
+    function ($rootScope, $filter, $http, $window) {
         var socket = null;
         var connected = false;
+        var buildTag;
 
         function onConnect() {
             connected = true;
@@ -209,6 +210,18 @@ services.factory('SocketServer',
 
             if ($rootScope.appControl.hasToken())
                 socket.emit('token', $rootScope.appControl.getToken());
+
+            $http({
+                method: 'GET',
+                url: '/build.tag.txt',
+            }).then(function success(response) {
+                var newTag = response.data.trim();
+                if (newTag.length) {
+                    if (buildTag && buildTag != newTag)
+                        $window.location.reload();
+                    buildTag = newTag;
+                }
+            });
         }
 
         function onDisconnect() {
