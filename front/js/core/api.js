@@ -20,9 +20,10 @@ api.factory('ResourceWrapper',
                     if (noErrorHandler === true) {
                         return;
                     } else if (data.status == 401) {
-                        if ($rootScope.appControl.hasToken())
+                        if ($rootScope.appControl.hasToken()) {
                             $rootScope.appControl.removeToken();
-                        $window.location.reload();
+                            $window.location.reload();
+                        }
                         return;
                     } else if (data.status == 403) {
                         InfoDialog({
