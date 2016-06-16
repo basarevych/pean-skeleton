@@ -211,7 +211,7 @@ Subprocess.prototype.kill = function (sig) {
     if (!this.isRunning())
         return false;
 
-    this.cmd.kill(sig ? sig | 'SIGKILL');
+    this.cmd.kill(sig ? sig : 'SIGKILL');
     return true;
 };
 
