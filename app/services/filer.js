@@ -49,7 +49,6 @@ Filer.prototype.read = function (fd) {
                 defer.resolve(buffer);
             }
         );
-
     });
 
     return defer.promise;
@@ -303,7 +302,7 @@ Filer.prototype.lockUpdate = function (filename, cb, mode, uid, gid) {
 /**
  * Create a directory (recursively)
  *
- * @param {string} path         Path of directory
+ * @param {string} path         Absolute path of the directory
  * @param {string} mode         Mode (as a string representing octal number) or undefined
  * @param {string} uid          UID or undefined
  * @param {string} gid          GID or undefined
@@ -355,6 +354,50 @@ Filer.prototype.createDirectory = function (path, mode, uid, gid) {
 };
 
 /**
+ * Create a file (its base dir must exist)
+ *
+ * @param {string} path         Absolute path of the file
+ * @param {string} mode         Mode (as a string representing octal number) or undefined
+ * @param {string} uid          UID or undefined
+ * @param {string} gid          GID or undefined
+ * @return {object}             Returns promise resolving on success
+ */
+Filer.prototype.createFile = function (path, mode, uid, gid) {
+    var defer = q.defer();
+
+    if (path.length < 2 || path[0] != '/') {
+        defer.reject('Invalid path');
+        return defer.promise;
+    }
+
+    try {
+        if (!fs.statSync(path).isFile()) {
+            defer.reject('Path exists and not a file: ' + path);
+            return defer.promise;
+        }
+
+        defer.resolve();
+        return defer.promise;
+    } catch (err) {
+        // do nothing
+    }
+
+    try {
+        var fd = fs.openSync(path, 'a', typeof mode == 'undefined' ? undefined : parseInt(mode, 8));
+        fs.closeSync(fd);
+
+        if (typeof uid != 'undefined' && typeof gid != 'undefined')
+            fs.chownSync(path, parseInt(uid, 10), parseInt(gid, 10));
+
+        defer.resolve();
+    } catch (err) {
+        defer.reject(err);
+    }
+
+    return defer.promise;
+};
+
+/**
  * Remove a file or directory recursively
  *
  * @param {string} path         Path of directory
@@ -365,6 +408,13 @@ Filer.prototype.remove = function (path) {
 
     if (path.length < 2 || path[0] != '/') {
         defer.reject('Invalid path');
+        return defer.promise;
+    }
+
+    try {
+        fs.lstatSync(path);
+    } catch (err) {
+        defer.resolve();
         return defer.promise;
     }
 
