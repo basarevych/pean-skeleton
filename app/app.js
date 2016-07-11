@@ -32,7 +32,7 @@ require('./boot/logger.js')(app);       // logger
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 // Return if this is a console command
 if (process.env.CONSOLE) return;
