@@ -109,7 +109,7 @@ module.exports = function () {
             if (typeof data == 'object' && data !== null && !Array.isArray(data)) {
                 config['lang']['locales'].forEach(function (locale) {
                     value[locale] = {
-                        title: ValidatorService.trim(data[locale] && data[locale]['title']),
+                        title: ValidatorService.trim(data[locale] ? data[locale]['title'] : ''),
                     };
                 });
 
