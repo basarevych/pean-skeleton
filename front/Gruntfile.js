@@ -135,8 +135,8 @@ module.exports = function(grunt) {
 
                     'bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
 
-                    'bower_components/pnotify/src/pnotify.core.css',
-                    'bower_components/pnotify/src/pnotify.buttons.css',
+                    'bower_components/pnotify/dist/pnotify.css',
+                    'bower_components/pnotify/dist/pnotify.buttons.css',
 
                     'bower_components/highlightjs/styles/default.css',
 
