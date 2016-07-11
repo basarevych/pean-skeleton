@@ -30,7 +30,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.name);
+            var value = ValidatorService.trim(req.body.name);
             var errors = [];
 
             if (!validator.isLength(value, 1))
@@ -46,7 +46,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.queue);
+            var value = ValidatorService.trim(req.body.queue);
             var errors = [];
 
             defer.resolve({ value: value, errors: errors });
@@ -59,7 +59,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.status);
+            var value = ValidatorService.trim(req.body.status);
             var errors = [];
 
             if (JobModel.STATUS_TYPES.indexOf(value) == -1)
@@ -75,7 +75,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.scheduled_for);
+            var value = ValidatorService.trim(req.body.scheduled_for);
             var errors = [];
 
             if (value.length && !moment.unix(value).isValid())
@@ -91,7 +91,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.valid_until);
+            var value = ValidatorService.trim(req.body.valid_until);
             var errors = [];
 
             if (value.length && !moment.unix(value).isValid())
@@ -107,7 +107,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.input_data);
+            var value = ValidatorService.trim(req.body.input_data);
             var errors = [];
 
             try {

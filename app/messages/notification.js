@@ -9,6 +9,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var q = require('q');
 var clone = require('clone');
+var ValidatorService = locator.get('validator-service');
 var NotificationModel = locator.get('notification-model');
 var JobModel = locator.get('job-model');
 
@@ -27,9 +28,9 @@ module.exports = function (server) {
                 if (!isAllowed)
                     return;     // ACL denied
 
-                var text = validator.trim(data.text);
-                var title = validator.trim(data.title);
-                var icon = validator.trim(data.icon);
+                var text = ValidatorService.trim(data.text);
+                var title = ValidatorService.trim(data.title);
+                var icon = ValidatorService.trim(data.icon);
                 if (!text.length)
                     return;
 
@@ -37,7 +38,7 @@ module.exports = function (server) {
                 if (typeof variables != 'object' || variables === null)
                     return;
 
-                var userId = validator.trim(data.user_id);
+                var userId = ValidatorService.trim(data.user_id);
                 if (userId.length) {
                     if (!validator.isInt(userId))
                         return;
@@ -46,7 +47,7 @@ module.exports = function (server) {
                     userId = null;
                 }
 
-                var roleId = validator.trim(data.role_id);
+                var roleId = ValidatorService.trim(data.role_id);
                 if (roleId.length) {
                     if (!validator.isInt(roleId))
                         return;
@@ -65,7 +66,7 @@ module.exports = function (server) {
                 notification.setUserId(userId);
                 notification.setRoleId(roleId);
 
-                var scheduledFor = validator.trim(data.scheduled_for);
+                var scheduledFor = ValidatorService.trim(data.scheduled_for);
                 if (scheduledFor.length) {
                     scheduledFor = moment.unix(scheduledFor);
                     if (!scheduledFor.isValid())

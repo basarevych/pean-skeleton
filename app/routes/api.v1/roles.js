@@ -34,6 +34,7 @@ module.exports = function () {
             var errors = [];
 
             if (value !== null) {
+                value = ValidatorService.trim(value);
                 if (!validator.isLength(value, 1)) {
                     errors.push(glMessage('VALIDATOR_REQUIRED_FIELD'));
                 } else if (!validator.isInt(value)) {
@@ -65,7 +66,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.handle);
+            var value = ValidatorService.trim(req.body.handle);
             var errors = [];
 
             if (!validator.isLength(value, 1)) {
@@ -108,7 +109,7 @@ module.exports = function () {
             if (typeof data == 'object' && data !== null && !Array.isArray(data)) {
                 config['lang']['locales'].forEach(function (locale) {
                     value[locale] = {
-                        title: validator.trim(data[locale] && data[locale]['title']),
+                        title: ValidatorService.trim(data[locale] && data[locale]['title']),
                     };
                 });
 

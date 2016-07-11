@@ -27,7 +27,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.email);
+            var value = ValidatorService.trim(req.body.email);
             var errors = [];
 
             if (!validator.isLength(value, 1))
@@ -45,7 +45,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.password);
+            var value = ValidatorService.trim(req.body.password);
             var errors = [];
 
             if (!validator.isLength(value, 1))

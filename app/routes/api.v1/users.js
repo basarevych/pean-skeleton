@@ -29,7 +29,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.name);
+            var value = ValidatorService.trim(req.body.name);
             var errors = [];
 
             defer.resolve({ value: value, errors: errors });
@@ -42,7 +42,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.email);
+            var value = ValidatorService.trim(req.body.email);
             var errors = [];
 
             if (!validator.isLength(value, 1)) {
@@ -83,7 +83,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.password);
+            var value = ValidatorService.trim(req.body.password);
             var errors = [];
 
             if (!id) { // create
@@ -106,8 +106,8 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var otherValue = validator.trim(req.body.password);
-            var value = validator.trim(req.body.retyped_password);
+            var otherValue = ValidatorService.trim(req.body.password);
+            var value = ValidatorService.trim(req.body.retyped_password);
             var errors = [];
 
             if (!id) { // create
@@ -412,7 +412,7 @@ module.exports = function () {
         if (!criteria || ['email'].indexOf(criteria) == -1)     // Currently only by email
             return app.abort(res, 400, "Invalid criteria");
 
-        var limit = req.body.limit;
+        var limit = ValidatorService.trim(req.body.limit);
         if (!limit || !validator.isInt(limit))
             return app.abort(res, 400, "Invalid limit");
 
@@ -427,7 +427,7 @@ module.exports = function () {
                 var roleRepo = locator.get('role-repository');
                 switch (criteria) {
                     case 'email':
-                        promise = userRepo.searchByEmail(req.body.search, limit);
+                        promise = userRepo.searchByEmail(req.body.search, parseInt(limit));
                         break;
                 }
 

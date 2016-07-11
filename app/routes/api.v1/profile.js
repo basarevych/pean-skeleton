@@ -25,7 +25,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.name);
+            var value = ValidatorService.trim(req.body.name);
             var errors = [];
 
             defer.resolve({ value: value, errors: errors });
@@ -38,7 +38,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.new_password);
+            var value = ValidatorService.trim(req.body.new_password);
             var errors = [];
 
             if (value.length && !validator.isLength(value, 6))
@@ -54,8 +54,8 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.retyped_password);
-            var otherValue = validator.trim(req.body.new_password);
+            var value = ValidatorService.trim(req.body.retyped_password);
+            var otherValue = ValidatorService.trim(req.body.new_password);
             var errors = [];
 
             if (value.length && !validator.isLength(value, 6))

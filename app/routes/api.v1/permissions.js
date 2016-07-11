@@ -28,7 +28,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.role_id);
+            var value = ValidatorService.trim(req.body.role_id);
             var errors = [];
 
             if (!validator.isLength(value, 1)) {
@@ -61,7 +61,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.resource);
+            var value = ValidatorService.trim(req.body.resource);
             var errors = [];
 
             defer.resolve({ value: value, errors: errors });
@@ -74,7 +74,7 @@ module.exports = function () {
             var defer = q.defer();
             var glMessage = res.locals.glMessage;
 
-            var value = validator.trim(req.body.action);
+            var value = ValidatorService.trim(req.body.action);
             var errors = [];
 
             defer.resolve({ value: value, errors: errors });

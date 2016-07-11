@@ -6,6 +6,7 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
+var validator = require('validator');
 var logger = locator.get('logger');
 
 /**
@@ -18,6 +19,20 @@ function Validator() {
     this.parsers = {};          // Form field parsers
     this.reset();
 }
+
+/**
+ * Convert value to a trimmed string
+ *
+ * @param {*} value             The value
+ * @return {string}             Returns a string
+ */
+Validator.trim = function (value) {
+    if (typeof value == 'string')
+        return validator.trim(value);
+    if (typeof value == 'number')
+        return String(value);
+    return '';
+};
 
 /**
  * Reset field values and errors
