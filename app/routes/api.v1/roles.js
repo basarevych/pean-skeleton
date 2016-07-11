@@ -208,9 +208,9 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    row['parent'] = validator.escape(row['parent']);
-                    row['handle'] = validator.escape(row['handle']);
-                    row['title'] = validator.escape(row['title']).replace("\\n", '<br>');
+                    row['parent'] = ValidatorService.escape(row['parent']);
+                    row['handle'] = ValidatorService.escape(row['handle']);
+                    row['title'] = ValidatorService.escape(row['title']).replace("\\n", '<br>');
 
                     return row;
                 });

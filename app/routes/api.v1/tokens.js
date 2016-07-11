@@ -10,6 +10,7 @@ var validator = require('validator');
 var moment = require('moment-timezone');
 var Table = require('dynamic-table').table();
 var PgAdapter = require('dynamic-table').pgAdapter();
+var ValidatorService = locator.get('validator-service');
 var TokenModel = locator.get('token-model');
 
 module.exports = function () {
@@ -71,7 +72,7 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    row['ip_address'] = validator.escape(row['ip_address']);
+                    row['ip_address'] = ValidatorService.escape(row['ip_address']);
 
                     if (row['created_at'])
                         row['created_at'] = row['created_at'].unix();

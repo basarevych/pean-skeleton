@@ -197,9 +197,9 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    row['name'] = validator.escape(row['name']);
-                    row['queue'] = validator.escape(row['queue']);
-                    row['status'] = validator.escape(row['status']);
+                    row['name'] = ValidatorService.escape(row['name']);
+                    row['queue'] = ValidatorService.escape(row['queue']);
+                    row['status'] = ValidatorService.escape(row['status']);
 
                     if (row['created_at'])
                         row['created_at'] = row['created_at'].unix();

@@ -35,6 +35,20 @@ Validator.trim = function (value) {
 };
 
 /**
+ * Escape a value, string or not
+ *
+ * @param {*} value             The value
+ * @return {string}             Returns a string
+ */
+Validator.escape = function (value) {
+    if (typeof value == 'string')
+        return validator.escape(value);
+    if (typeof value == 'number')
+        return String(value);
+    return '';
+};
+
+/**
  * Reset field values and errors
  */
 Validator.prototype.reset = function () {

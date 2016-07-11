@@ -133,9 +133,9 @@ module.exports = function () {
                     },
                 });
                 table.setMapper(function (row) {
-                    row['role'] = validator.escape(row['role']);
-                    row['resource'] = validator.escape(row['resource']);
-                    row['action'] = validator.escape(row['action']);
+                    row['role'] = ValidatorService.escape(row['role']);
+                    row['resource'] = ValidatorService.escape(row['resource']);
+                    row['action'] = ValidatorService.escape(row['action']);
 
                     return row;
                 });
