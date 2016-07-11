@@ -90,8 +90,17 @@ WebServer.prototype.startHttps = function (host, port, key, cert, ca) {
         cert: fs.readFileSync(cert),
     };
 
-    if (ca)
-        options['ca'] = fs.readFileSync(ca);
+    if (ca) {
+        var caArray = [];
+        var caFile = fs.readFileSync(ca).toString();
+        var caParts = caFile.split('-----BEGIN CERTIFICATE-----');
+        caParts.forEach(function (ca) {
+            if (ca.length)
+                caArray.push('-----BEGIN CERTIFICATE-----' + ca);
+        })
+
+        options['ca'] = caArray;
+    }
 
     var server = https.createServer(options, app);
     server.on('error', function (error) { me.onError(error); });
