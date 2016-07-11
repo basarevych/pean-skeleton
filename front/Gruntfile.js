@@ -110,8 +110,8 @@ module.exports = function(grunt) {
 
                     'bower_components/angular-globalize-wrapper/dist/angular-globalize-wrapper.js',
 
-                    'bower_components/pnotify/src/pnotify.core.js',
-                    'bower_components/pnotify/src/pnotify.buttons.js',
+                    'bower_components/pnotify/dist/pnotify.js',
+                    'bower_components/pnotify/dist/pnotify.buttons.js',
 
                     'bower_components/highlightjs/highlight.pack.js',
                     'bower_components/angular-highlightjs/build/angular-highlightjs.js',
