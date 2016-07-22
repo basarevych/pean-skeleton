@@ -14,7 +14,7 @@ module.exports = function (job) {
     var notificationRepo = locator.get('notification-repository');
     var notification = new NotificationModel(job.getInputData());
 
-    notificationRepo.save(notification)
+    return notificationRepo.save(notification)
         .then(function (id) {
             if (id === null) {
                 job.setStatus('failure');

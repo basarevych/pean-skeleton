@@ -8,6 +8,7 @@ var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');
 var path = require('path');
 var fs = require('fs');
+var q = require('q');
 
 /**
  * Service for background task execution
@@ -63,10 +64,10 @@ WorkerServer.prototype.work = function () {
     jobRepo.processNewJobs()
         .then(function (result) {
             result.expired.forEach(function (job) {
-                console.log('-> Expired #' + job.getId() + ': ' + job.getName());
+                console.log('[' + me.now() + '] Expired #' + job.getId() + ': ' + job.getName());
             });
             result.started.forEach(function (job) {
-                console.log('-> Started #' + job.getId() + ': ' + job.getName());
+                console.log('[' + me.now() + '] Started #' + job.getId() + ': ' + job.getName());
                 me.doJob(job);
             });
         })
@@ -79,23 +80,54 @@ WorkerServer.prototype.work = function () {
  * Load and execute job script (app/jobs directory)
  */
 WorkerServer.prototype.doJob = function (job) {
+    var me = this;
     var logger = locator.get('logger');
 
     var dir = path.join(__dirname, '..', 'jobs');
-    try {
-        require(dir + '/' + job.getName())(job);
-    } catch (e) {
-        console.log('-> Failed #' + job.getId() + ': ' + job.getName());
+    q.fcall(function () {
+            var func = require(dir + '/' + job.getName());
+            return func(job);
+        })
+        .then(function () {
+            console.log('[' + me.now() + '] Finished #' + job.getId() + ': ' + job.getName());
+        })
+        .catch(function (err) {
+            console.log('[' + me.now() + '] Failed #' + job.getId() + ': ' + job.getName());
 
-        job.setStatus('failure');
-        job.setOutputData({ error: e });
+            job.setStatus('failure');
+            job.setOutputData({ error: err });
 
-        var jobRepo = locator.get('job-repository');
-        jobRepo.save(job)
-            .catch(function (err) {
-                logger.error('WorkerServer.doJob() - jobRepo.save()', err);
-            });
-    }
+            var jobRepo = locator.get('job-repository');
+            return jobRepo.save(job)
+                .catch(function (err) {
+                    logger.error('WorkerServer.doJob() - jobRepo.save()', err);
+                });
+        });
+};
+
+/**
+ * Return date as a string
+ *
+ * @return {string}             Returns the string with current date
+ */
+WorkerServer.prototype.now = function () {
+    var now = new Date();
+    var output = now.getFullYear() + '-' + this.padZero(now.getMonth()+1) + '-' + this.padZero(now.getDate());
+    output += ' ' + this.padZero(now.getHours()) + ':' + this.padZero(now.getMinutes()) + ':' + this.padZero(now.getSeconds());
+    return output;
+};
+
+/**
+ * Pad number with a zero if not two letters
+ *
+ * @param {number} number       The number
+ * @return {string}             Returns padded string
+ */
+WorkerServer.prototype.padZero = function (number) {
+    var output = new String(number);
+    if (output.length == 1)
+        output = '0' + output;
+    return output;
 };
 
 module.exports = WorkerServer;
