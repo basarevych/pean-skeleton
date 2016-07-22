@@ -83,9 +83,8 @@ WorkerServer.prototype.doJob = function (job) {
     var me = this;
     var logger = locator.get('logger');
 
-    var dir = path.join(__dirname, '..', 'jobs');
     q.fcall(function () {
-            var func = require(dir + '/' + job.getName());
+            var func = require(path.join(__dirname, '..', 'jobs', job.getName()));
             return func(job);
         })
         .then(function () {
