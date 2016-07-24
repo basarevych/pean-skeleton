@@ -102,7 +102,10 @@ forms.factory('ValidationCtrl',
                 $scope.processing = false;
 
                 $scope.resetValidation = function (name) {
-                    FormHelper.clearFieldErrors($scope, name);
+                    if (name)
+                        FormHelper.clearFieldErrors($scope, name);
+                    else
+                        FormHelper.clearErrors($scope);
                 };
 
                 $scope.validate = function (name) {

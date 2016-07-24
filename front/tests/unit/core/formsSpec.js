@@ -4,7 +4,7 @@ describe('Form', function () {
 
     describe('InfoDialog', function () {
 
-        window['config'] = { apiUrl: '/mock-api' };
+        window['config'] = { api_url: '/mock-api' };
 
         beforeEach(function (){
             angular.mock.module('services', function (globalizeWrapperProvider) {
@@ -25,7 +25,7 @@ describe('Form', function () {
     describe('ValidationCtrl', function() {
 
         var ValidationCtrl, scope,
-            fields = {
+            model = {
                 login:    { name: 'login',    value: '', focus: true, required: true },
                 password: { name: 'password', value: '', focus: false, required: false },
             };
@@ -43,26 +43,22 @@ describe('Form', function () {
 
 
         it('initializes scope', function () {
-            var ctrl = ValidationCtrl(scope, undefined, fields, undefined, undefined),
-                model = {
-                    login:    { name: 'login',    value: '', focus: true, required: true },
-                    password: { name: 'password', value: '', focus: false, required: false },
-                };
+            var ctrl = ValidationCtrl(scope, undefined, model, undefined, undefined);
 
             expect(scope.model).toEqual(model);
             expect(scope.validation).toEqual({ messages: [], errors: {} });
          })
 
         it('resets validation', function () {
-            var ctrl = ValidationCtrl(scope, undefined, fields, undefined, undefined);
+            var ctrl = ValidationCtrl(scope, undefined, model, undefined, undefined);
 
-            scope.validation.fields = { field1: [ 'foo' ], field2: [ 'bar' ] };
+            scope.validation.errors = { login: [ 'foo' ], password: [ 'bar' ] };
             scope.resetValidation();
             expect(scope.validation.errors).toEqual({});
 
-            scope.validation.errors = { field1: [ 'foo' ], field2: [ 'bar' ] };
-            scope.resetValidation('field2');
-            expect(scope.validation.errors).toEqual({ field1: [ 'foo' ], field2: undefined });
+            scope.validation.errors = { login: [ 'foo' ], password: [ 'bar' ] };
+            scope.resetValidation('password');
+            expect(scope.validation.errors).toEqual({ login: [ 'foo' ], password: [] });
         });
 
         it('validates', inject(function ($q, $timeout) {
@@ -74,7 +70,7 @@ describe('Form', function () {
                 return deferred.promise;
             }
 
-            var ctrl = ValidationCtrl(scope, undefined, fields, validator, undefined);
+            var ctrl = ValidationCtrl(scope, undefined, model, validator, undefined);
             scope.model.login.value = 'foo';
             scope.model.password.value = 'bar';
 
@@ -95,7 +91,7 @@ describe('Form', function () {
                 return deferred.promise;
             }
 
-            var ctrl = ValidationCtrl(scope, undefined, fields, undefined, worker);
+            var ctrl = ValidationCtrl(scope, undefined, model, undefined, worker);
 
             scope.submit();
 

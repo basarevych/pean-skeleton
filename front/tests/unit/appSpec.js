@@ -4,7 +4,7 @@ var io = { connect: function () { return { on: function () {} }; } };
 
 describe('Application', function() {
 
-    window['config'] = { apiUrl: '/mock-api' };
+    window['config'] = { api_url: '/mock-api' };
 
     var $rootScope, spy, $httpBackend;
 

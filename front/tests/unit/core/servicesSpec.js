@@ -29,7 +29,7 @@ describe('Service', function() {
 
 
         beforeEach(function (){
-            window['config'] = { apiUrl: '/mock-api' };
+            window['config'] = { api_url: '/mock-api' };
             fakeLocale.current = 'en';
 
             angular.mock.module('services', function (globalizeWrapperProvider) {
