@@ -18,7 +18,7 @@ module.exports = function (app) {
         config = merge(config, obj);
     });
 
-    var dir = path.join(__dirname, '..', '..');
+    dir = path.join(__dirname, '..', '..');
     locator.init(config['services'], dir);
 
     // initial services

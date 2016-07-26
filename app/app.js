@@ -2,7 +2,7 @@
  * The application
  */
 
-'use strict'
+'use strict';
 
 // check .env file presence
 try {

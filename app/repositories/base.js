@@ -72,7 +72,7 @@ BaseRepository.prototype.restartTransaction = function (db, defer, transaction) 
         if (err) {
             db.end();
             defer.reject([ 'BaseRepository.restartTransaction() - rollback', err ]);
-            return error(err);
+            return;
         }
 
         var random = locator.get('random');

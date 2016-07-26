@@ -605,6 +605,8 @@ JobRepository.prototype.deleteAll = function () {
  * @param {function} cb         Completition callback
  */
 JobRepository.prototype._broadcastJob = function (job, cb) {
+    var logger = locator.get('logger');
+
     var redis = this.getRedis();
     redis.publish(process.env.PROJECT + ":jobs:" + job.getStatus(), job.getId(), function (err, reply) {
         if (err)

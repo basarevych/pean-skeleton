@@ -1,0 +1,3 @@
+#!/bin/sh
+
+find app/ -name "*.js" -and \! -name "*Spec.js" | xargs ./node_modules/.bin/jshint

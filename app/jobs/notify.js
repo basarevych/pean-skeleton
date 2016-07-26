@@ -28,6 +28,6 @@ module.exports = function (job) {
         .catch(function (err) {
             job.setStatus('failure');
             job.setOutputData({ error: err });
-            return jobRepository.save(job);
+            return jobRepo.save(job);
         });
 };
