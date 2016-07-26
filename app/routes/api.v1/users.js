@@ -2,7 +2,7 @@
  * User route
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var express = require('express');
@@ -140,33 +140,32 @@ module.exports = function () {
 
             if (!Array.isArray(value)) {
                 errors.push(glMessage('VALIDATOR_NOT_ARRAY'));
-            } else {
-                var toCheck = clone(value);
-                function checkRoles() {
-                    var role = toCheck.shift();
-                    if (!role)
-                        return defer.resolve({ value: value, errors: errors });
-
-                    var roleRepo = locator.get('role-repository');
-                    roleRepo.find(role)
-                        .then(function (roles) {
-                            if (roles.length == 0) {
-                                errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
-                                return defer.resolve({ value: value, errors: errors });
-                            }
-
-                            checkRoles();
-                        })
-                        .catch(function (err) {
-                            defer.reject(err);
-                        });
-                }
-                checkRoles();
-
+                defer.resolve({ value: value, errors: errors });
                 return defer.promise;
             }
 
-            defer.resolve({ value: value, errors: errors });
+            var toCheck = clone(value);
+            function checkRoles() {
+                var role = toCheck.shift();
+                if (!role)
+                    return defer.resolve({ value: value, errors: errors });
+
+                var roleRepo = locator.get('role-repository');
+                roleRepo.find(role)
+                    .then(function (roles) {
+                        if (roles.length === 0) {
+                            errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
+                            return defer.resolve({ value: value, errors: errors });
+                        }
+
+                        checkRoles();
+                    })
+                    .catch(function (err) {
+                        defer.reject(err);
+                    });
+            }
+
+            checkRoles();
             return defer.promise;
         }
     );
@@ -360,11 +359,11 @@ module.exports = function () {
 
                         return q.all(promises)
                             .then(function (userRoles) {
+                                var roleIds;
+                                function processRole(role) { roleIds.push(role.getId()); }
                                 for (var i = 0; i < userRoles.length; i++) {
-                                    var roleIds = [];
-                                    userRoles[i].forEach(function (role) {
-                                        roleIds.push(role.getId());
-                                    });
+                                    roleIds = [];
+                                    userRoles[i].forEach(processRole);
                                     result[i]['roles'] = roleIds;
                                 }
                                 res.json(result);
@@ -447,11 +446,11 @@ module.exports = function () {
 
                         return q.all(promises)
                             .then(function (userRoles) {
+                                var roleIds;
+                                function processRole(role) { roleIds.push(role.getId()); }
                                 for (var i = 0; i < userRoles.length; i++) {
-                                    var roleIds = [];
-                                    userRoles[i].forEach(function (role) {
-                                        roleIds.push(role.getId());
-                                    });
+                                    roleIds = [];
+                                    userRoles[i].forEach(processRole);
                                     result[i]['roles'] = roleIds;
                                 }
                                 res.json(result);
@@ -615,7 +614,7 @@ module.exports = function () {
 
                         return userRepo.delete(user)
                             .then(function (count) {
-                                if (count == 0)
+                                if (count === 0)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
@@ -641,7 +640,7 @@ module.exports = function () {
                 var userRepo = locator.get('user-repository');
                 return userRepo.deleteAll()
                     .then(function (count) {
-                        if (count == 0)
+                        if (count === 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });

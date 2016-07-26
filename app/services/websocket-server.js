@@ -38,7 +38,7 @@ function WebSocketServer() {
      *   ...
      * ]
      */
-};
+}
 
 /**
  * HTTP Web socket server setter
@@ -137,10 +137,10 @@ WebSocketServer.prototype.start = function () {
     var dir = path.join(__dirname, '..', 'messages');
     try {
         fs.readdirSync(dir).forEach(function (name) {
-            require(dir + '/' + name)(me);
+            require(path.join(dir, name))(me);
         });
     } catch (err) {
-        console.log('WebSocketServer.start() - ' + name, err);
+        logger.error('Could not read message file', err);
         process.exit(1);
     }
 
@@ -200,6 +200,7 @@ WebSocketServer.prototype.onDisconnect = function (socket) {
  */
 WebSocketServer.prototype.onToken = function (socket, data) {
     var config = locator.get('config');
+    var logger = locator.get('logger');
 
     var me = this;
     jwt.verify(data, config['jwt']['secret'], function (err, payload) {

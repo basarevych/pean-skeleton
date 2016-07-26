@@ -144,7 +144,7 @@ Validator.prototype.validateAll = function (req, res, id) {
     q.all(promises)
         .then(function () {
             var success = me.fields.every(function (field) {
-                return me.errors[field].length == 0;
+                return (me.errors[field].length === 0);
             });
             defer.resolve(success);
         })
@@ -179,7 +179,7 @@ Validator.prototype._validate = function (req, res, field, id) {
         .then(function (result) {
             me.values[field] = result.value;
             me.errors[field] = result.errors;
-            defer.resolve(result.errors.length == 0);
+            defer.resolve(result.errors.length === 0);
         })
         .catch(function (err) {
             logger.error('Validator.validateField', err);

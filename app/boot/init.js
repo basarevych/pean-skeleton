@@ -2,7 +2,7 @@
  * Load configuration
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var http = require('http');

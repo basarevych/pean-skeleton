@@ -2,7 +2,7 @@
  * Index route
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var express = require('express');

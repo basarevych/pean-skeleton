@@ -2,7 +2,7 @@
  * Role translation model
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -22,7 +22,7 @@ function RoleTranslationModel(model) {
     this.title = null;      // The translation
 
     BaseModel.call(this, model);
-};
+}
 
 RoleTranslationModel.prototype = new BaseModel();
 RoleTranslationModel.prototype.constructor = RoleTranslationModel;

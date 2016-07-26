@@ -2,7 +2,7 @@
  * Populate the database command
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var RoleModel = locator.get('role-model');

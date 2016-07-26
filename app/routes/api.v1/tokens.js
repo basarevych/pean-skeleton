@@ -2,7 +2,7 @@
  * Token route
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var express = require('express');
@@ -221,7 +221,7 @@ module.exports = function () {
                         return tokenRepo.delete(token);
                     })
                     .then(function (count) {
-                        if (count == 0)
+                        if (count === 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });
@@ -246,7 +246,7 @@ module.exports = function () {
                 var tokenRepo = locator.get('token-repository');
                 return tokenRepo.deleteAll()
                     .then(function (count) {
-                        if (count == 0)
+                        if (count === 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });

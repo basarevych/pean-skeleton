@@ -2,7 +2,7 @@
  * Role translation repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -39,9 +39,9 @@ RoleTranslationRepository.prototype.find = function (id) {
             return defer.reject([ 'RoleTranslationRepository.find() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM role_translations "
-          + " WHERE id = $1 ",
+            "SELECT * " +
+            "  FROM role_translations " +
+            " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
@@ -81,9 +81,9 @@ RoleTranslationRepository.prototype.findByRoleId = function (roleId) {
             return defer.reject([ 'RoleTranslationRepository.findByRoleId() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM role_translations "
-          + " WHERE role_id = $1 ",
+            "SELECT * " +
+            "  FROM role_translations " +
+            " WHERE role_id = $1 ",
             [ roleId ],
             function (err, result) {
                 if (err) {
@@ -124,9 +124,9 @@ RoleTranslationRepository.prototype.findByRoleIdAndLocale = function (roleId, lo
             return defer.reject([ 'RoleTranslationRepository.findByRoleIdAndLocale() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM role_translations "
-          + " WHERE role_id = $1 AND locale = $2 ",
+            "SELECT * " +
+            "  FROM role_translations " +
+            " WHERE role_id = $1 AND locale = $2 ",
             [ roleId, locale ],
             function (err, result) {
                 if (err) {
@@ -165,8 +165,8 @@ RoleTranslationRepository.prototype.findAll = function () {
             return defer.reject([ 'RoleTranslationRepository.findAll() - pg connect', err ]);
 
         db.query(
-            "  SELECT * "
-          + "    FROM role_translations ",
+            "  SELECT * " +
+            "    FROM role_translations ",
             function (err, result) {
                 if (err) {
                     db.end();
@@ -220,10 +220,10 @@ RoleTranslationRepository.prototype.save = function (translation) {
                     return defer.reject([ 'RoleTranslationRepository.save() - begin transaction', err ]);
                 }
 
-                var query = "SELECT id "
-                          + "  FROM role_translations "
-                          + " WHERE role_id = $1 "
-                          + "       AND locale = $2 ";
+                var query = "SELECT id " +
+                            "  FROM role_translations " +
+                            " WHERE role_id = $1 " +
+                            "       AND locale = $2 ";
                 var params = [
                     translation.getRoleId(),
                     translation.getLocale(),
@@ -260,11 +260,11 @@ RoleTranslationRepository.prototype.save = function (translation) {
                         }
 
                         if (translation.getId()) {
-                            query = "UPDATE role_translations "
-                                  + "   SET role_id = $1, "
-                                  + "       locale = $2, "
-                                  + "       title = $3 "
-                                  + " WHERE id = $4 ";
+                            query = "UPDATE role_translations " +
+                                    "   SET role_id = $1, " +
+                                    "       locale = $2, " +
+                                    "       title = $3 " +
+                                    " WHERE id = $4 ";
                             params = [
                                 translation.getRoleId(),
                                 translation.getLocale(),
@@ -272,10 +272,10 @@ RoleTranslationRepository.prototype.save = function (translation) {
                                 translation.getId(),
                             ];
                         } else {
-                            query = "   INSERT "
-                                  + "     INTO role_translations(role_id, locale, title) "
-                                  + "   VALUES ($1, $2, $3) "
-                                  + "RETURNING id ";
+                            query = "   INSERT " +
+                                    "     INTO role_translations(role_id, locale, title) " +
+                                    "   VALUES ($1, $2, $3) " +
+                                    "RETURNING id ";
                             params = [
                                 translation.getRoleId(),
                                 translation.getLocale(),
@@ -341,9 +341,9 @@ RoleTranslationRepository.prototype.delete = function (translation) {
             return defer.reject([ 'RoleTranslationRepository.delete() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM role_translations "
-          + " WHERE id = $1 ",
+            "DELETE " +
+            "  FROM role_translations " +
+            " WHERE id = $1 ",
             [ translation.getId() ],
             function (err, result) {
                 if (err) {
@@ -378,8 +378,8 @@ RoleTranslationRepository.prototype.deleteAll = function () {
             return defer.reject([ 'RoleTranslationRepository.deleteAll() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM role_translations ",
+            "DELETE " +
+            "  FROM role_translations ",
             function (err, result) {
                 if (err) {
                     db.end();

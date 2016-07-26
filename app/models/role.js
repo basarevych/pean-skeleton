@@ -2,7 +2,7 @@
  * Role model
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -21,7 +21,7 @@ function RoleModel(model) {
     this.handle = null;     // Unique text ID
 
     BaseModel.call(this, model);
-};
+}
 
 RoleModel.prototype = new BaseModel();
 RoleModel.prototype.constructor = RoleModel;

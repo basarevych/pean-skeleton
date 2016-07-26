@@ -67,19 +67,19 @@ Acl.prototype.isAllowed = function (user, resource, action) {
     roleRepo.findByUserId(user.getId())
         .then(function (roles) {
             var loadPromises = [];
-            roles.forEach(function (role) { loadPromises.push(loadRolePermissions(role.getId())) });
+            roles.forEach(function (role) { loadPromises.push(loadRolePermissions(role.getId())); });
 
             return q.all(loadPromises)
                 .then(function () {
                     var allowed = allPermissions.some(function (permission) {
                         var resourceAllowed = false;
-                        if (permission.getResource() == null)
+                        if (permission.getResource() === null)
                             resourceAllowed = true;
                         else if (permission.getResource() == resource)
                             resourceAllowed = true;
 
                         var actionAllowed = false;
-                        if (permission.getAction() == null)
+                        if (permission.getAction() === null)
                             actionAllowed = true;
                         else if (permission.getAction() == action)
                             actionAllowed = true;

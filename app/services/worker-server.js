@@ -17,7 +17,7 @@ var q = require('q');
  */
 function WorkerServer() {
     this.timer = null;
-};
+}
 
 WorkerServer.INTERVAL = 10000;      // Job polling interval
 
@@ -123,7 +123,7 @@ WorkerServer.prototype.now = function () {
  * @return {string}             Returns padded string
  */
 WorkerServer.prototype.padZero = function (number) {
-    var output = new String(number);
+    var output = String(number);
     if (output.length == 1)
         output = '0' + output;
     return output;

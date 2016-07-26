@@ -2,7 +2,7 @@
  * Job repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -39,9 +39,9 @@ JobRepository.prototype.find = function (id) {
             return defer.reject([ 'JobRepository.find() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM jobs "
-          + " WHERE id = $1 ",
+            "SELECT * " +
+            "  FROM jobs " +
+            " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
@@ -81,9 +81,9 @@ JobRepository.prototype.findByName = function (name) {
             return defer.reject([ 'JobRepository.findByName() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM jobs "
-          + " WHERE name = $1 ",
+            "SELECT * " +
+            "  FROM jobs " +
+            " WHERE name = $1 ",
             [ name ],
             function (err, result) {
                 if (err) {
@@ -122,8 +122,8 @@ JobRepository.prototype.findAll = function () {
             return defer.reject([ 'JobRepository.findAll() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM jobs ",
+            "SELECT * " +
+            "  FROM jobs ",
             function (err, result) {
                 if (err) {
                     db.end();
@@ -165,16 +165,16 @@ JobRepository.prototype.save = function (job) {
 
         var query, params = [];
         if (job.getId()) {
-            query = "UPDATE jobs "
-                  + "   SET name = $1, "
-                  + "       queue = $2, "
-                  + "       status = $3, "
-                  + "       created_at = $4, "
-                  + "       scheduled_for = $5, "
-                  + "       valid_until = $6, "
-                  + "       input_data = $7, "
-                  + "       output_data = $8 "
-                  + " WHERE id = $9 ";
+            query = "UPDATE jobs " +
+                    "   SET name = $1, " +
+                    "       queue = $2, " +
+                    "       status = $3, " +
+                    "       created_at = $4, " +
+                    "       scheduled_for = $5, " +
+                    "       valid_until = $6, " +
+                    "       input_data = $7, " +
+                    "       output_data = $8 " +
+                    " WHERE id = $9 ";
             params = [
                 job.getName(),
                 job.getQueue(),
@@ -187,10 +187,10 @@ JobRepository.prototype.save = function (job) {
                 job.getId(),
             ];
         } else {
-            query = "   INSERT "
-                  + "     INTO jobs(name, queue, status, created_at, scheduled_for, valid_until, input_data, output_data) "
-                  + "   VALUES ($1, $2, $3, $4, $5, $6, $7, $8) "
-                  + "RETURNING id ";
+            query = "   INSERT " +
+                    "     INTO jobs(name, queue, status, created_at, scheduled_for, valid_until, input_data, output_data) " +
+                    "   VALUES ($1, $2, $3, $4, $5, $6, $7, $8) " +
+                    "RETURNING id ";
             params = [
                 job.getName(),
                 job.getQueue(),
@@ -263,9 +263,9 @@ JobRepository.prototype.processNewJobs = function () {
                 job.setStatus('expired');
 
                 db.query(
-                    "UPDATE jobs "
-                  + "   SET status = $1 "
-                  + " WHERE id = $2 ",
+                    "UPDATE jobs " +
+                    "   SET status = $1 " +
+                    " WHERE id = $2 ",
                     [ 'expired', job.getId() ],
                     function (err, result) {
                         if (err)
@@ -283,9 +283,9 @@ JobRepository.prototype.processNewJobs = function () {
                 job.setStatus('started');
 
                 db.query(
-                    "UPDATE jobs "
-                  + "   SET status = $1 "
-                  + " WHERE id = $2 ",
+                    "UPDATE jobs " +
+                    "   SET status = $1 " +
+                    " WHERE id = $2 ",
                     [ 'started', job.getId() ],
                     function (err, result) {
                         if (err)
@@ -315,10 +315,10 @@ JobRepository.prototype.processNewJobs = function () {
                 }
 
                 db.query(
-                    "  SELECT * "
-                  + "    FROM jobs "
-                  + "   WHERE queue IS NULL AND status = $1 AND scheduled_for <= $2 "
-                  + "ORDER BY created_at ASC ",
+                    "  SELECT * " +
+                    "    FROM jobs " +
+                    "   WHERE queue IS NULL AND status = $1 AND scheduled_for <= $2 " +
+                    "ORDER BY created_at ASC ",
                     [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
                     function (err, result) {
                         if (err) {
@@ -341,9 +341,9 @@ JobRepository.prototype.processNewJobs = function () {
                         q.all(promises)
                             .then(function () {
                                 db.query(
-                                    "  SELECT DISTINCT queue AS queue "
-                                  + "    FROM jobs "
-                                  + "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
+                                    "  SELECT DISTINCT queue AS queue " +
+                                    "    FROM jobs " +
+                                    "   WHERE queue IS NOT NULL AND status = $1 AND scheduled_for <= $2 ",
                                     [ 'created', now.tz('UTC').format(BaseModel.DATETIME_FORMAT) ],
                                     function (err, result) {
                                         if (err) {
@@ -361,9 +361,9 @@ JobRepository.prototype.processNewJobs = function () {
                                             promises.push(jobDefer.promise);
 
                                             db.query(
-                                                "  SELECT COUNT(*) AS count "
-                                              + "    FROM jobs "
-                                              + "   WHERE queue = $1 AND status = $2 ",
+                                                "  SELECT COUNT(*) AS count " +
+                                                "    FROM jobs " +
+                                                "   WHERE queue = $1 AND status = $2 ",
                                                 [ row['queue'], 'started' ],
                                                 function (err, result) {
                                                     if (err)
@@ -373,11 +373,11 @@ JobRepository.prototype.processNewJobs = function () {
                                                         jobDefer.resolve();
                                                     } else {
                                                         db.query(
-                                                            "  SELECT * "
-                                                          + "    FROM jobs "
-                                                          + "   WHERE queue = $1 AND status = $2 "
-                                                          + "ORDER BY created_at ASC, id ASC "
-                                                          + "   LIMIT 1 ",
+                                                            "  SELECT * " +
+                                                            "    FROM jobs " +
+                                                            "   WHERE queue = $1 AND status = $2 " +
+                                                            "ORDER BY created_at ASC, id ASC " +
+                                                            "   LIMIT 1 ",
                                                             [ row['queue'], 'created' ],
                                                             function (err, result) {
                                                                 if (err)
@@ -411,7 +411,7 @@ JobRepository.prototype.processNewJobs = function () {
                                                         if (!job)
                                                             return defer.resolve(returnValue);
 
-                                                        me._broadcastJob(job, function () { broadcastJob() });
+                                                        me._broadcastJob(job, function () { broadcastJob(); });
                                                     }
                                                     broadcastJob();
                                                 });
@@ -461,9 +461,9 @@ JobRepository.prototype.restartInterrupted = function () {
             return defer.reject([ 'JobRepository.restartInterrupted() - pg connect', err ]);
 
         db.query(
-            "UPDATE jobs "
-          + "   SET status = $1 "
-          + " WHERE status = $2 ",
+            "UPDATE jobs " +
+            "   SET status = $1 " +
+            " WHERE status = $2 ",
             [ 'created', 'started' ],
             function (err, result) {
                 if (err) {
@@ -504,10 +504,10 @@ JobRepository.prototype.postponeJob = function (job, interval) {
             return defer.reject([ 'JobRepository.postponeJob() - pg connect', err ]);
 
         db.query(
-            "UPDATE jobs "
-          + "   SET status = $1, "
-          + "       scheduled_for = $2 "
-          + " WHERE id = $3 ",
+            "UPDATE jobs " +
+            "   SET status = $1, " +
+            "       scheduled_for = $2 " +
+            " WHERE id = $3 ",
             [
                 'created',
                 newTime.tz('UTC').format(BaseModel.DATETIME_FORMAT), // save in UTC
@@ -544,9 +544,9 @@ JobRepository.prototype.delete = function (job) {
             return defer.reject([ 'JobRepository.delete() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM jobs "
-          + " WHERE id = $1 ",
+            "DELETE " +
+            "  FROM jobs " +
+            " WHERE id = $1 ",
             [ job.getId() ],
             function (err, result) {
                 if (err) {
@@ -581,8 +581,8 @@ JobRepository.prototype.deleteAll = function () {
             return defer.reject([ 'JobRepository.deleteAll() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM jobs ",
+            "DELETE " +
+            "  FROM jobs ",
             function (err, result) {
                 if (err) {
                     db.end();

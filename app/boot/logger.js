@@ -2,7 +2,7 @@
  * Initialize logger
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var logger = require('tracer').colorConsole();
@@ -14,7 +14,7 @@ module.exports = function (app) {
     logger.error = function () {
         if (config['error']['logger_error']['enabled']) { // send the error via email
             var emailer = locator.get('emailer');
-            var errors = arguments
+            var errors = arguments;
             app.render(
                 'email/logger-error-text',
                 {

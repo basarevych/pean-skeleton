@@ -2,7 +2,7 @@
  * Token repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -39,9 +39,9 @@ TokenRepository.prototype.find = function (id) {
             return defer.reject([ 'TokenRepository.find() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM tokens "
-          + " WHERE id = $1 ",
+            "SELECT * " +
+            "  FROM tokens " +
+            " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
@@ -81,9 +81,9 @@ TokenRepository.prototype.findByUserId = function (userId) {
             return defer.reject([ 'TokenRepository.findByUserId() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM tokens "
-          + " WHERE user_id = $1 ",
+            "SELECT * " +
+            "  FROM tokens " +
+            " WHERE user_id = $1 ",
             [ userId ],
             function (err, result) {
                 if (err) {
@@ -122,8 +122,8 @@ TokenRepository.prototype.findAll = function () {
             return defer.reject([ 'TokenRepository.findAll() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM tokens ",
+            "SELECT * " +
+            "  FROM tokens ",
             function (err, result) {
                 if (err) {
                     db.end();
@@ -163,12 +163,12 @@ TokenRepository.prototype.save = function (token) {
         token.setUpdatedAt(moment());
 
         db.query(
-            "UPDATE tokens "
-          + "   SET user_id = $1, "
-          + "       payload = $2, "
-          + "       ip_address = $3, "
-          + "       updated_at = $4 "
-          + " WHERE id = $5 ",
+            "UPDATE tokens " +
+            "   SET user_id = $1, " +
+            "       payload = $2, " +
+            "       ip_address = $3, " +
+            "       updated_at = $4 " +
+            " WHERE id = $5 ",
             [
                 token.getUserId(),
                 JSON.stringify(token.getPayload()),
@@ -180,7 +180,7 @@ TokenRepository.prototype.save = function (token) {
                 if (err)
                     return updateDefer.reject([ 'TokenRepository.save() - update query', err ]);
 
-                var id = result.rowCount > 0 ? token.getId() : null
+                var id = result.rowCount > 0 ? token.getId() : null;
 
                 if (id)
                     token.dirty(false);
@@ -208,10 +208,10 @@ TokenRepository.prototype.save = function (token) {
                 });
         } else {
             db.query(
-                "   INSERT "
-              + "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) "
-              + "   VALUES ($1, $2, $3, $4, $5) "
-              + "RETURNING id ",
+                "   INSERT " +
+                "     INTO tokens(user_id, payload, ip_address, created_at, updated_at) " +
+                "   VALUES ($1, $2, $3, $4, $5) " +
+                "RETURNING id ",
                 [
                     token.getUserId(),
                     JSON.stringify(token.getPayload()),
@@ -264,9 +264,9 @@ TokenRepository.prototype.delete = function (token) {
             return defer.reject([ 'TokenRepository.delete() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM tokens "
-          + " WHERE id = $1 ",
+            "DELETE " +
+            "  FROM tokens " +
+            " WHERE id = $1 ",
             [ token.getId() ],
             function (err, result) {
                 if (err) {
@@ -304,9 +304,9 @@ TokenRepository.prototype.deleteExpired = function () {
             return defer.reject([ 'TokenRepository.deleteExpired() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM tokens "
-          + " WHERE updated_at < $1 ",
+            "DELETE " +
+            "  FROM tokens " +
+            " WHERE updated_at < $1 ",
             [
                 time.tz('UTC').format(BaseModel.DATETIME_FORMAT), // DB uses UTC
             ],
@@ -341,8 +341,8 @@ TokenRepository.prototype.deleteAll = function () {
             return defer.reject([ 'TokenRepository.deleteAll() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM tokens ",
+            "DELETE " +
+            "  FROM tokens ",
             function (err, result) {
                 if (err) {
                     db.end();

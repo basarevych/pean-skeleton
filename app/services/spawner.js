@@ -86,13 +86,13 @@ Spawner.prototype.exec = function (command, params, expect, options, cb) {
             return;
 
         data.toString().split('\n').forEach(function (line) {
+            function sendKey(send) {
+                setTimeout(function () { cmd.write(send + "\r"); }, 250);
+            }
             for (var key in expect) {
                 var re = new RegExp(key, "i");
-                if (re.test(line)) {
-                    (function (send) {
-                        setTimeout(function () { cmd.write(send + "\r"); }, 250);
-                    })(expect[key]);
-                }
+                if (re.test(line))
+                    sendKey(expect[key]);
             }
         });
     });
@@ -133,13 +133,13 @@ function Subprocess(cmd, expect) {
     if (typeof expect == 'object' && expect !== null) {
         cmd.on('data', function (data) {
             data.toString().split('\n').forEach(function (line) {
+                function sendKey(send) {
+                    setTimeout(function () { cmd.write(send + "\r"); }, 250);
+                }
                 for (var key in expect) {
                     var re = new RegExp(key, "i");
-                    if (re.test(line)) {
-                        (function (send) {
-                            setTimeout(function () { cmd.write(send + "\r"); }, 250);
-                        })(expect[key]);
-                    }
+                    if (re.test(line))
+                        sendKey(expect[key]);
                 }
             });
         });
@@ -154,7 +154,7 @@ function Subprocess(cmd, expect) {
 
         me.defer.reject(err);
     });
-};
+}
 
 /**
  * Get pty.js object

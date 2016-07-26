@@ -2,7 +2,7 @@
  * Setup JSON Web Tokens
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var jwt = require('jsonwebtoken');

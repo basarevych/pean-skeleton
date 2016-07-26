@@ -2,7 +2,7 @@
  * Job model
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -27,7 +27,7 @@ function JobModel(model) {
     this.output_data = {};
 
     BaseModel.call(this, model);
-};
+}
 
 JobModel.STATUS_TYPES = [
     'created',

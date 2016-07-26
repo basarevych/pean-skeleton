@@ -2,7 +2,7 @@
  * Permission repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -39,9 +39,9 @@ PermissionRepository.prototype.find = function (id) {
             return defer.reject([ 'PermissionRepository.find() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM permissions "
-          + " WHERE id = $1 ",
+            "SELECT * " +
+            "  FROM permissions " +
+            " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
@@ -81,9 +81,9 @@ PermissionRepository.prototype.findByRoleId = function (roleId) {
             return defer.reject([ 'PermissionRepository.findByRoleId() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM permissions "
-          + " WHERE role_id = $1 ",
+            "SELECT * " +
+            "  FROM permissions " +
+            " WHERE role_id = $1 ",
             [ roleId ],
             function (err, result) {
                 if (err) {
@@ -148,9 +148,9 @@ PermissionRepository.prototype.findByParams = function (roleId, resource, action
             return defer.reject([ 'PermissionRepository.findByParams() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM permissions "
-          + " WHERE " + ands.join(' AND '),
+            "SELECT * " +
+            "  FROM permissions " +
+            " WHERE " + ands.join(' AND '),
             params,
             function (err, result) {
                 if (err) {
@@ -189,8 +189,8 @@ PermissionRepository.prototype.findAll = function () {
             return defer.reject([ 'PermissionRepository.findAll() - pg connect', err ]);
 
         db.query(
-            "  SELECT * "
-          + "    FROM permissions ",
+            "  SELECT * " +
+            "    FROM permissions ",
             function (err, result) {
                 if (err) {
                     db.end();
@@ -230,11 +230,11 @@ PermissionRepository.prototype.save = function (permission) {
 
         var query, params = [];
         if (permission.getId()) {
-            query = "UPDATE permissions "
-                  + "   SET role_id = $1, "
-                  + "       resource = $2, "
-                  + "       action = $3 "
-                  + " WHERE id = $4 ";
+            query = "UPDATE permissions " +
+                    "   SET role_id = $1, " +
+                    "       resource = $2, " +
+                    "       action = $3 " +
+                    " WHERE id = $4 ";
             params = [
                 permission.getRoleId(),
                 permission.getResource(),
@@ -242,10 +242,10 @@ PermissionRepository.prototype.save = function (permission) {
                 permission.getId(),
             ];
         } else {
-            query = "   INSERT "
-                  + "     INTO permissions(role_id, resource, action) "
-                  + "   VALUES ($1, $2, $3) "
-                  + "RETURNING id ";
+            query = "   INSERT " +
+                    "     INTO permissions(role_id, resource, action) " +
+                    "   VALUES ($1, $2, $3) " +
+                    "RETURNING id ";
             params = [
                 permission.getRoleId(),
                 permission.getResource(),
@@ -293,9 +293,9 @@ PermissionRepository.prototype.delete = function (permission) {
             return defer.reject([ 'PermissionRepository.delete() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM permissions "
-          + " WHERE id = $1 ",
+            "DELETE " +
+            "  FROM permissions " +
+            " WHERE id = $1 ",
             [ permission.getId() ],
             function (err, result) {
                 if (err) {
@@ -330,8 +330,8 @@ PermissionRepository.prototype.deleteAll = function () {
             return defer.reject([ 'PermissionRepository.deleteAll() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM permissions ",
+            "DELETE " +
+            "  FROM permissions ",
             function (err, result) {
                 if (err) {
                     db.end();

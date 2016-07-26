@@ -2,7 +2,7 @@
  * Role route
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var express = require('express');
@@ -44,7 +44,7 @@ module.exports = function () {
                     var roleRepo = locator.get('role-repository');
                     roleRepo.find(value)
                         .then(function (roles) {
-                            if (roles.length == 0)
+                            if (roles.length === 0)
                                 errors.push(glMessage('VALIDATOR_NOT_IN_SET'));
                             defer.resolve({ value: value, errors: errors });
                         })
@@ -318,7 +318,7 @@ module.exports = function () {
                         var roles = result[0];
                         var translations = result[1];
 
-                        var result = [];
+                        result = [];
                         if (req.query.view === 'tree') {
                             result = loadRoles(roles, translations, null);
                         } else {
@@ -551,7 +551,7 @@ module.exports = function () {
 
                         return roleRepo.delete(role)
                             .then(function (count) {
-                                if (count == 0)
+                                if (count === 0)
                                     return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                                 res.json({ success: true });
@@ -577,7 +577,7 @@ module.exports = function () {
                 var roleRepo = locator.get('role-repository');
                 return roleRepo.deleteAll()
                     .then(function (count) {
-                        if (count == 0)
+                        if (count === 0)
                             return res.json({ success: false, messages: [ res.locals.glMessage('ERROR_OPERATION_FAILED') ] });
 
                         res.json({ success: true });

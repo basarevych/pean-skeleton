@@ -2,7 +2,7 @@
  * Role repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -39,9 +39,9 @@ RoleRepository.prototype.find = function (id) {
             return defer.reject([ 'RoleRepository.find() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM roles "
-          + " WHERE id = $1 ",
+            "SELECT * " +
+            "  FROM roles " +
+            " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
@@ -81,9 +81,9 @@ RoleRepository.prototype.findByHandle = function (handle) {
             return defer.reject([ 'RoleRepository.findByHandle() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM roles "
-          + " WHERE handle = $1 ",
+            "SELECT * " +
+            "  FROM roles " +
+            " WHERE handle = $1 ",
             [ handle ],
             function (err, result) {
                 if (err) {
@@ -123,11 +123,11 @@ RoleRepository.prototype.findByUserId = function (userId) {
             return defer.reject([ 'RoleRepository.findByUserId() - pg connect', err ]);
 
         db.query(
-            "    SELECT r.* "
-          + "      FROM roles r "
-          + "INNER JOIN user_roles ur "
-          + "        ON ur.role_id = r.id "
-          + "     WHERE ur.user_id = $1 ",
+            "    SELECT r.* " +
+            "      FROM roles r " +
+            "INNER JOIN user_roles ur " +
+            "        ON ur.role_id = r.id " +
+            "     WHERE ur.user_id = $1 ",
             [ userId ],
             function (err, result) {
                 if (err) {
@@ -166,9 +166,9 @@ RoleRepository.prototype.findAll = function () {
             return defer.reject([ 'RoleRepository.findAll() - pg connect', err ]);
 
         db.query(
-            "  SELECT * "
-          + "    FROM roles "
-          + "ORDER BY handle ",
+            "  SELECT * " +
+            "    FROM roles " +
+            "ORDER BY handle ",
             function (err, result) {
                 if (err) {
                     db.end();
@@ -222,9 +222,9 @@ RoleRepository.prototype.save = function (role) {
                     return defer.reject([ 'RoleRepository.save() - begin transaction', err ]);
                 }
 
-                var query = "SELECT handle "
-                          + "  FROM roles "
-                          + " WHERE handle = $1 ";
+                var query = "SELECT handle " +
+                            "  FROM roles " +
+                            " WHERE handle = $1 ";
                 var params = [
                     role.getHandle()
                 ];
@@ -260,20 +260,20 @@ RoleRepository.prototype.save = function (role) {
                         }
 
                         if (role.getId()) {
-                            query = "UPDATE roles "
-                                  + "   SET parent_id = $1, "
-                                  + "       handle = $2 "
-                                  + " WHERE id = $3 ";
+                            query = "UPDATE roles " +
+                                    "   SET parent_id = $1, " +
+                                    "       handle = $2 " +
+                                    " WHERE id = $3 ";
                             params = [
                                 role.getParentId(),
                                 role.getHandle(),
                                 role.getId(),
                             ];
                         } else {
-                            query = "   INSERT "
-                                  + "     INTO roles(parent_id, handle) "
-                                  + "   VALUES ($1, $2) "
-                                  + "RETURNING id ";
+                            query = "   INSERT " +
+                                    "     INTO roles(parent_id, handle) " +
+                                    "   VALUES ($1, $2) " +
+                                    "RETURNING id ";
                             params = [
                                 role.getParentId(),
                                 role.getHandle(),
@@ -338,9 +338,9 @@ RoleRepository.prototype.delete = function (role) {
             return defer.reject([ 'RoleRepository.delete() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM roles "
-          + " WHERE id = $1 ",
+            "DELETE " +
+            "  FROM roles " +
+            " WHERE id = $1 ",
             [ role.getId() ],
             function (err, result) {
                 if (err) {
@@ -375,8 +375,8 @@ RoleRepository.prototype.deleteAll = function () {
             return defer.reject([ 'RoleRepository.deleteAll() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM roles ",
+            "DELETE " +
+            "  FROM roles ",
             function (err, result) {
                 if (err) {
                     db.end();

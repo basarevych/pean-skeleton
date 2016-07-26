@@ -13,7 +13,7 @@ var q = require('q');
  * @constructor
  */
 function Random() {
-};
+}
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive)

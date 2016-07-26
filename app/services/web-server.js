@@ -17,7 +17,7 @@ var fs = require('fs');
 function WebServer() {
     this.httpServer = null;
     this.httpsServer = null;
-};
+}
 
 /**
  * HTTP Server setter
@@ -97,7 +97,7 @@ WebServer.prototype.startHttps = function (host, port, key, cert, ca) {
         caParts.forEach(function (ca) {
             if (ca.length)
                 caArray.push('-----BEGIN CERTIFICATE-----' + ca);
-        })
+        });
 
         options['ca'] = caArray;
     }

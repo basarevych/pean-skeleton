@@ -2,7 +2,7 @@
  * Initialize translations
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var merge = require('merge');
@@ -122,7 +122,7 @@ module.exports = function (app) {
          * @param {string} [locale]             Use non-default locale
          * @return {string}                     Returns translation
          */
-        res.locals.glNumber = function (input, params) {
+        res.locals.glNumber = function (input) {
             var params = {}, locale = lang, output = input;
             if (arguments.length == 3) {
                 params = arguments[1];

@@ -2,7 +2,7 @@
  * Load application routers
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var fs = require('fs');

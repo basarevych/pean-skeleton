@@ -2,7 +2,7 @@
  * Send web-interface notification job
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var NotificationModel = locator.get('notification-model');

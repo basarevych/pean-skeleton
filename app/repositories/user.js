@@ -2,7 +2,7 @@
  * User repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -39,9 +39,9 @@ UserRepository.prototype.find = function (id) {
             return defer.reject([ 'UserRepository.find() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM users "
-          + " WHERE id = $1 ",
+            "SELECT * " +
+            "  FROM users " +
+            " WHERE id = $1 ",
             [ id ],
             function (err, result) {
                 if (err) {
@@ -81,9 +81,9 @@ UserRepository.prototype.findByEmail = function (email) {
             return defer.reject([ 'UserRepository.findByEmail() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM users "
-          + " WHERE email = $1 ",
+            "SELECT * " +
+            "  FROM users " +
+            " WHERE email = $1 ",
             [ email ],
             function (err, result) {
                 if (err) {
@@ -123,11 +123,11 @@ UserRepository.prototype.findByRoleId = function (roleId) {
             return defer.reject([ 'UserRepository.findByRoleId() - pg connect', err ]);
 
         db.query(
-            "    SELECT u.* "
-          + "      FROM users u "
-          + "INNER JOIN user_roles ur "
-          + "        ON ur.user_id = u.id "
-          + "     WHERE ur.role_id = $1 ",
+            "    SELECT u.* " +
+            "      FROM users u " +
+            "INNER JOIN user_roles ur " +
+            "        ON ur.user_id = u.id " +
+            "     WHERE ur.role_id = $1 ",
             [ roleId ],
             function (err, result) {
                 if (err) {
@@ -167,13 +167,13 @@ UserRepository.prototype.findByRoleHandle = function (handle) {
             return defer.reject([ 'UserRepository.findByRoleHandle() - pg connect', err ]);
 
         db.query(
-            "    SELECT u.* "
-          + "      FROM users u "
-          + "INNER JOIN user_roles ur "
-          + "        ON ur.user_id = u.id "
-          + "INNER JOIN roles r "
-          + "        ON r.id = ur.role_id "
-          + "     WHERE r.handle = $1 ",
+            "    SELECT u.* " +
+            "      FROM users u " +
+            "INNER JOIN user_roles ur " +
+            "        ON ur.user_id = u.id " +
+            "INNER JOIN roles r " +
+            "        ON r.id = ur.role_id " +
+            "     WHERE r.handle = $1 ",
             [ handle ],
             function (err, result) {
                 if (err) {
@@ -212,8 +212,8 @@ UserRepository.prototype.findAll = function () {
             return defer.reject([ 'UserRepository.findAll() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM users ",
+            "SELECT * " +
+            "  FROM users ",
             function (err, result) {
                 if (err) {
                     db.end();
@@ -253,10 +253,10 @@ UserRepository.prototype.searchByEmail = function (search, limit) {
             return defer.reject([ 'UserRepository.searchByEmail() - pg connect', err ]);
 
         db.query(
-            "SELECT * "
-          + "  FROM users "
-          + " WHERE email LIKE $1 "
-          + " LIMIT $2 ",
+            "SELECT * " +
+            "  FROM users " +
+            " WHERE email LIKE $1 " +
+            " LIMIT $2 ",
             [ '%' + search + '%', limit ],
             function (err, result) {
                 if (err) {
@@ -311,9 +311,9 @@ UserRepository.prototype.save = function (user) {
                     return defer.reject([ 'UserRepository.save() - begin transaction', err ]);
                 }
 
-                var query = "SELECT email "
-                          + "  FROM users "
-                          + " WHERE email = $1 ";
+                var query = "SELECT email " +
+                            "  FROM users " +
+                            " WHERE email = $1 ";
                 var params = [
                     user.getEmail()
                 ];
@@ -349,12 +349,12 @@ UserRepository.prototype.save = function (user) {
                         }
 
                         if (user.getId()) {
-                            query = "UPDATE users "
-                                  + "   SET name = $1, "
-                                  + "       email = $2, "
-                                  + "       password = $3, "
-                                  + "       created_at = $4 "
-                                  + " WHERE id = $5 ";
+                            query = "UPDATE users " +
+                                    "   SET name = $1, " +
+                                    "       email = $2, " +
+                                    "       password = $3, " +
+                                    "       created_at = $4 " +
+                                    " WHERE id = $5 ";
                             params = [
                                 user.getName(),
                                 user.getEmail(),
@@ -363,10 +363,10 @@ UserRepository.prototype.save = function (user) {
                                 user.getId(),
                             ];
                         } else {
-                            query = "   INSERT "
-                                  + "     INTO users(name, email, password, created_at) "
-                                  + "   VALUES ($1, $2, $3, $4) "
-                                  + "RETURNING id ";
+                            query = "   INSERT " +
+                                    "     INTO users(name, email, password, created_at) " +
+                                    "   VALUES ($1, $2, $3, $4) " +
+                                    "RETURNING id ";
                             params = [
                                 user.getName(),
                                 user.getEmail(),
@@ -448,10 +448,10 @@ UserRepository.prototype.addRole = function (user, role) {
                 }
 
                 db.query(
-                    "SELECT count(*) AS count "
-                  + "  FROM user_roles "
-                  + " WHERE user_id = $1 "
-                  + "       AND role_id = $2 ",
+                    "SELECT count(*) AS count " +
+                    "  FROM user_roles " +
+                    " WHERE user_id = $1 " +
+                    "       AND role_id = $2 ",
                     [ user.getId(), role.getId() ],
                     function (err, result) {
                         if (err) {
@@ -476,9 +476,9 @@ UserRepository.prototype.addRole = function (user, role) {
                         }
 
                         db.query(
-                            "   INSERT "
-                          + "     INTO user_roles(user_id, role_id) "
-                          + "   VALUES ($1, $2) ",
+                            "   INSERT " +
+                            "     INTO user_roles(user_id, role_id) " +
+                            "   VALUES ($1, $2) ",
                             [ user.getId(), role.getId() ],
                             function (err, result) {
                                 if (err) {
@@ -531,9 +531,9 @@ UserRepository.prototype.removeRole = function (user, role) {
             return defer.reject([ 'UserRepository.removeRole() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM user_roles "
-          + " WHERE user_id = $1 AND role_id = $2 ",
+            "DELETE " +
+            "  FROM user_roles " +
+            " WHERE user_id = $1 AND role_id = $2 ",
             [ user.getId(), role.getId() ],
             function (err, result) {
                 if (err) {
@@ -566,9 +566,9 @@ UserRepository.prototype.delete = function (user) {
             return defer.reject([ 'UserRepository.delete() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM users "
-          + " WHERE id = $1 ",
+            "DELETE " +
+            "  FROM users " +
+            " WHERE id = $1 ",
             [ user.getId() ],
             function (err, result) {
                 if (err) {
@@ -603,8 +603,8 @@ UserRepository.prototype.deleteAll = function () {
             return defer.reject([ 'UserRepository.deleteAll() - pg connect', err ]);
 
         db.query(
-            "DELETE "
-          + "  FROM users ",
+            "DELETE " +
+            "  FROM users ",
             function (err, result) {
                 if (err) {
                     db.end();

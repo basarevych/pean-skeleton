@@ -2,7 +2,7 @@
  * Send and receive web-interface notifications
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var validator = require('validator');
@@ -78,14 +78,14 @@ module.exports = function (server) {
                     job.setCreatedAt(moment());
                     job.setScheduledFor(scheduledFor);
                     job.setValidUntil(clone(scheduledFor).add(5, 'minutes'));
-                    job.setInputData(notification.data())
+                    job.setInputData(notification.data());
                     job.setOutputData({});
 
                     var jobRepo = locator.get('job-repository');
-                    return jobRepo.save(job)
+                    return jobRepo.save(job);
                 } else {
                     var notificationRepo = locator.get('notification-repository');
-                    return notificationRepo.save(notification)
+                    return notificationRepo.save(notification);
                 }
             })
             .catch(function (err) {

@@ -6,7 +6,7 @@
 
 var locator = require('node-service-locator');
 var q = require('q');
-var emailjs = require('emailjs/email')
+var emailjs = require('emailjs/email');
 
 /**
  * Email service

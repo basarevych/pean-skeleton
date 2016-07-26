@@ -30,7 +30,7 @@ Filer.prototype.read = function (fd) {
         if (err)
             return defer.reject(err);
 
-        if (stats.size == 0)
+        if (stats.size === 0)
             return defer.resolve('');
 
         var buffer = new Buffer(stats.size);
@@ -241,11 +241,11 @@ Filer.prototype.lockUpdateBuffer = function (filename, cb, mode, uid, gid) {
 
         me.read(fd)
             .then(function (buffer) {
-                return cb(buffer)
+                return cb(buffer);
             })
             .then(function (newBuffer) {
                 fs.ftruncateSync(fd, 0);
-                return me.write(fd, newBuffer)
+                return me.write(fd, newBuffer);
             })
             .then(function () {
                 if (typeof mode != 'undefined')

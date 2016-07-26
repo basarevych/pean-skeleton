@@ -2,7 +2,7 @@
  * Cron job command
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 

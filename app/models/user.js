@@ -2,7 +2,7 @@
  * User model
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var bcrypt = require('bcrypt');

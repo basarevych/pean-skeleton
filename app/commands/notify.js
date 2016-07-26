@@ -2,7 +2,7 @@
  * Send web-interface notification command
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var NotificationModel = locator.get('notification-model');
@@ -42,7 +42,7 @@ module.exports = function (argv, rl) {
      */
     function run(done) {
         if (!argv['_'][1]) {
-            help(function () { rl.write("\n"); done() });
+            help(function () { rl.write("\n"); done(); });
             return;
         }
 

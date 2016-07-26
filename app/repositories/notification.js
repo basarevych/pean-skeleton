@@ -2,7 +2,7 @@
  * Notification repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');

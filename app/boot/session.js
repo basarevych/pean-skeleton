@@ -2,7 +2,7 @@
  * Session support
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var path = require('path');
@@ -15,7 +15,7 @@ module.exports = function (app) {
         return;
 
     var ttl = config['session']['ttl'];
-    var store = undefined;
+    var store;
 
     if (app.get('env') != 'test') {
         store = new FileStore({

@@ -2,7 +2,7 @@
  * Profile route
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var express = require('express');
@@ -117,7 +117,7 @@ module.exports = function () {
         if (!req.user)
             return app.abort(res, 401, "Not logged in");
 
-        var field = req.body._field
+        var field = req.body._field;
         profileForm.validateField(req, res, field)
             .then(function (success) {
                 res.json({ success: success, errors: profileForm.getErrors(field) });

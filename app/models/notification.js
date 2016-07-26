@@ -2,7 +2,7 @@
  * Notification model
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var q = require('q');
@@ -25,7 +25,7 @@ function NotificationModel(model) {
     this.role_id = null;    // Or else if role_id is set then all the users of this role will get it
 
     BaseModel.call(this, model);
-};
+}
 
 /**
  * Redis expire time of notification

@@ -2,7 +2,7 @@
  * Base repository
  */
 
-'use strict'
+'use strict';
 
 var locator = require('node-service-locator');
 var pg = require('pg');
@@ -38,8 +38,8 @@ BaseRepository.MAX_TRANSACTION_DELAY = 1000;    // ms
  */
 BaseRepository.prototype.getPostgres = function () {
     var config = locator.get('config');
-    var url = 'postgres://' + config['postgres']['user'] + ':' + config['postgres']['password']
-        + '@' + config['postgres']['host'] + '/' + config['postgres']['name'];
+    var url = 'postgres://' + config['postgres']['user'] + ':' + config['postgres']['password'] +
+        '@' + config['postgres']['host'] + '/' + config['postgres']['name'];
 
     return new pg.Client(url);
 };
